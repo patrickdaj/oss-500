@@ -54,15 +54,15 @@
 
 ## 8. study-hub integration
 
-- [ ] 8.1 Add oss-500 as a submodule at `content/oss-500` in `../study-hub/.gitmodules`
+- [x] 8.1 Add oss-500 as a submodule at `content/oss-500` in `../study-hub/.gitmodules`
 - [x] 8.2 Write `../study-hub/src/content/adapters/oss500.ts`, derived from `scc500.ts`, with `CourseConfig` `id: "oss-500"`, `label`, `tagline`, `weekPaced: false`, no `specialRefs`
 - [x] 8.3 Add the `{ id: 'oss-500', adapter: oss500Adapter }` line to `../study-hub/src/content/registry.ts`
 - [x] 8.4 Following scc-500's `terraform/*/README.md` model, add a `content/*/lab-infra/*/README.md` glob to `../study-hub/src/content/raw.ts` and have the `oss500` adapter ingest lab-infra READMEs as browsable in-app docs (the terraformDocs equivalent) and valid link targets for `lab-infra/` references
-- [ ] 8.5 Run `../study-hub` `npm run lint:content` and `npm test` green with oss-500 present; verify the course renders and routes under `/oss-500/*`
+- [x] 8.5 Run `../study-hub` `npm run lint:content` and `npm test` green with oss-500 present; verify the course renders and routes under `/oss-500/*`
 
 ## 9. Integration & verification
 
 - [ ] 9.1 Full-stack capstone: bring up the integrated lab environment end to end and validate cross-tool flow (identity → workload → detection → SIEM)
-- [ ] 9.2 Confirm oss-500 content renders in study-hub (dashboard, plan, notes, labs, tracker, quizzes) with no trial-clock widgets
+- [x] 9.2 Confirm oss-500 content renders in study-hub (dashboard, plan, notes, labs, tracker, quizzes) with no trial-clock widgets
 - [x] 9.3 Secrets scan of committed oss-500 content passes (no tokens, keys, or identifiers)
 - [x] 9.4 Final coverage check: every SC-500 objective has notes + a lab (hands-on or walkthrough) + a checkpoint question
