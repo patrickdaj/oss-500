@@ -13,21 +13,21 @@ Set up the reference host and the cluster once here; every later phase reuses it
 
 ## Day 2 — Kubernetes primitives
 
-- [ ] **[2h] Kubernetes model** — control plane vs nodes, the API server, declarative objects, `kubectl get/describe/apply`, namespaces, labels/selectors.
+- [ ] **[2h] Kubernetes model** — control plane vs nodes, the API server, declarative objects, `kubectl get/describe/apply`, namespaces, labels/selectors. Today's note — [domains/0-fundamentals/02-kubernetes.md](../domains/0-fundamentals/02-kubernetes.md) — backs all of Day 2 (model, workload objects, and the token model); read it alongside these blocks.
 - [ ] **[2h] Workload objects** — Pods, Deployments, ReplicaSets, Services, ConfigMaps, Secrets (and why a base64 Secret is *not* encrypted). Deploy nginx, expose it, scale it.
 - [ ] **[1.5h] ServiceAccounts and the token model** — every pod gets a ServiceAccount; projected tokens; this is the seed of workload identity (Phase 1).
-- [ ] **[1h] Notes** — [domains/0-fundamentals/02-kubernetes.md](../domains/0-fundamentals/02-kubernetes.md).
+- [ ] **[1h] Consolidate + self-check** — finish [02-kubernetes.md](../domains/0-fundamentals/02-kubernetes.md) and answer its self-check: why a base64 Secret isn't encrypted, and where a pod's identity comes from.
 
 ## Day 3 — kind cluster, Helm, and the IaC loop
 
-- [ ] **[2h] Stand up the lab cluster** — follow [lab-infra/README.md](../lab-infra/README.md): create the kind cluster, install the ingress controller, apply the shared namespaces/labels. This cluster is your lab environment for the whole course.
+- [ ] **[2h] Stand up the lab cluster** — follow [lab-infra/README.md](../lab-infra/README.md): create the kind cluster, install the ingress controller, apply the shared namespaces/labels. This cluster is your lab environment for the whole course. Today's note — [domains/0-fundamentals/03-kind-helm-iac.md](../domains/0-fundamentals/03-kind-helm-iac.md) — backs all of Day 3 (kind, Helm, and the deploy→verify→destroy loop); read it alongside these blocks.
 - [ ] **[2h] Helm** — charts, values, releases, `helm install/upgrade/template`, and why `helm template` makes IaC reviewable. Install one chart (e.g. a demo app) and read its rendered manifests.
 - [ ] **[1.5h] The deploy → verify → destroy loop** — practice the discipline every lab uses: `up.sh` a component, check it's healthy, `down.sh` it, confirm no leftovers (`kubectl get all -A`, `docker ps`).
-- [ ] **[1h] Notes + self-check** — [domains/0-fundamentals/03-kind-helm-iac.md](../domains/0-fundamentals/03-kind-helm-iac.md).
+- [ ] **[1h] Consolidate + self-check** — finish [03-kind-helm-iac.md](../domains/0-fundamentals/03-kind-helm-iac.md); prove you can install and uninstall a Helm chart with nothing left behind.
 
 ## Day 4 — RBAC preview and flex
 
-- [ ] **[1.5h] Kubernetes RBAC preview** — Roles, ClusterRoles, bindings, `kubectl auth can-i`. Just enough to be comfortable; Phase 1 goes deep.
+- [ ] **[1.5h] Kubernetes RBAC preview** — Roles, ClusterRoles, bindings, `kubectl auth can-i`. Just enough to be comfortable; Phase 1's [kubernetes-rbac.md](../domains/1-identity-governance/kubernetes-rbac.md) goes deep.
 - [ ] **[1.5h] YAML/manifest fluency** — reading `securityContext`, resource limits, and probes in a manifest without flinching.
 - [ ] **[1h] Catch-up / rest** — finish any self-checks; make sure `kind`, `kubectl`, and `helm` all work end to end before Phase 1.
 
