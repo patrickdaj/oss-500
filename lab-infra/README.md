@@ -59,6 +59,42 @@ cd lab-infra/<component>
 | `network-detection/` | Suricata, Zeek (Docker Compose) | 4 · `nid-*` |
 | `posture/` | Kubescape, kube-bench | 4 · `vuln-*` |
 
+## Automating with Terraform (optional)
+
+The default automation here is the `up.sh`/`down.sh` wrappers over Helm, `kubectl`, and Docker Compose — chosen so the manifests and values stay readable *as study material* (`gov-iac`). But the entire stack can equally be driven by **Terraform**, and doing so is itself good `gov-iac` practice. Terraform's providers cover every layer used here:
+
+| Layer | Provider | What it replaces |
+|---|---|---|
+| Cluster | `tehcyx/kind` (local) **or** `hashicorp/azurerm` (AKS / a VM) | `kind create cluster` |
+| In-cluster tools (Keycloak, Vault, cert-manager, Falco, Prometheus…) | `hashicorp/helm` → `helm_release` | the `helm install` calls in `up.sh` |
+| Policies, RBAC, NetworkPolicy, namespaces | `hashicorp/kubernetes` → `kubernetes_manifest` | the `kubectl apply -f` calls |
+| Compose appliances (Wazuh, Suricata, Zeek) | `kreuzwerker/docker` | `docker compose up` |
+
+**The point that makes it portable:** the in-cluster layer (`helm` + `kubernetes`) is **identical whether the cluster is local kind or Azure AKS** — the same `helm_release "vault"` and `kubernetes_manifest "default-deny"` apply to both. Only the *cluster* module changes. A natural layout:
+
+```hcl
+# lab-infra/terraform/modules/stack/  — cloud-agnostic: helm_release + kubernetes_manifest
+#   for every component, pointed at whatever kubeconfig it's given.
+# lab-infra/terraform/local-kind/     — kind_cluster "oss500"  -> module.stack
+# lab-infra/terraform/azure-aks/      — azurerm_kubernetes_cluster -> module.stack
+```
+
+```hcl
+# sketch — one tool, identical for local or Azure:
+resource "helm_release" "vault" {
+  name       = "vault"
+  namespace  = "oss500-secrets"
+  repository = "https://helm.releases.hashicorp.com"
+  chart      = "vault"
+  values     = [file("${path.module}/../../secrets/values.yaml")] # reuse the same values
+}
+resource "kubernetes_manifest" "default_deny" {                    # net-policy
+  manifest = yamldecode(file("${path.module}/../../network/default-deny.yaml"))
+}
+```
+
+To go from local to Azure you swap `local-kind/` for `azure-aks/` (or a Linux-VM root) and repoint the kubeconfig — the `module.stack` invocation is unchanged. This mirrors the real SC-500 lesson: infrastructure-as-code that carries the same security controls across environments. The `.tf` roots aren't shipped in this repo (the shell + Helm path is the taught default), but everything above is a complete recipe to add them.
+
 ## Naming & labels
 
 - Cluster name: `oss500`. In-cluster resources live in the `oss500-*` namespaces defined in [`shared/namespaces.yaml`](shared/namespaces.yaml) and carry `app.kubernetes.io/part-of: oss500`.
