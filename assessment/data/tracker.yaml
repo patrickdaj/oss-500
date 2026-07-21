@@ -4,6 +4,8 @@
 # assessment/tracker.md is GENERATED from this file — do not edit it by hand (npm run gen:md).
 # lab: hands-on | walkthrough  (walkthrough = impractical on a single laptop host; steps still documented)
 # `oss` = the primary open-source tool(s); `sc500` = the Azure/SC-500 control it corresponds to.
+# `standards` = (optional) offensive↔defensive standard refs — ATT&CK↔D3FEND, OWASP-LLM/ATLAS,
+#   800-207, CIS/CSF. Verified IDs only. See domains/standards-map.md. Renders as a tracker column.
 version: 1
 studyGuideDate: "2026-04-26"
 domains:
@@ -125,6 +127,40 @@ domains:
             text: "Implement and configure security controls by using infrastructure as code"
             oss: Helm / Kubernetes manifests
             sc500: Security controls via IaC
+            lab: hands-on
+      - id: d1-ztna
+        name: "Zero-trust access — five models (beyond-blueprint)"
+        notes: domains/1-identity-governance/ztna-access-models.md
+        objectives:
+          - id: ztna-taxonomy
+            text: "Frame ZTNA as five models sharing one principle (PDP/PEP, per-session identity, no inbound exposure)"
+            oss: NIST 800-207 taxonomy
+            sc500: Entra Private Access (Global Secure Access)
+            standards: "NIST 800-207 · CISA ZTMM"
+            lab: walkthrough
+          - id: ztna-boundary
+            text: "Broker identity-based sessions with Vault-injected ephemeral credentials, Terraform-automated"
+            oss: HashiCorp Boundary + Vault
+            sc500: Entra Private Access + PIM
+            standards: "NIST 800-207 · ATT&CK T1078"
+            lab: hands-on
+          - id: ztna-openziti
+            text: "Build an app-embedded zero-trust overlay with zero listening ports"
+            oss: OpenZiti
+            sc500: "— (beyond SC-500)"
+            standards: "NIST 800-207"
+            lab: hands-on
+          - id: ztna-pomerium
+            text: "Front an internal app with an identity-aware reverse proxy (BeyondCorp)"
+            oss: Pomerium
+            sc500: Entra Private Access / App Proxy
+            standards: "NIST 800-207"
+            lab: hands-on
+          - id: ztna-netbird
+            text: "Deploy a WireGuard mesh with identity ACLs and a self-hosted control plane"
+            oss: Netbird
+            sc500: Entra Private Access (connector mesh)
+            standards: "NIST 800-207"
             lab: hands-on
   - id: d2
     name: Secure secrets, data, and networking

@@ -1,8 +1,8 @@
 # OSS-500 — Open-Source Cloud & AI Security Engineering
 
-A complete, self-built study system that teaches the concepts of Microsoft exam **SC-500 (Cloud and AI Security Engineer Associate)** on a **100% open-source stack** — for **$0**, entirely on a local machine, with no cloud account and no expiring trials.
+A complete, self-built **Cloud & AI Security** curriculum on a **100% open-source stack** — for **$0**, entirely on a local machine, with no cloud account and no expiring trials. It's **defense *and* offense, standards-grounded**: build each control, then prove it by attacking it.
 
-Every SC-500 control is mapped to an open-source equivalent and practiced as a hands-on lab you deploy, verify, and tear down. The skills transfer across Azure, AWS, GCP, and on-prem — because you learn the *concept* (just-in-time privileged access, default-deny segmentation, admission control, runtime detection, SIEM detection-as-code) through a portable tool, not a vendor console.
+The **defensive anchor is Microsoft SC-500 (Cloud and AI Security Engineer Associate)** — every SC-500 control is mapped to an open-source equivalent and practiced as a hands-on lab you deploy, verify, and tear down. On top of that anchor the course expands *beyond* the exam into the two dimensions a modern cloud/AI security engineer needs: the full **zero-trust access-model** picture and a **purple-team** habit of validating every defense. The skills transfer across Azure, AWS, GCP, and on-prem — you learn the *concept* through a portable tool, not a vendor console. Beyond-blueprint material is marked as such, so the SC-500 path stays clear.
 
 > **This is a content-only course repo.** The study app is [`study-hub`](../study-hub) — a course-agnostic dashboard/notes/labs/tracker/quiz runner that ingests this repo as a git submodule. There is no `ui/` here by design.
 
@@ -12,7 +12,10 @@ Every SC-500 control is mapped to an open-source equivalent and practiced as a h
 - **Secrets, data & networking** — HashiCorp Vault (dynamic secrets, rotation, transit), cert-manager, default-deny NetworkPolicy, service-mesh mTLS, ModSecurity WAF, data-at-rest encryption.
 - **Compute & AI** — Pod Security Admission, Kyverno/OPA Gatekeeper admission control, Falco/Tetragon runtime detection, Trivy/Grype/Harbor supply chain, and **AI security** (model access control, prompt-injection guardrails, secure RAG, LLM observability).
 - **Posture & monitoring** — Prometheus/Grafana/Loki/Tempo observability, Wazuh + OpenSearch SIEM, Suricata/Zeek network detection, Kubescape posture & compliance.
-- **Policy-as-code & IaC** — the whole lab stack is deployed as annotated Helm values / Kubernetes manifests that double as study material.
+- **Zero-trust access — five models** *(beyond-blueprint)* — the full ZTNA picture as code: broker (Teleport, Boundary+Vault), app-embedded overlay (OpenZiti), identity-aware proxy (Pomerium), WireGuard mesh (Netbird), on the SPIFFE/SPIRE workload-identity substrate — Terraform-automated.
+- **Offensive validation — purple team** *(beyond-blueprint)* — prove every control by attacking it: garak/PyRIT vs the AI guardrails, Atomic Red Team/Caldera/Stratus vs the runtime + SIEM detections, authz tests vs the ZTNA brokers.
+- **Policy-as-code & IaC** — the lab stack deploys as annotated Helm values / Kubernetes manifests, with the zero-trust labs **Terraform-automated**; all double as study material.
+- **Standards-grounded** — every control cites its defensive standard and every attack its offensive one: **ATT&CK ↔ D3FEND**, **OWASP LLM Top 10 + ATLAS + NIST AI RMF**, **NIST 800-207 + CISA ZTMM**, **CIS + NIST CSF 2.0** (see [`domains/standards-map.md`](domains/standards-map.md)).
 
 ## SC-500 concept mapping
 

@@ -27,11 +27,11 @@ for (const domain of tracker.domains) {
       '',
       `Notes: \`${sub.notes}\``,
       '',
-      '| id | Objective | OSS | SC-500 | Lab | Lab done | Checkpoint | Confidence |',
-      '|---|---|---|---|---|---|---|---|',
+      '| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |',
+      '|---|---|---|---|---|---|---|---|---|',
     )
     for (const obj of sub.objectives) {
-      out.push(`| \`${obj.id}\` | ${obj.text} | ${obj.oss ?? ''} | ${obj.sc500 ?? ''} | ${obj.lab} |  |  |  |`)
+      out.push(`| \`${obj.id}\` | ${obj.text} | ${obj.oss ?? ''} | ${obj.sc500 ?? ''} | ${obj.standards ?? ''} | ${obj.lab} |  |  |  |`)
       total++
     }
     out.push('')
