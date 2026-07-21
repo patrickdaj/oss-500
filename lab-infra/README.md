@@ -8,6 +8,19 @@ Everything here provisions the open-source security stack **locally**, on a sing
 - Software: Docker, [kind](https://kind.sigs.k8s.io/), `kubectl`, [Helm](https://helm.sh/). No cloud account, no cost.
 - The heaviest components — Wazuh + OpenSearch (SIEM) and the full observability stack — should be run alone. Anything that won't fit the reference host is marked `walkthrough` in the tracker.
 
+## Running on Apple Silicon (macOS)
+
+The labs run well on an Apple Silicon Mac (M-series). Two setup notes and one caveat:
+
+- **Give Docker enough memory.** Docker Desktop defaults low (often ~8 GB). Open **Docker Desktop → Settings → Resources → Memory** and set it to **~12–14 GB** (on a 16–18 GB Mac, leave ~4 GB for macOS). Then every individual lab and most phase stacks fit; still run the two heaviest — Wazuh + OpenSearch, and the full observability stack — one at a time.
+- **Watch disk, not RAM.** Images and volumes (OpenSearch, Harbor, kind node images, every tool image) can total 20–30 GB. Reclaim space between phases:
+  ```bash
+  kind delete cluster --name oss500
+  docker system prune -af --volumes
+  ```
+- **Images are arm64.** Almost every chart/image used here is multi-arch, so there's no emulation penalty — and **Ollama uses the Apple GPU (Metal)**, so the AI-security labs run fast. If a rare image is amd64-only, Docker runs it under emulation (slower); the lab notes call those out.
+- **eBPF caveat — Falco, Tetragon, and kube-bench node checks.** On Docker Desktop the kernel is a LinuxKit VM, not macOS, so the runtime-detection tools watch that VM's kernel (not your host) and some of kube-bench's node-level CIS checks come back N/A. They usually *run*, but for faithful host-level behavior use a real Linux kernel — a local Lima/Colima/UTM VM (free) or a small cloud VM (e.g. Azure `Standard_B4ms`, destroyed when done). Everything else — including the Suricata/Zeek labs on synthetic traffic — is faithful locally.
+
 ## Bring up the cluster (once)
 
 ```bash
