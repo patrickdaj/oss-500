@@ -33,3 +33,8 @@ Every Kubernetes workload is a container. The controls you'll implement — imag
 1. What's the difference between tagging an image `:latest` and pinning it by digest, and why does the digest matter for supply-chain security?
 2. If a build `COPY`s a private key and a later instruction `RUN rm`s it, is the key still recoverable from the image? Why?
 3. Name two `Dockerfile` changes that reduce what a runtime scanner or attacker can exploit.
+
+## Primary sources
+- [Docker documentation](https://docs.docker.com/) · [Get Started](https://docs.docker.com/get-started/)
+- [Open Container Initiative (OCI) — image & runtime specs](https://opencontainers.org/)
+- [Kubernetes — Container images](https://kubernetes.io/docs/concepts/containers/images/)

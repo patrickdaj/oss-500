@@ -47,3 +47,9 @@ Provisioning security controls as code (`gov-iac`) is itself an SC-500 objective
 1. Create the kind cluster from the lab-infra config, then delete it and confirm the containers are gone.
 2. Use `helm template` to render a chart and find its `securityContext` without installing anything.
 3. Describe the three steps of the deploy→verify→destroy loop and why "verify" is the point.
+
+## Primary sources
+- [kind — Quick Start](https://kind.sigs.k8s.io/docs/user/quick-start/)
+- [Helm — documentation](https://helm.sh/docs/)
+- [Terraform — Intro](https://developer.hashicorp.com/terraform/intro) · [install](https://developer.hashicorp.com/terraform/install)
+- [Kubernetes — Configuration best practices](https://kubernetes.io/docs/concepts/configuration/overview/)

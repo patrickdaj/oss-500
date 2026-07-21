@@ -1,0 +1,10 @@
+# Copy to terraform.tfvars (gitignored). Never commit real values.
+boundary_addr       = "http://127.0.0.1:9200"   # `boundary dev` controller, or your HCP/self-hosted URL
+boundary_login_name = "admin"
+boundary_password   = "REDACTED"
+target_host_address = "10.10.2.20"              # a private host to SSH to
+target_port         = 22
+app_user_password   = "REDACTED"
+vault_addr          = "http://127.0.0.1:8200"   # `vault server -dev`, or your Vault URL
+vault_token         = "REDACTED"                # least-privilege token for the SSH secrets engine
+vault_ssh_path      = "ssh/sign/boundary"

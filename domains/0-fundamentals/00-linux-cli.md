@@ -48,3 +48,9 @@ Everything downstream is a Linux abstraction: `securityContext` is UID/GID/capab
 2. Which command shows the process listening on a given port, and which shows the logs of a systemd-managed service?
 3. You apply a default-deny egress NetworkPolicy and the app breaks even for allowed destinations. What Linux/networking fundamental is the usual culprit, and how would you confirm it from the shell?
 4. What does it mean, in Linux terms, to say "a container is just a process"?
+
+## Primary sources
+- [The Linux Command Line (Shotts) — free book](https://linuxcommand.org/tlcl.php)
+- [Linux Journey](https://linuxjourney.com/) — interactive fundamentals
+- [Bash Reference Manual (GNU)](https://www.gnu.org/software/bash/manual/bash.html)
+- [man7.org — Linux man pages](https://man7.org/linux/man-pages/)

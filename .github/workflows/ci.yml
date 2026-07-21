@@ -1,0 +1,48 @@
+name: ci
+
+# Validates the CI-backed reference solutions so the lab directions are known to
+# work: Terraform fmt/validate on the as-code labs, shellcheck on lab-infra scripts.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: terraform fmt + validate (reference solutions)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: fmt (all HCL)
+        run: terraform fmt -check -recursive
+      - name: validate each terraform lab
+        run: |
+          set -euo pipefail
+          find . -name '*.tf' -printf '%h\n' | sort -u | while read -r dir; do
+            echo "::group::validate $dir"
+            terraform -chdir="$dir" init -backend=false -input=false >/dev/null
+            terraform -chdir="$dir" validate
+            echo "::endgroup::"
+          done
+
+  shellcheck:
+    name: shellcheck lab-infra scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          find lab-infra -name '*.sh' -print0 | xargs -0 -r shellcheck --severity=warning || true
+          find lab-infra -name '*.sh' -print0 | xargs -0 -r shellcheck --severity=error
+
+  # Cluster-based labs (Helm/kind) and offensive tooling need a running stack, so
+  # they aren't spun up in CI; the reference solutions above prove the as-code
+  # labs are valid. Offensive labs run locally against the local stack only.

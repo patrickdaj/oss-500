@@ -44,3 +44,9 @@ Every pod runs as a **ServiceAccount** (the `default` SA if none is set). The AP
 1. Why is a Kubernetes Secret not "secure" out of the box, and what three controls in this course harden it?
 2. Where does a pod's identity come from, and how does that token become the basis for RBAC?
 3. By default, can a pod in namespace A reach a pod in namespace B? What object changes that?
+
+## Primary sources
+- [Kubernetes — Concepts](https://kubernetes.io/docs/concepts/)
+- [Kubernetes Basics — interactive tutorial](https://kubernetes.io/docs/tutorials/kubernetes-basics/)
+- [kubectl reference](https://kubernetes.io/docs/reference/kubectl/)
+- [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/)

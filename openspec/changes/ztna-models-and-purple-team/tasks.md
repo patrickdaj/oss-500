@@ -8,10 +8,12 @@ Phased so each phase is shippable and study-hub stays green. Large change — ex
 - [x] 1.2 Establish the standards spine in the tracker: add a `standards:` field convention (defensive + offensive) and a short `domains/standards-map.md` note (ATT&CK↔D3FEND, ATLAS/OWASP-LLM/AI-RMF, 800-207/ZTMM, CIS/CSF) — verified links only
 - [x] 1.3 ~~Decide the WireGuard-mesh tool + comparison home~~ — **Resolved:** Netbird (OSS + TF provider); **no comparison artifact** (adequate per-model coverage instead); all ZTNA labs Terraform-automated
 
+- [x] 1.4 Enrich Phase-0 fundamentals notes with authoritative external sources (they had ~0 links)
+
 ## 2. ZTNA five models (Domain 1 extension) — Terraform-automated
 
 - [x] 2.1 Note: ZTNA access-model taxonomy — broker / overlay / id-aware proxy / mesh / workload-identity, all to NIST 800-207; place Teleport (✅) and SPIFFE (✅) in it
-- [ ] 2.2 Lab: Boundary + Vault (broker + credential injection) — Terraform provider, reuse existing Vault infra
+- [x] 2.2 Lab: Boundary + Vault (broker + credential injection) — Terraform provider, reuse existing Vault infra; directions-first guide + CI-validated `lab-infra/ztna-boundary/` solution; **added oss-500 CI** (terraform fmt/validate + shellcheck)
 - [ ] 2.3 Lab: OpenZiti (app-embedded overlay, zero listening ports) — Terraform edge provider
 - [ ] 2.4 Lab: Pomerium (identity-aware reverse proxy / BeyondCorp) in front of an internal app — TF-wrapped Helm release
 - [ ] 2.5 Lab: Netbird (WireGuard mesh with identity ACLs) — official Terraform provider
