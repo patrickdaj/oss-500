@@ -4,13 +4,13 @@ Phased so each phase is shippable and study-hub stays green. Large change — ex
 
 ## 1. Scope, identity & standards spine
 
-- [ ] 1.1 Rework the README/thesis to "Expanded Cloud & AI Security for OSS — defense and offense, standards-grounded," with SC-500 as the defensive anchor and new material marked beyond-blueprint
-- [ ] 1.2 Establish the standards spine in the tracker: add a `standards:` field convention (defensive + offensive) and a short `domains/standards-map.md` note (ATT&CK↔D3FEND, ATLAS/OWASP-LLM/AI-RMF, 800-207/ZTMM, CIS/CSF) — verified links only
+- [x] 1.1 Rework the README/thesis to "Expanded Cloud & AI Security for OSS — defense and offense, standards-grounded," with SC-500 as the defensive anchor and new material marked beyond-blueprint
+- [x] 1.2 Establish the standards spine in the tracker: add a `standards:` field convention (defensive + offensive) and a short `domains/standards-map.md` note (ATT&CK↔D3FEND, ATLAS/OWASP-LLM/AI-RMF, 800-207/ZTMM, CIS/CSF) — verified links only
 - [x] 1.3 ~~Decide the WireGuard-mesh tool + comparison home~~ — **Resolved:** Netbird (OSS + TF provider); **no comparison artifact** (adequate per-model coverage instead); all ZTNA labs Terraform-automated
 
 ## 2. ZTNA five models (Domain 1 extension) — Terraform-automated
 
-- [ ] 2.1 Note: ZTNA access-model taxonomy — broker / overlay / id-aware proxy / mesh / workload-identity, all to NIST 800-207; place Teleport (✅) and SPIFFE (✅) in it
+- [x] 2.1 Note: ZTNA access-model taxonomy — broker / overlay / id-aware proxy / mesh / workload-identity, all to NIST 800-207; place Teleport (✅) and SPIFFE (✅) in it
 - [ ] 2.2 Lab: Boundary + Vault (broker + credential injection) — Terraform provider, reuse existing Vault infra
 - [ ] 2.3 Lab: OpenZiti (app-embedded overlay, zero listening ports) — Terraform edge provider
 - [ ] 2.4 Lab: Pomerium (identity-aware reverse proxy / BeyondCorp) in front of an internal app — TF-wrapped Helm release
