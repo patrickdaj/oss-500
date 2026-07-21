@@ -1,0 +1,448 @@
+# OSS-500 objective tracker — source of truth.
+# Teaches the SC-500 (Cloud & AI Security Engineer) skills outline on a 100% open-source stack.
+# Domains and weights mirror SC-500; each objective maps an SC-500 concept to its OSS equivalent.
+# assessment/tracker.md is GENERATED from this file — do not edit it by hand (npm run gen:md).
+# lab: hands-on | walkthrough  (walkthrough = impractical on a single laptop host; steps still documented)
+# `oss` = the primary open-source tool(s); `sc500` = the Azure/SC-500 control it corresponds to.
+version: 1
+studyGuideDate: "2026-04-26"
+domains:
+  - id: d1
+    name: Manage identity, access, and governance
+    weight: 20-25%
+    subsections:
+      - id: d1-idp
+        name: Secure access to resources by using an identity provider (Keycloak)
+        notes: domains/1-identity-governance/identity-provider.md
+        objectives:
+          - id: kc-deploy
+            text: "Deploy an OIDC/SAML identity provider and model realms, users, and groups (Entra ID equivalent)"
+            oss: Keycloak
+            sc500: Microsoft Entra ID
+            lab: hands-on
+          - id: kc-mfa
+            text: "Configure authentication methods, including MFA, OTP, and WebAuthn passwordless"
+            oss: Keycloak authentication flows
+            sc500: Entra authentication methods / MFA
+            lab: hands-on
+          - id: kc-ca
+            text: "Implement conditional access via authentication flows and authorization policies"
+            oss: Keycloak Authorization Services
+            sc500: Conditional Access
+            lab: hands-on
+          - id: kc-clients
+            text: "Configure identity for applications: OIDC clients, service accounts, and scopes"
+            oss: Keycloak clients
+            sc500: Enterprise apps / app registrations
+            lab: hands-on
+          - id: kc-federation
+            text: "Configure identity federation and brokering across SAML/OIDC providers"
+            oss: Keycloak identity brokering
+            sc500: Entra external identities / federation
+            lab: hands-on
+          - id: kc-consent
+            text: "Manage OAuth scopes, client scopes, and consent"
+            oss: Keycloak client scopes / consent
+            sc500: OAuth permission grants and consent
+            lab: hands-on
+      - id: d1-workload-identity
+        name: Implement identity for workloads (managed-identity equivalent)
+        notes: domains/1-identity-governance/workload-identity.md
+        objectives:
+          - id: wi-sa
+            text: "Configure Kubernetes ServiceAccounts and bound projected tokens for workloads"
+            oss: Kubernetes ServiceAccounts
+            sc500: Managed identities
+            lab: hands-on
+          - id: wi-oidc
+            text: "Federate workload identity to secret/cloud systems via the cluster OIDC issuer"
+            oss: Kubernetes workload identity / OIDC
+            sc500: Workload identity federation
+            lab: hands-on
+          - id: wi-spiffe
+            text: "Explain SPIFFE/SPIRE workload identity and mTLS-based service identity"
+            oss: SPIFFE/SPIRE
+            sc500: Managed identities for services
+            lab: walkthrough
+      - id: d1-pam
+        name: Implement privileged access management (PIM equivalent)
+        notes: domains/1-identity-governance/privileged-access.md
+        objectives:
+          - id: pam-jit
+            text: "Implement just-in-time privileged access with short-lived credentials"
+            oss: Teleport / Boundary
+            sc500: Privileged Identity Management (PIM)
+            lab: hands-on
+          - id: pam-session
+            text: "Configure session recording and audit for privileged sessions"
+            oss: Teleport session recording
+            sc500: PIM audit / access reviews
+            lab: hands-on
+          - id: pam-approval
+            text: "Require approval workflows and role escalation for privileged roles"
+            oss: Teleport access requests
+            sc500: PIM approval / eligible assignments
+            lab: walkthrough
+      - id: d1-k8s-rbac
+        name: Implement role-based access control on the cluster
+        notes: domains/1-identity-governance/kubernetes-rbac.md
+        objectives:
+          - id: rbac-roles
+            text: "Create Roles/ClusterRoles and bindings scoped to subjects and namespaces"
+            oss: Kubernetes RBAC
+            sc500: Azure RBAC
+            lab: hands-on
+          - id: rbac-least
+            text: "Apply least-privilege and separate duties across subjects"
+            oss: Kubernetes RBAC
+            sc500: Least-privilege / RBAC
+            lab: hands-on
+          - id: rbac-audit
+            text: "Audit RBAC to find over-permissioned subjects and risky bindings"
+            oss: rbac-tool / kubectl-who-can
+            sc500: Access reviews / entitlement management
+            lab: hands-on
+      - id: d1-governance
+        name: Implement governance to enforce security and compliance
+        notes: domains/1-identity-governance/governance.md
+        objectives:
+          - id: gov-gatekeeper
+            text: "Enforce organizational policy with OPA Gatekeeper constraints"
+            oss: OPA Gatekeeper
+            sc500: Azure Policy
+            lab: hands-on
+          - id: gov-kyverno
+            text: "Enforce and mutate resources with Kyverno policies"
+            oss: Kyverno
+            sc500: Azure Policy for AKS
+            lab: hands-on
+          - id: gov-compliance
+            text: "Evaluate compliance against frameworks and baselines"
+            oss: Kubescape compliance frameworks
+            sc500: Defender secure score / regulatory compliance
+            lab: hands-on
+          - id: gov-iac
+            text: "Implement and configure security controls by using infrastructure as code"
+            oss: Helm / Kubernetes manifests
+            sc500: Security controls via IaC
+            lab: hands-on
+  - id: d2
+    name: Secure secrets, data, and networking
+    weight: 25-30%
+    subsections:
+      - id: d2-secrets
+        name: Secure secrets and keys by using a secrets manager (Key Vault equivalent)
+        notes: domains/2-secrets-data-networking/secrets-management.md
+        objectives:
+          - id: vault-deploy
+            text: "Deploy a secrets manager and understand seal/unseal and storage backends"
+            oss: HashiCorp Vault
+            sc500: Azure Key Vault
+            lab: hands-on
+          - id: vault-access
+            text: "Configure access with auth methods and policies"
+            oss: Vault auth methods / policies
+            sc500: Key Vault access model (RBAC)
+            lab: hands-on
+          - id: vault-dynamic
+            text: "Issue dynamic, short-lived secrets with leases and revocation"
+            oss: Vault dynamic secrets
+            sc500: Managed credentials / rotation
+            lab: hands-on
+          - id: vault-rotation
+            text: "Configure secret rotation for static and dynamic credentials"
+            oss: Vault rotation
+            sc500: Key Vault secret rotation
+            lab: hands-on
+          - id: vault-k8s
+            text: "Deliver secrets to workloads via the Vault agent injector or Secrets Store CSI"
+            oss: Vault Agent / CSI
+            sc500: Key Vault + workload identity
+            lab: hands-on
+          - id: vault-audit
+            text: "Enable audit devices and monitor secret access"
+            oss: Vault audit devices
+            sc500: Key Vault diagnostics / Defender for Key Vault
+            lab: hands-on
+      - id: d2-keys-certs
+        name: Manage encryption keys and certificate lifecycle
+        notes: domains/2-secrets-data-networking/keys-and-certificates.md
+        objectives:
+          - id: key-transit
+            text: "Provide encryption-as-a-service and manage encryption keys"
+            oss: Vault transit engine
+            sc500: Key Vault keys / encryption
+            lab: hands-on
+          - id: key-hsm
+            text: "Integrate an HSM as a root of trust for key material"
+            oss: Vault HSM / PKCS#11
+            sc500: Managed HSM
+            lab: walkthrough
+          - id: cert-issuer
+            text: "Automate certificate issuance with cluster issuers and ACME"
+            oss: cert-manager
+            sc500: Key Vault certificates
+            lab: hands-on
+          - id: cert-lifecycle
+            text: "Manage certificate renewal, rotation, and revocation"
+            oss: cert-manager
+            sc500: Certificate lifecycle management
+            lab: hands-on
+      - id: d2-network
+        name: Implement network segmentation and zero-trust connectivity
+        notes: domains/2-secrets-data-networking/network-security.md
+        objectives:
+          - id: net-policy
+            text: "Segment east-west traffic with default-deny NetworkPolicies"
+            oss: Kubernetes NetworkPolicy
+            sc500: NSGs / segmentation
+            lab: hands-on
+          - id: net-mesh
+            text: "Enforce mTLS and identity-aware east-west controls with a service mesh"
+            oss: Istio / Linkerd
+            sc500: Private Link / zero-trust networking
+            lab: hands-on
+          - id: net-ingress
+            text: "Secure ingress with TLS termination and authenticated access"
+            oss: ingress-nginx + cert-manager
+            sc500: Secure ingress / App Gateway
+            lab: hands-on
+          - id: net-firewall
+            text: "Apply perimeter firewall and segmentation concepts for the host/edge"
+            oss: OPNsense / pfSense / nftables
+            sc500: Azure Firewall
+            lab: walkthrough
+      - id: d2-waf
+        name: Protect web workloads with a web application firewall
+        notes: domains/2-secrets-data-networking/web-application-firewall.md
+        objectives:
+          - id: waf-deploy
+            text: "Deploy a WAF in front of a web workload"
+            oss: ModSecurity / ingress-nginx WAF
+            sc500: Azure WAF
+            lab: hands-on
+          - id: waf-rules
+            text: "Configure and tune OWASP Core Rule Set rules and paranoia levels"
+            oss: OWASP CRS
+            sc500: WAF managed rule sets
+            lab: hands-on
+          - id: waf-verify
+            text: "Verify the WAF blocks injection and XSS attempts and tune false positives"
+            oss: ModSecurity audit log
+            sc500: WAF detection/prevention
+            lab: hands-on
+      - id: d2-data
+        name: Protect data at rest and detect exposed secrets
+        notes: domains/2-secrets-data-networking/data-protection.md
+        objectives:
+          - id: data-encrypt
+            text: "Encrypt data at rest: etcd secrets, volumes, and application data"
+            oss: etcd encryption / Vault transit
+            sc500: Storage/SQL encryption, CMK
+            lab: hands-on
+          - id: data-secretscan
+            text: "Scan repositories and images for plaintext secrets"
+            oss: Trivy / Gitleaks
+            sc500: Defender CSPM secret scanning
+            lab: hands-on
+  - id: d3
+    name: Secure compute and AI workloads
+    weight: 20-25%
+    subsections:
+      - id: d3-podsecurity
+        name: Harden pods and enforce workload security standards
+        notes: domains/3-compute-ai/pod-security.md
+        objectives:
+          - id: pod-psa
+            text: "Apply Pod Security Admission and the Pod Security Standards"
+            oss: Pod Security Admission
+            sc500: Pod security / AKS baselines
+            lab: hands-on
+          - id: pod-securitycontext
+            text: "Harden securityContext: non-root, read-only root FS, dropped capabilities, seccomp"
+            oss: Kubernetes securityContext
+            sc500: Container hardening
+            lab: hands-on
+          - id: pod-admission
+            text: "Enforce workload security at admission time"
+            oss: Kyverno / Gatekeeper
+            sc500: Azure Policy for AKS
+            lab: hands-on
+      - id: d3-runtime
+        name: Detect and respond to runtime threats
+        notes: domains/3-compute-ai/runtime-security.md
+        objectives:
+          - id: rt-falco
+            text: "Detect anomalous runtime behavior with syscall-based rules"
+            oss: Falco
+            sc500: Defender for Containers
+            lab: hands-on
+          - id: rt-tetragon
+            text: "Observe and enforce process/network behavior with eBPF"
+            oss: Tetragon
+            sc500: Defender for Containers runtime protection
+            lab: hands-on
+          - id: rt-response
+            text: "Route runtime alerts and trigger response actions"
+            oss: Falcosidekick
+            sc500: Defender alerts / automation
+            lab: hands-on
+      - id: d3-supplychain
+        name: Secure the software supply chain and container images
+        notes: domains/3-compute-ai/supply-chain.md
+        objectives:
+          - id: sc-scan
+            text: "Scan images and dependencies for vulnerabilities"
+            oss: Trivy / Grype
+            sc500: Defender vulnerability management
+            lab: hands-on
+          - id: sc-registry
+            text: "Secure a private registry and sign/verify images"
+            oss: Harbor / cosign
+            sc500: Azure Container Registry
+            lab: hands-on
+          - id: sc-sbom
+            text: "Generate and evaluate SBOMs for deployed artifacts"
+            oss: Syft / Trivy SBOM
+            sc500: Supply-chain security
+            lab: hands-on
+          - id: sc-admission
+            text: "Gate admission on scan results and signature verification"
+            oss: Kyverno / Harbor policy
+            sc500: Azure Policy for AKS
+            lab: hands-on
+      - id: d3-ai
+        name: Implement security for AI workloads
+        notes: domains/3-compute-ai/ai-security.md
+        newToSc500: true
+        objectives:
+          - id: ai-access
+            text: "Control access to models and the inference API with authentication and rate limits"
+            oss: Ollama behind a gateway + Keycloak
+            sc500: Azure OpenAI access control
+            lab: hands-on
+          - id: ai-prompt
+            text: "Mitigate prompt-injection and jailbreak attempts"
+            oss: NeMo Guardrails / guardrails
+            sc500: Prompt Shields / prompt protection
+            lab: hands-on
+          - id: ai-guardrails
+            text: "Filter unsafe input and output with content-safety guardrails"
+            oss: NeMo Guardrails
+            sc500: Azure AI Content Safety
+            lab: hands-on
+          - id: ai-rag
+            text: "Design a secure RAG architecture with data isolation and least privilege"
+            oss: Open WebUI + Vault + RBAC
+            sc500: Secure RAG on Azure AI
+            lab: hands-on
+          - id: ai-observability
+            text: "Instrument LLM calls for observability and auditing"
+            oss: OpenTelemetry
+            sc500: Azure AI monitoring / Application Insights
+            lab: hands-on
+          - id: ai-governance
+            text: "Govern AI usage with policy at the gateway"
+            oss: OPA + AI gateway
+            sc500: AI governance / Purview DSPM for AI
+            lab: walkthrough
+  - id: d4
+    name: Manage and monitor security posture
+    weight: 20-25%
+    subsections:
+      - id: d4-observability
+        name: Collect metrics, logs, and traces for security monitoring
+        notes: domains/4-posture-monitoring/observability.md
+        objectives:
+          - id: obs-metrics
+            text: "Collect and query metrics"
+            oss: Prometheus
+            sc500: Azure Monitor
+            lab: hands-on
+          - id: obs-logs
+            text: "Aggregate and query logs"
+            oss: Loki
+            sc500: Log Analytics
+            lab: hands-on
+          - id: obs-traces
+            text: "Capture distributed traces"
+            oss: Tempo / OpenTelemetry
+            sc500: Application Insights
+            lab: hands-on
+          - id: obs-dashboards
+            text: "Build monitoring dashboards"
+            oss: Grafana
+            sc500: Azure Monitor Workbooks
+            lab: hands-on
+          - id: obs-alerting
+            text: "Define alerting rules and routing"
+            oss: Alertmanager
+            sc500: Azure Monitor alerts
+            lab: hands-on
+      - id: d4-siem
+        name: Operate a SIEM and respond to incidents
+        notes: domains/4-posture-monitoring/siem-incident-response.md
+        objectives:
+          - id: siem-deploy
+            text: "Deploy a SIEM and its search backend"
+            oss: Wazuh + OpenSearch
+            sc500: Microsoft Sentinel
+            lab: hands-on
+          - id: siem-collect
+            text: "Collect and normalize security telemetry from agents and sources"
+            oss: Wazuh agents / connectors
+            sc500: Sentinel data connectors
+            lab: hands-on
+          - id: siem-detect
+            text: "Engineer detections with portable detection-as-code rules"
+            oss: Sigma rules
+            sc500: Sentinel analytics rules
+            lab: hands-on
+          - id: siem-hunt
+            text: "Hunt threats and correlate events with a query language"
+            oss: OpenSearch Query DSL
+            sc500: KQL threat hunting
+            lab: hands-on
+          - id: siem-response
+            text: "Automate incident response with active-response actions"
+            oss: Wazuh active response
+            sc500: Sentinel automation rules / SOAR
+            lab: hands-on
+      - id: d4-network-detection
+        name: Detect threats on the network
+        notes: domains/4-posture-monitoring/network-detection.md
+        objectives:
+          - id: nid-suricata
+            text: "Detect and optionally block malicious traffic with an IDS/IPS"
+            oss: Suricata
+            sc500: Network threat detection
+            lab: hands-on
+          - id: nid-zeek
+            text: "Analyze network behavior and produce protocol logs"
+            oss: Zeek
+            sc500: Network security monitoring
+            lab: hands-on
+      - id: d4-vuln
+        name: Manage vulnerabilities and security posture
+        notes: domains/4-posture-monitoring/vulnerability-posture.md
+        objectives:
+          - id: vuln-cluster
+            text: "Scan cluster configuration for posture risks"
+            oss: Kubescape
+            sc500: Defender for Cloud posture
+            lab: hands-on
+          - id: vuln-cis
+            text: "Audit nodes and cluster against CIS benchmarks"
+            oss: kube-bench / Kubescape
+            sc500: CIS benchmark auditing
+            lab: hands-on
+          - id: vuln-compliance
+            text: "Produce compliance and secure-score style reports"
+            oss: Kubescape frameworks
+            sc500: Secure score / regulatory compliance
+            lab: hands-on
+          - id: vuln-remediate
+            text: "Prioritize and remediate findings across images and infrastructure"
+            oss: Trivy + Kubescape
+            sc500: Defender recommendations
+            lab: hands-on

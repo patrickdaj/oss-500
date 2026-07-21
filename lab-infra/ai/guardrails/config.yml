@@ -1,0 +1,33 @@
+# NeMo Guardrails config (ai-prompt, ai-guardrails).
+# Docs: https://docs.nvidia.com/nemo/guardrails/
+# Wires input + output rails around the local Ollama model. A jailbreak trips the
+# input rail and is refused BEFORE the model sees it; a leaking response trips the
+# output rail. This is the OSS analog of Azure AI Content Safety / Prompt Shields.
+
+models:
+  - type: main
+    engine: ollama
+    model: llama3.2:1b
+    parameters:
+      base_url: http://ollama.oss500-apps:11434
+
+rails:
+  input:
+    flows:
+      # ai-prompt: classify the incoming prompt for jailbreak / prompt-injection and
+      # block it. This is the Prompt Shields equivalent (direct injection defense).
+      - self check input
+  output:
+    flows:
+      # ai-guardrails: screen the model's response for unsafe content AND for sensitive
+      # information disclosure (LLM02) before it reaches the user.
+      - self check output
+      - check blocked terms
+
+# Consistent, safe refusal for anything a rail blocks (don't leak internals in errors).
+rails_config:
+  self_check:
+    fallback_to_self_check: true
+
+# ai-guardrails: deterministic blocklist backstop for known secret markers / terms.
+# (LLM-based checks live in prompts.yml.)

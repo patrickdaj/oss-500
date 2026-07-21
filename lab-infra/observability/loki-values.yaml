@@ -1,0 +1,50 @@
+# grafana/loki Helm values for OSS-500 (obs-logs).
+# Single-binary, filesystem storage — smallest footprint for a laptop lab.
+# Loki indexes LABELS ONLY (namespace/pod/container/app); raw lines go to object
+# storage. Over-labeling = high cardinality = the classic Loki failure mode.
+fullnameOverride: oss500-loki
+
+deploymentMode: SingleBinary
+
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: filesystem
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: index_
+          period: 24h
+  limits_config:
+    retention_period: 24h
+    # Guardrails so a runaway label set can't OOM the lab host.
+    max_label_names_per_series: 15
+
+singleBinary:
+  replicas: 1
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { memory: 512Mi }
+
+# Disable the microservices components we don't need for a single-node lab.
+backend: { replicas: 0 }
+read: { replicas: 0 }
+write: { replicas: 0 }
+chunksCache:
+  enabled: false
+resultsCache:
+  enabled: false
+lokiCanary:
+  enabled: false
+test:
+  enabled: false
+
+# A lightweight collector (Grafana Alloy / Promtail) tails pod stdout/stderr and
+# ships to Loki with Kubernetes metadata as labels. Enabled via the loki chart's
+# monitoring or a separate alloy release in up.sh.

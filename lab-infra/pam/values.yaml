@@ -1,0 +1,51 @@
+# lab-infra/pam/values.yaml — Teleport self-hosted cluster (teleport/teleport-cluster chart).
+# A single-node auth+proxy is plenty for the d1 privileged-access lab.
+#
+# Namespace: oss500-identity (enforces the RESTRICTED Pod Security Standard).
+# Teleport's auth/proxy run fine as non-root with no extra Linux capabilities, so
+# restricted is satisfiable via the securityContext blocks below. If your chart
+# version trips the restricted admission check (it doesn't set every restricted
+# field itself), redeploy into oss500-security (privileged) and note in the lab
+# WHY the exception was needed — that trade-off is itself study for pod-psa.
+
+clusterName: teleport.oss500.local   # baked into every issued certificate's identity — trust-critical, hard to change later
+chartMode: standalone                # single self-hosted node (auth+proxy) backed by a PVC; no cloud backend
+proxyListenerMode: multiplex         # one TLS port for all protocols — matches kind's single ingress port
+
+# Lab is offline: no ACME/Let's Encrypt. Teleport serves a self-signed cert; tsh --insecure in the lab.
+acme: false
+
+# pam-session: record privileged sessions at the PROXY and stream straight to storage.
+# Off-host ("proxy-sync") recording is tamper-resistant even if the target node is
+# compromised — the recording never lives on the box being administered.
+# The teleport-cluster chart passes raw auth config through auth.teleportConfig.
+auth:
+  teleportConfig:
+    auth_service:
+      session_recording: proxy-sync   # pam-session: tamper-resistant, off-host, streamed to storage
+      # pam-jit: this is only the fallback cert TTL; the db-oncall/db-admin roles in
+      # roles.yaml cap it at 1h so privileged certs expire fast — no standing access.
+
+persistence:
+  enabled: true
+  size: 2Gi                          # cluster state + session recordings for the lab
+
+# app.kubernetes.io/part-of: oss500 — single-query teardown (gov-iac hygiene)
+extraLabels:
+  deployment:
+    app.kubernetes.io/part-of: oss500
+  pod:
+    app.kubernetes.io/part-of: oss500
+  service:
+    app.kubernetes.io/part-of: oss500
+
+# restricted PSS compliance for oss500-identity
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  capabilities:
+    drop: ["ALL"]

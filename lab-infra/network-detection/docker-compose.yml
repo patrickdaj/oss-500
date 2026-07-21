@@ -1,0 +1,50 @@
+# OSS-500 network detection — Suricata (IDS) + Zeek (NSM), same traffic source.
+# Project: oss500. Both containers can read a live interface (host networking) or
+# replay a PCAP from ./pcaps. Default here is PCAP-friendly + host-capture capable.
+name: oss500
+
+services:
+  # nid-suricata: signature IDS. Alerts to EVE JSON (feeds the SIEM). See suricata.yaml
+  # for the IDS (af-packet) vs IPS (nfqueue, inline drop) distinction.
+  suricata:
+    image: jasonish/suricata:latest
+    container_name: oss500-suricata
+    # Host networking so Suricata can sniff the host interface in IDS mode.
+    network_mode: host
+    # CAP_NET_ADMIN/RAW needed to sniff; NET_ADMIN also required for inline IPS.
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml:ro
+      - ./suricata/rules:/var/lib/suricata/rules
+      - ./pcaps:/pcaps:ro
+      - suricata_logs:/var/log/suricata
+    # Default: run IDS on the host's primary interface. Override with `-r /pcaps/...`
+    # in the lab to replay a capture. (Adjust `eth0` to your interface if needed.)
+    command: ["-c", "/etc/suricata/suricata.yaml", "-i", "eth0"]
+    restart: unless-stopped
+
+  # nid-zeek: network-analysis framework. Produces conn/dns/http/ssl/... logs for
+  # behavioral hunting — logs everything, blocks nothing.
+  zeek:
+    image: zeek/zeek:latest
+    container_name: oss500-zeek
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./zeek/local.zeek:/usr/local/zeek/share/zeek/site/local.zeek:ro
+      - ./pcaps:/pcaps:ro
+      - zeek_logs:/usr/local/zeek/logs
+    working_dir: /usr/local/zeek/logs/current
+    # Live capture on the host interface. In the lab you can instead run
+    # `zeek -r /pcaps/test.pcap` to process a capture.
+    command: ["zeek", "-i", "eth0", "/usr/local/zeek/share/zeek/site/local.zeek"]
+    restart: unless-stopped
+
+volumes:
+  suricata_logs:
+  zeek_logs:

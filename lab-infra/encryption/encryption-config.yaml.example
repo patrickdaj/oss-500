@@ -1,0 +1,33 @@
+# data-encrypt: TEMPLATE. Copy to encryption-config.yaml and paste a REAL key.
+# Generate a 32-byte AES key:   head -c 32 /dev/urandom | base64
+# The real encryption-config.yaml is gitignored — it holds the KEK that decrypts
+# every Secret in etcd. Treat it like a root key.
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+      - secrets                # data-encrypt: encrypt Secret objects at rest in etcd
+    providers:
+      # data-encrypt: the FIRST provider is used to WRITE (encrypt) new/updated data.
+      - aescbc:
+          keys:
+            - name: key1
+              secret: REPLACE_WITH_BASE64_32_BYTE_KEY
+      # data-encrypt: identity = plaintext. It MUST stay listed so the apiserver can
+      # still READ Secrets written before encryption was enabled. Only after every
+      # Secret is re-encrypted (kubectl get secrets -A -o json | kubectl replace -f -)
+      # can identity be removed.
+      - identity: {}
+      # ---- alternatives (pick one provider as the writer) ----
+      # secretbox is faster (XSalsa20-Poly1305):
+      # - secretbox:
+      #     keys:
+      #       - name: key1
+      #         secret: REPLACE_WITH_BASE64_32_BYTE_KEY
+      # kms v2 = customer-managed key via an external KMS (the CMK analogue). Vault
+      # can serve this via its KMS provider plugin — the closest OSS match to
+      # Azure Storage/SQL encryption with a Key Vault CMK:
+      # - kms:
+      #     apiVersion: v2
+      #     name: vault-kms
+      #     endpoint: unix:///opt/kms/vault-kms.sock

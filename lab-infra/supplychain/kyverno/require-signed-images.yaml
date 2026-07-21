@@ -1,0 +1,44 @@
+# Kyverno image-verification policy (sc-admission).
+# Rejects any Pod whose image from our registry is not signed by the cosign key.
+# Kyverno calls cosign verification at admission. Requires Kyverno (lab-infra/governance).
+# Docs: https://kyverno.io/docs/writing-policies/verify-images/
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-signed-images
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  validationFailureAction: Enforce     # fail-closed: block unsigned images
+  background: false
+  webhookTimeoutSeconds: 30
+  failurePolicy: Fail                  # if the webhook is down, reject (safe default)
+  rules:
+    - name: verify-cosign-signature
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      verifyImages:
+        # Only images from our Harbor registry are gated (also enforces allowed-registry).
+        - imageReferences:
+            - "harbor.oss500.local/*"
+          failureAction: Enforce
+          verifyDigest: false
+          attestors:
+            - count: 1
+              entries:
+                # Keyed verification: paste the cosign.pub generated in the lab.
+                - keys:
+                    publicKeys: |-
+                      -----BEGIN PUBLIC KEY-----
+                      REPLACE_WITH_COSIGN_PUB_FROM_LAB
+                      -----END PUBLIC KEY-----
+        # Optional: also require a passing vuln/SBOM attestation, gating on SCAN RESULT
+        # (not just a signature) — uncomment and point at your attestation predicate type.
+        # - imageReferences: ["harbor.oss500.local/*"]
+        #   attestations:
+        #     - type: https://cyclonedx.org/bom
+        #       attestors:
+        #         - entries:
+        #             - keys: { publicKeys: "<cosign.pub>" }

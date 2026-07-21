@@ -1,0 +1,30 @@
+# TracingPolicy — Tetragon in-kernel ENFORCEMENT (rt-tetragon).
+# Kills, in-kernel, any process that opens /etc/shadow or /etc/passwd for read.
+# This is the "observe AND enforce" half that distinguishes Tetragon from Falco:
+# Falco would ALERT on this read; Tetragon STOPS it synchronously (Sigkill).
+# Docs: https://tetragon.io/docs/concepts/tracing-policy/
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: block-sensitive-read
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  kprobes:
+    - call: "security_file_permission"
+      syscall: false
+      args:
+        - index: 0
+          type: "file"
+        - index: 1
+          type: "int"          # requested access mask
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "Prefix"
+              values:
+                - "/etc/shadow"
+                - "/etc/passwd"
+          matchActions:
+            # rt-tetragon: in-kernel enforcement. Change to Post to only report.
+            - action: Sigkill

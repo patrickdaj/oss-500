@@ -1,0 +1,62 @@
+# cert-issuer: certificate authorities for the cluster.
+# Two-step chain so leaf certs are signed by a stable in-cluster CA:
+#   selfsigned-issuer  -> signs the root CA cert
+#   oss500-ca (Secret) -> the CA key/cert material
+#   ca-issuer          -> issues leaf certs from that CA
+# SC-500 correspondence: Key Vault certificates + an integrated/private CA.
+---
+# A self-signed ClusterIssuer used only to bootstrap the root CA certificate.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  selfSigned: {}
+---
+# cert-issuer: the root CA Certificate, self-signed by the issuer above and
+# stored as a TLS Secret. isCA:true makes it a signing certificate.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: oss500-ca
+  namespace: oss500-secrets      # cert-manager reads ClusterIssuer CA secrets from its own namespace
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  isCA: true
+  commonName: oss500-lab-ca
+  secretName: oss500-ca          # the CA key+cert land here
+  duration: 8760h                # 1 year CA
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# cert-issuer: the working ClusterIssuer. Leaf Certificates (and Ingress TLS via
+# the cert-manager.io/cluster-issuer annotation) are signed by the CA above.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: ca-issuer
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  ca:
+    secretName: oss500-ca
+# NOTE: an ACME/Let's Encrypt issuer is the internet-facing equivalent and would
+# look like the block below — omitted for the local lab (no public DNS/HTTP-01):
+#   spec:
+#     acme:
+#       server: https://acme-v02.api.letsencrypt.org/directory
+#       email: you@example.com
+#       privateKeySecretRef:
+#         name: letsencrypt-account-key
+#       solvers:
+#         - http01:
+#             ingress:
+#               ingressClassName: nginx

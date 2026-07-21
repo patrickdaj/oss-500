@@ -1,0 +1,48 @@
+# jetstack/cert-manager Helm values for OSS-500 (SC-500 ~ Key Vault certificates).
+# Chart: jetstack/cert-manager  (https://charts.jetstack.io)
+# Deploys into oss500-secrets.
+
+# cert-issuer: install the CRDs (Issuer, ClusterIssuer, Certificate, ...) with the
+# chart so `up.sh` is a single step.
+crds:
+  enabled: true
+  keep: false
+
+# Keep the controller lean on a laptop host.
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 128Mi
+
+webhook:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      memory: 64Mi
+
+cainjector:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+# No external metrics stack in the lab.
+prometheus:
+  enabled: false
+
+# cert-lifecycle: cert-manager checks Certificate expiry on this cadence and
+# renews when now > (notAfter - renewBefore). Default is 1h; keep it so the
+# short-lived demo cert renews promptly during the lab.
+# extraArgs:
+#   - --renew-before-expiration-duration=... (per-Certificate renewBefore is preferred)
+
+# Label controller resources for OSS-500 teardown discovery.
+global:
+  commonLabels:
+    app.kubernetes.io/part-of: oss500

@@ -1,0 +1,55 @@
+# Helm values for the OSS-500 governance stack (Kyverno + OPA Gatekeeper).
+# This file documents the values referenced by up.sh via --values; each Helm
+# release below is installed with the section under its release name.
+# Security-relevant settings are commented against the objective they implement.
+#
+# NOTE: both admission controllers run in the oss500-security namespace, which
+# enforces the *privileged* Pod Security Standard (see shared/namespaces.yaml).
+# That is intentional: an admission webhook controller legitimately needs to run
+# ahead of / alongside the restricted workloads it polices, and Gatekeeper's
+# audit pod and Kyverno's controllers are the "exception that proves the rule."
+#
+# up.sh passes the two top-level maps to their respective charts:
+#   helm upgrade --install kyverno    kyverno/kyverno    -f <(yq '.kyverno')    ...
+#   helm upgrade --install gatekeeper gatekeeper/gatekeeper -f <(yq '.gatekeeper') ...
+# For clarity and to avoid a yq dependency, up.sh actually uses --set flags for
+# the handful of values below; this file is the reviewable record (gov-iac).
+
+kyverno:
+  # gov-kyverno: run the admission controller with multiple replicas in real
+  # clusters; one is fine on the single-node lab kind cluster.
+  admissionController:
+    replicas: 1
+    container:
+      securityContext:
+        runAsNonRoot: true                 # gov-iac: harden the controller itself
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
+  # gov-kyverno: background scanning evaluates EXISTING resources into
+  # PolicyReports, not just new admissions (continuous compliance visibility).
+  backgroundController:
+    replicas: 1
+  reportsController:
+    replicas: 1
+  # part-of label so a single query finds everything for teardown.
+  customLabels:
+    app.kubernetes.io/part-of: oss500
+
+gatekeeper:
+  replicas: 1
+  # gov-gatekeeper: the audit interval controls how often EXISTING resources are
+  # re-evaluated against constraints and reported in constraint .status
+  # (the "find pre-existing violations without deleting" behaviour).
+  auditInterval: 60
+  # Emit admission + audit events so denials are visible in `kubectl get events`.
+  emitAdmissionEvents: true
+  emitAuditEvents: true
+  # gov-gatekeeper: enable the mutation webhook (Assign / AssignMetadata) so the
+  # engine can remediate as well as validate (Azure Policy Modify analogue).
+  enableMutation: true
+  podLabels:
+    app.kubernetes.io/part-of: oss500

@@ -1,0 +1,89 @@
+# Demo auth-failure generator for OSS-500 (obs-logs, obs-alerting).
+# Logs SSH-style "Failed password" lines to stdout (scraped into Loki) AND exposes
+# a Prometheus counter authlog_failed_logins_total at :8000/metrics (drives the
+# AuthFailureSpike alert). Scale replicas up to raise the failure rate.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authlog
+  namespace: oss500-apps
+  labels:
+    app: authlog
+    app.kubernetes.io/part-of: oss500
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: authlog }
+  template:
+    metadata:
+      labels:
+        app: authlog
+        app.kubernetes.io/part-of: oss500
+    spec:
+      # oss500-apps enforces the restricted PSS — run fully hardened.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: authlog
+          image: python:3.12-slim
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          ports:
+            - { name: metrics, containerPort: 8000 }
+          resources:
+            requests: { cpu: 25m, memory: 32Mi }
+            limits:   { memory: 64Mi }
+          command: ["python3", "-c"]
+          args:
+            - |
+              import http.server, threading, time, random, sys
+              count = 0
+              class H(http.server.BaseHTTPRequestHandler):
+                  def do_GET(self):
+                      self.send_response(200); self.end_headers()
+                      self.wfile.write(
+                        b"# TYPE authlog_failed_logins_total counter\n"
+                        + b"authlog_failed_logins_total %d\n" % count)
+                  def log_message(self, *a): pass
+              def serve():
+                  http.server.HTTPServer(("0.0.0.0", 8000), H).serve_forever()
+              threading.Thread(target=serve, daemon=True).start()
+              ips = ["10.0.0.5", "10.0.0.9", "198.51.100.23"]
+              while True:
+                  count += 1
+                  print("sshd[%d]: Failed password for baduser from %s port %d ssh2"
+                        % (random.randint(1000,9999), random.choice(ips),
+                           random.randint(1024,65535)), flush=True)
+                  time.sleep(2)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authlog
+  namespace: oss500-apps
+  labels: { app: authlog, app.kubernetes.io/part-of: oss500 }
+spec:
+  selector: { app: authlog }
+  ports:
+    - { name: metrics, port: 8000, targetPort: 8000 }
+---
+# ServiceMonitor: Prometheus discovers this target by label (obs-metrics) — no
+# hand-edited prometheus.yml.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: authlog
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+    release: oss500-kube-prometheus-stack
+spec:
+  selector:
+    matchLabels: { app: authlog }
+  endpoints:
+    - port: metrics
+      interval: 15s

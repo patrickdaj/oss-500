@@ -1,0 +1,75 @@
+# Kyverno policies for the OSS-500 governance lab (gov-kyverno).
+# Kyverno expresses policy in plain YAML (no Rego) — the Azure-Policy-for-AKS
+# equivalent. validationFailureAction decides Enforce (block, = Azure Policy
+# Deny) vs Audit (report only, = Azure Policy Audit). background: true also
+# scans EXISTING resources into PolicyReports.
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged
+  labels:
+    app.kubernetes.io/part-of: oss500
+  annotations:
+    policies.kyverno.io/title: Disallow Privileged Containers
+    policies.kyverno.io/severity: high
+spec:
+  # gov-kyverno: Enforce = block at admission. Roll a new policy out as Audit
+  # first, confirm PolicyReports are clean, THEN switch to Enforce.
+  validationFailureAction: Enforce
+  # gov-kyverno: also evaluate already-running workloads, not just new ones.
+  background: true
+  rules:
+    - name: no-privileged-containers
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      validate:
+        message: >-
+          Privileged containers are not allowed (spec.containers[*].securityContext.privileged
+          must be false or unset).
+        pattern:
+          spec:
+            =(ephemeralContainers):
+              - =(securityContext):
+                  =(privileged): "false"
+            =(initContainers):
+              - =(securityContext):
+                  =(privileged): "false"
+            containers:
+              - =(securityContext):
+                  =(privileged): "false"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-default-securitycontext
+  labels:
+    app.kubernetes.io/part-of: oss500
+  annotations:
+    policies.kyverno.io/title: Inject a hardened default securityContext
+spec:
+  # gov-kyverno: a MUTATE policy REMEDIATES instead of merely rejecting — the
+  # Azure Policy Modify / DeployIfNotExists analogue. It patches a secure
+  # default onto pods that omit one, so "insecure by omission" becomes secure.
+  rules:
+    - name: default-runasnonroot
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+              namespaces: ["oss500-apps"]
+      mutate:
+        patchStrategicMerge:
+          spec:
+            securityContext:
+              +(runAsNonRoot): true
+              +(seccompProfile):
+                type: RuntimeDefault
+            containers:
+              - (name): "*"
+                securityContext:
+                  +(allowPrivilegeEscalation): false
+                  +(capabilities):
+                    drop: ["ALL"]

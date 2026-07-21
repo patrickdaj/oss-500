@@ -1,0 +1,51 @@
+# Shared namespaces and labels for OSS-500 labs.
+# Every lab resource carries the label  app.kubernetes.io/part-of: oss500
+# so a single query finds everything for teardown:
+#   kubectl get all -A -l app.kubernetes.io/part-of=oss500
+# Apply:  kubectl apply -f lab-infra/shared/namespaces.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oss500-identity        # Keycloak, PAM (d1)
+  labels:
+    app.kubernetes.io/part-of: oss500
+    # pod-psa: enforce the restricted Pod Security Standard at the namespace edge.
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oss500-secrets         # Vault, cert-manager (d2)
+  labels:
+    app.kubernetes.io/part-of: oss500
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oss500-apps            # demo workloads used across labs
+  labels:
+    app.kubernetes.io/part-of: oss500
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oss500-security        # Falco, Tetragon, Kyverno, Gatekeeper, Kubescape (d1/d3)
+  labels:
+    app.kubernetes.io/part-of: oss500
+    # Security tooling legitimately needs privileges (host mounts, eBPF), so this
+    # namespace is privileged by design — the exception that proves the rule.
+    pod-security.kubernetes.io/enforce: privileged
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oss500-monitoring      # Prometheus, Grafana, Loki, Tempo (d4)
+  labels:
+    app.kubernetes.io/part-of: oss500
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted

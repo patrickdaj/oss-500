@@ -1,0 +1,35 @@
+# Falco Talon response rules (rt-response).
+# Talon consumes Falco events (via the falcosidekick webhook output) and runs
+# remediation ACTIONS — the OSS mirror of a Defender alert triggering a
+# containment workflow. Each rule matches Falco rules/priority and lists inline
+# actions. Docs: https://docs.falco-talon.org/
+- name: Respond to shell in container
+  match:
+    rules:
+      - "Terminal shell in container"
+    priority: ">=notice"
+  actions:
+    # Quarantine first (label for network isolation), then terminate the pod.
+    - name: Label pod as quarantined
+      actionner: kubernetes:label
+      parameters:
+        labels:
+          oss500.io/quarantine: "true"
+    - name: Terminate offending pod
+      actionner: kubernetes:terminate
+      parameters:
+        grace_period_seconds: 5
+        ignore_daemonsets: true
+        ignore_statefulsets: true
+
+- name: Quarantine on sensitive file read
+  match:
+    rules:
+      - "Read sensitive file untrusted"
+    priority: ">=notice"
+  actions:
+    - name: Label pod as quarantined
+      actionner: kubernetes:label
+      parameters:
+        labels:
+          oss500.io/quarantine: "true"

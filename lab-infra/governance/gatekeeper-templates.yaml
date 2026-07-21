@@ -1,0 +1,43 @@
+# OPA Gatekeeper ConstraintTemplate for the OSS-500 governance lab (gov-gatekeeper).
+# A ConstraintTemplate defines a POLICY TYPE: its parameter schema (a generated
+# CRD) plus the Rego that decides a violation. It is the reusable "definition"
+# half of the model — the direct analogue of an Azure Policy *definition*.
+# The scoped "assignment" half lives in gatekeeper-constraints.yaml.
+#
+# Azure Policy for AKS is built on this exact engine, so this is the real thing.
+---
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredlabels
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequiredLabels
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            labels:
+              type: array
+              items:
+                type: string
+              description: List of label keys that must be present.
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      # gov-gatekeeper: the policy LOGIC is Rego — more expressive than Kyverno's
+      # YAML patterns, at the cost of a steeper authoring curve. This is the core
+      # Kyverno-vs-Gatekeeper trade-off the exam contrasts.
+      rego: |
+        package k8srequiredlabels
+
+        violation[{"msg": msg}] {
+          required := input.parameters.labels[_]
+          provided := {label | input.review.object.metadata.labels[label]}
+          missing := {required} - provided
+          count(missing) > 0
+          msg := sprintf("missing required label(s): %v", [missing])
+        }

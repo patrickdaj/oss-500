@@ -1,0 +1,27 @@
+# Standalone Falcosidekick values (rt-response) — reference for running it
+# separately from the Falco chart's bundled falcosidekick. Normally the config in
+# falco/values.yaml (falcosidekick: enabled) is enough; this documents the full
+# output surface for study.
+# Chart: falcosecurity/falcosidekick
+
+podLabels:
+  app.kubernetes.io/part-of: oss500
+
+webui:
+  enabled: true                # live alert UI on :2802
+
+config:
+  # Priority filtering is PER OUTPUT — page humans only on warning+, store everything.
+  slack:
+    # webhookurl injected from secret by up.sh; never commit the real URL.
+    minimumpriority: "warning"
+    outputformat: "all"
+  loki:                        # → Domain 4 SIEM / hunting
+    hostport: "http://loki.oss500-monitoring:3100"
+    minimumpriority: "notice"
+  prometheus:                  # expose alert metrics for Grafana/Alertmanager
+    extralabels: "cluster:oss500"
+  # Response hand-off: Falco Talon consumes events and runs remediation actions.
+  webhook:
+    address: "http://falco-talon.oss500-security:2803/"
+    minimumpriority: "notice"

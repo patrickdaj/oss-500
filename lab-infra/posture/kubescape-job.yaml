@@ -1,0 +1,60 @@
+# Kubescape in-cluster posture scan (vuln-cluster, vuln-compliance).
+# Alternative to the host CLI: run the scan as a Job with a ServiceAccount that can
+# read cluster resources, so it evaluates live configuration against frameworks.
+# Prefer the CLI for interactive labs; this Job is the CI/automation form.
+#   kubectl apply -f kubescape-job.yaml -n oss500-security
+#   kubectl logs -f job/kubescape -n oss500-security
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubescape
+  labels:
+    app.kubernetes.io/part-of: oss500
+---
+# Read-only view of the whole cluster so Kubescape can assess posture/RBAC controls.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubescape-view
+  labels:
+    app.kubernetes.io/part-of: oss500
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view          # built-in read-only ClusterRole — least privilege for a scanner
+subjects:
+  - kind: ServiceAccount
+    name: kubescape
+    namespace: oss500-security
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kubescape
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: kubescape
+        app.kubernetes.io/part-of: oss500
+    spec:
+      serviceAccountName: kubescape
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: kubescape
+          image: quay.io/kubescape/kubescape-cli:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          # Scan the NSA framework in-cluster; --format json for pipeline consumption.
+          args: ["scan", "framework", "nsa", "--format", "json"]
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { memory: 512Mi }

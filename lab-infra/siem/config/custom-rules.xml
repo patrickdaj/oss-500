@@ -1,0 +1,35 @@
+<!--
+  OSS-500 native Wazuh detection rules (siem-detect).
+  Mounted at /var/ossec/etc/rules/local_rules.xml. These sit on top of Wazuh's
+  built-in ruleset: the decoders normalize sshd auth.log into fields (data.srcuser,
+  data.srcip), the built-in rules 5710/5716/5760 flag individual failures, and the
+  correlation rule below escalates repeated failures to a high level that triggers
+  active response (siem-response). Equivalent portable logic lives in
+  sigma/ssh-bruteforce.yml, which converts to the OpenSearch/KQL query.
+-->
+<group name="oss500,authentication,attack.t1110,">
+
+  <!-- Escalate: many SSH auth failures from the same source in a short window.
+       level 10 crosses the active-response threshold in ossec.conf. -->
+  <rule id="100100" level="10" frequency="6" timeframe="120">
+    <if_matched_sid>5710</if_matched_sid>
+    <same_source_ip />
+    <description>OSS500: SSH brute-force — repeated failed logins from same source ($(srcip)).</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>authentication_failures,pci_dss_11.4,</group>
+  </rule>
+
+  <!-- A successful login immediately after the brute-force burst = likely compromise. -->
+  <rule id="100101" level="12">
+    <if_matched_sid>100100</if_matched_sid>
+    <if_sid>5715</if_sid>
+    <same_source_ip />
+    <description>OSS500: Successful SSH login after brute-force from $(srcip) — possible account compromise.</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+</group>

@@ -1,0 +1,60 @@
+%YAML 1.1
+---
+# OSS-500 Suricata config (nid-suricata) — trimmed to the security-relevant bits.
+# Full defaults ship in the image; this overlays HOME_NET, rule paths, EVE output,
+# and documents the IDS-vs-IPS choice.
+
+vars:
+  address-groups:
+    # Tune HOME_NET to your lab subnet(s). Everything else is EXTERNAL_NET.
+    HOME_NET: "[10.0.0.0/8,172.16.0.0/12,192.168.0.0/16]"
+    EXTERNAL_NET: "!$HOME_NET"
+
+default-rule-path: /var/lib/suricata/rules
+rule-files:
+  # ET Open ruleset pulled by `suricata-update` (the detection content) ...
+  - suricata.rules
+  # ... plus our custom signatures.
+  - local.rules
+
+# nid-suricata: structured alert + protocol output. eve.json is what ships to the
+# SIEM (Wazuh/OpenSearch) — event_type: alert|http|dns|tls|flow|fileinfo.
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: /var/log/suricata/eve.json
+      types:
+        - alert
+        - http
+        - dns
+        - tls
+        - flow
+        - stats
+
+# ---- IDS MODE (default): passive, out-of-band. Reads a copy of traffic from a
+#      tap/mirror via AF-PACKET and ALERTS. It sees everything but blocks nothing. ----
+af-packet:
+  - interface: eth0
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+
+# ---- IPS MODE (alternative): INLINE, in the data path. Traffic passes THROUGH
+#      Suricata via NFQUEUE so `drop`/`reject` actions actually stop packets —
+#      prevention, but Suricata becomes a failure point (latency/outage risk).
+#      Enable by running with `-q 0` and an nftables/iptables rule that queues
+#      traffic to NFQUEUE 0, and change rule actions from `alert` to `drop`.
+# nfqueue:
+#   mode: accept
+#   fail-open: yes      # pass traffic if Suricata dies (availability > security)
+
+app-layer:
+  protocols:
+    tls:
+      enabled: yes
+      ja3-fingerprints: yes   # JA3 client fingerprints for TLS threat hunting
+    http:
+      enabled: yes
+    dns:
+      enabled: yes

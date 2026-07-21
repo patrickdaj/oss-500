@@ -1,0 +1,81 @@
+# Open WebUI — chat + RAG front end over Ollama (ai-rag, ai-guardrails).
+# ai-rag: per-user knowledge bases / workspaces isolate data; retrieval is scoped to
+# the requesting user's authorized documents. Pipeline secrets come from Vault, not env.
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: open-webui-data
+  namespace: oss500-apps
+  labels: { app.kubernetes.io/part-of: oss500 }
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources: { requests: { storage: 2Gi } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-webui
+  namespace: oss500-apps
+  labels: { app.kubernetes.io/part-of: oss500, app: open-webui }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: open-webui } }
+  template:
+    metadata:
+      labels: { app: open-webui, app.kubernetes.io/part-of: oss500 }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: open-webui
+          image: ghcr.io/open-webui/open-webui:main
+          ports: [{ containerPort: 8080 }]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+          env:
+            # Route to Ollama via the private ClusterIP service (never the public port).
+            - { name: OLLAMA_BASE_URL, value: "http://ollama.oss500-apps:11434" }
+            # ai-access: disable open sign-up; require auth. Session key from Secret.
+            - { name: ENABLE_SIGNUP, value: "false" }
+            - name: WEBUI_SECRET_KEY
+              valueFrom: { secretKeyRef: { name: open-webui, key: WEBUI_SECRET_KEY } }
+            # ai-observability: emit OTel traces/metrics to the collector.
+            - { name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector.oss500-apps:4317" }
+          resources:
+            requests: { cpu: "250m", memory: "512Mi" }
+            limits:   { cpu: "1",    memory: "2Gi" }
+          volumeMounts:
+            - { name: data, mountPath: /app/backend/data }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: open-webui-data } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-webui
+  namespace: oss500-apps
+  labels: { app.kubernetes.io/part-of: oss500 }
+spec:
+  selector: { app: open-webui }
+  ports: [{ port: 80, targetPort: 8080 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: open-webui
+  namespace: oss500-apps
+  labels: { app.kubernetes.io/part-of: oss500 }
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ai.oss500.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: open-webui, port: { number: 80 } } }

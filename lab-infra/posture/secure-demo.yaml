@@ -1,0 +1,45 @@
+# Remediated workload for the posture lab (vuln-remediate).
+# The same app, hardened: non-root · no privilege escalation · read-only root FS ·
+# dropped capabilities · seccomp · resource limits · PATCHED image tag.
+# Deploy to oss500-apps (restricted PSA) — it is ADMITTED because it now complies:
+#   kubectl apply -f secure-demo.yaml -n oss500-apps
+# Re-scan afterwards: the failing controls clear and the compliance score rises.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secure-demo
+  labels:
+    app: secure-demo
+    app.kubernetes.io/part-of: oss500
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: secure-demo }
+  template:
+    metadata:
+      labels:
+        app: secure-demo
+        app.kubernetes.io/part-of: oss500
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101            # nginx-unprivileged runs as uid 101
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          # Patched, current image tag (vuln-remediate: bump the base image).
+          image: nginxinc/nginx-unprivileged:1.27-alpine
+          ports: [{ containerPort: 8080 }]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources:
+            requests: { cpu: 25m, memory: 32Mi }
+            limits:   { memory: 64Mi }
+          volumeMounts:
+            - { name: cache, mountPath: /var/cache/nginx }
+            - { name: run, mountPath: /var/run }
+      volumes:
+        - { name: cache, emptyDir: {} }
+        - { name: run, emptyDir: {} }

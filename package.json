@@ -1,0 +1,13 @@
+{
+  "name": "oss-500",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OSS-500 — an open-source curriculum that teaches the SC-500 (Cloud & AI Security Engineer) concepts on a 100% open-source stack. Content-only; rendered by the study-hub app.",
+  "type": "module",
+  "scripts": {
+    "gen:md": "node scripts/gen-md.mjs"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

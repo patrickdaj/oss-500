@@ -1,0 +1,103 @@
+# OSS-500 SIEM — Wazuh single-node (manager + indexer + dashboard).
+# Based on wazuh/wazuh-docker (single-node). Project name: oss500.
+# siem-deploy: two tiers — the MANAGER (detection engine) and the INDEXER
+# (OpenSearch search/storage), fronted by the DASHBOARD (OpenSearch-Dashboards fork).
+name: oss500
+
+services:
+  wazuh.manager:
+    image: wazuh/wazuh-manager:${WAZUH_VERSION:-4.9.2}
+    hostname: wazuh.manager
+    restart: always
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      nofile:  { soft: 655360, hard: 655360 }
+    ports:
+      - "1514:1514"   # siem-collect: agent event channel
+      - "1515:1515"   # siem-collect: agent enrollment
+      - "514:514/udp" # syslog ingestion (agentless sources)
+      - "55000:55000" # Wazuh REST API
+    environment:
+      INDEXER_URL: https://wazuh.indexer:9200
+      INDEXER_USERNAME: ${INDEXER_USERNAME:-admin}
+      INDEXER_PASSWORD: ${INDEXER_PASSWORD}
+      # siem-deploy: API creds from .env, never a default.
+      API_USERNAME: ${API_USERNAME:-wazuh-wui}
+      API_PASSWORD: ${API_PASSWORD}
+      SSL_CERTIFICATE_AUTHORITIES: /etc/ssl/root-ca.pem
+      SSL_CERTIFICATE: /etc/ssl/filebeat.pem
+      SSL_KEY: /etc/ssl/filebeat.key
+    volumes:
+      - wazuh_api_configuration:/var/ossec/api/configuration
+      - wazuh_etc:/var/ossec/etc
+      - wazuh_logs:/var/ossec/logs
+      - wazuh_queue:/var/ossec/queue
+      - wazuh_var_multigroups:/var/ossec/var/multigroups
+      - wazuh_integrations:/var/ossec/integrations
+      - wazuh_active_response:/var/ossec/active-response/bin
+      - wazuh_agentless:/var/ossec/agentless
+      - wazuh_wodles:/var/ossec/wodles
+      - filebeat_etc:/etc/filebeat
+      - filebeat_var:/var/lib/filebeat
+      # siem-detect: native detection rules mounted in.
+      - ./config/custom-rules.xml:/var/ossec/etc/rules/local_rules.xml
+      # siem-response: active-response (firewall-drop) config mounted in.
+      - ./config/ossec.conf:/wazuh-config-mount/etc/ossec.conf
+      - ./config/wazuh_indexer_ssl_certs/root-ca.pem:/etc/ssl/root-ca.pem
+      - ./config/wazuh_indexer_ssl_certs/wazuh.manager.pem:/etc/ssl/filebeat.pem
+      - ./config/wazuh_indexer_ssl_certs/wazuh.manager-key.pem:/etc/ssl/filebeat.key
+
+  wazuh.indexer:
+    image: wazuh/wazuh-indexer:${WAZUH_VERSION:-4.9.2}
+    hostname: wazuh.indexer
+    restart: always
+    ports:
+      - "9200:9200"   # OpenSearch API — siem-hunt runs the Query DSL against this
+    environment:
+      # Bounded heap so the JVM search engine fits the reference host.
+      OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      nofile:  { soft: 655360, hard: 655360 }
+    volumes:
+      - wazuh_indexer_data:/var/lib/wazuh-indexer
+      - ./config/wazuh_indexer_ssl_certs/root-ca.pem:/usr/share/wazuh-indexer/certs/root-ca.pem
+      - ./config/wazuh_indexer_ssl_certs/wazuh.indexer-key.pem:/usr/share/wazuh-indexer/certs/wazuh.indexer.key
+      - ./config/wazuh_indexer_ssl_certs/wazuh.indexer.pem:/usr/share/wazuh-indexer/certs/wazuh.indexer.pem
+      - ./config/wazuh_indexer_ssl_certs/admin.pem:/usr/share/wazuh-indexer/certs/admin.pem
+      - ./config/wazuh_indexer_ssl_certs/admin-key.pem:/usr/share/wazuh-indexer/certs/admin-key.pem
+
+  wazuh.dashboard:
+    image: wazuh/wazuh-dashboard:${WAZUH_VERSION:-4.9.2}
+    hostname: wazuh.dashboard
+    restart: always
+    ports:
+      - "5601:5601"   # HTTPS dashboard (self-signed in the lab)
+    environment:
+      INDEXER_USERNAME: ${INDEXER_USERNAME:-admin}
+      INDEXER_PASSWORD: ${INDEXER_PASSWORD}
+      WAZUH_API_URL: https://wazuh.manager
+      API_USERNAME: ${API_USERNAME:-wazuh-wui}
+      API_PASSWORD: ${API_PASSWORD}
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-kibanaserver}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    volumes:
+      - ./config/wazuh_indexer_ssl_certs/wazuh.dashboard.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard.pem
+      - ./config/wazuh_indexer_ssl_certs/wazuh.dashboard-key.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard-key.pem
+      - ./config/wazuh_indexer_ssl_certs/root-ca.pem:/usr/share/wazuh-dashboard/certs/root-ca.pem
+    depends_on:
+      - wazuh.indexer
+
+volumes:
+  wazuh_api_configuration:
+  wazuh_etc:
+  wazuh_logs:
+  wazuh_queue:
+  wazuh_var_multigroups:
+  wazuh_integrations:
+  wazuh_active_response:
+  wazuh_agentless:
+  wazuh_wodles:
+  filebeat_etc:
+  filebeat_var:
+  wazuh_indexer_data:

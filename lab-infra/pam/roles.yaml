@@ -1,0 +1,62 @@
+# lab-infra/pam/roles.yaml — Teleport roles for the d1 privileged-access lab.
+# Apply once Teleport is up:
+#   kubectl -n oss500-identity exec -i deploy/teleport -- tctl create -f /dev/stdin < roles.yaml
+#
+# These roles encode the PIM-equivalent controls the lab proves.
+
+kind: role
+version: v7
+metadata:
+  name: db-oncall
+spec:
+  options:
+    max_session_ttl: 1h              # pam-jit: issued certs expire in 1h — access ends by expiry, not by cleanup
+  allow:
+    logins: ['readonly']
+    kubernetes_labels:
+      env: 'oss500'                  # scoped to labelled resources only — no wildcard reach
+    kubernetes_groups: ['viewers']
+    kubernetes_resources:
+      - kind: pod
+        name: '*'
+        namespace: 'oss500-apps'
+    db_labels:
+      tier: 'app'
+    db_users: ['readonly']
+    db_names: ['appdb']
+---
+kind: role
+version: v7
+metadata:
+  name: requester                    # pam-approval: the ELIGIBLE baseline — may REQUEST elevation, holds none of it
+spec:
+  options:
+    max_session_ttl: 8h
+  allow:
+    request:
+      roles: ['db-admin']            # eligible to ask for db-admin; not active until a reviewer approves
+      thresholds:
+        - approve: 1                 # one approval required (raise for a two-person rule)
+          deny: 1
+---
+kind: role
+version: v7
+metadata:
+  name: reviewer                     # pam-approval: separation of duties — a DIFFERENT subject approves
+spec:
+  allow:
+    review_requests:
+      roles: ['db-admin']            # can approve/deny db-admin requests but cannot request them
+---
+kind: role
+version: v7
+metadata:
+  name: db-admin                     # the elevated role, granted only for a bounded window after approval
+spec:
+  options:
+    max_session_ttl: 1h              # pam-jit: even approved elevation is time-boxed
+  allow:
+    logins: ['root']
+    kubernetes_labels:
+      env: 'oss500'
+    kubernetes_groups: ['system:masters']

@@ -1,0 +1,42 @@
+# net-mesh: identity-aware authorization on top of mTLS.
+# An empty-spec ALLOW policy that selects the web workload creates a default-deny:
+# once any ALLOW rule exists for a workload, only requests matching a rule are
+# permitted. The second policy then allows ONLY the client's SPIFFE identity.
+# SC-500 correspondence: identity-based east-west controls (zero-trust segmentation).
+---
+# Default-deny for the web workload (an ALLOW policy with no rules matches nothing).
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: web-default-deny
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  selector:
+    matchLabels:
+      app: web
+  action: ALLOW
+  # no rules => nothing is allowed => default-deny for app=web
+---
+# net-mesh: allow ONLY the client service account's mTLS identity to reach web.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: web-allow-client
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  selector:
+    matchLabels:
+      app: web
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            # net-mesh: cryptographic workload identity, not an IP.
+            principals: ["cluster.local/ns/oss500-apps/sa/client"]
+      to:
+        - operation:
+            ports: ["8080"]

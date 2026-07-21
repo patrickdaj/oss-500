@@ -1,0 +1,41 @@
+# kube-bench CIS Kubernetes Benchmark audit (vuln-cis).
+# Runs as a Job in oss500-security (privileged PSA) because it must read the node's
+# /etc/kubernetes, process args, and file modes via host mounts to check the actual
+# API-server/kubelet/etcd flags. Auto-detects the Kubernetes version.
+#   kubectl apply -f kube-bench-job.yaml -n oss500-security
+#   kubectl logs -f job/kube-bench -n oss500-security
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kube-bench
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: kube-bench
+        app.kubernetes.io/part-of: oss500
+    spec:
+      # Needs the host PID namespace + host mounts to inspect control-plane/kubelet.
+      hostPID: true
+      restartPolicy: Never
+      containers:
+        - name: kube-bench
+          image: aquasec/kube-bench:latest
+          # `run` prints PASS/FAIL/WARN per CIS section with remediation text.
+          command: ["kube-bench"]
+          args: ["run", "--json"]
+          volumeMounts:
+            - { name: var-lib-etcd, mountPath: /var/lib/etcd, readOnly: true }
+            - { name: var-lib-kubelet, mountPath: /var/lib/kubelet, readOnly: true }
+            - { name: etc-systemd, mountPath: /etc/systemd, readOnly: true }
+            - { name: etc-kubernetes, mountPath: /etc/kubernetes, readOnly: true }
+            - { name: usr-bin, mountPath: /usr/local/mount-from-host/bin, readOnly: true }
+      volumes:
+        - { name: var-lib-etcd, hostPath: { path: /var/lib/etcd } }
+        - { name: var-lib-kubelet, hostPath: { path: /var/lib/kubelet } }
+        - { name: etc-systemd, hostPath: { path: /etc/systemd } }
+        - { name: etc-kubernetes, hostPath: { path: /etc/kubernetes } }
+        - { name: usr-bin, hostPath: { path: /usr/bin } }

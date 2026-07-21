@@ -1,0 +1,26 @@
+# grafana/tempo Helm values for OSS-500 (obs-traces).
+# Monolithic mode: single process, filesystem storage, OTLP receivers enabled so
+# the OpenTelemetry Collector (otel-collector.yaml) can export spans here.
+fullnameOverride: oss500-tempo
+
+tempo:
+  # obs-traces: accept OTLP over gRPC (4317) and HTTP (4318) — the OTel wire protocol.
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+  retention: 24h
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { memory: 512Mi }
+
+# Tail-based sampling (keep erroring/interesting traces, drop noise) would live in
+# the Collector pipeline, not here — noted for the exam's sampling questions.

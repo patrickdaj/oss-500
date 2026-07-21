@@ -1,0 +1,93 @@
+# OpenTelemetry Collector for LLM observability (ai-observability).
+# Receives GenAI spans/metrics from the gateway + Open WebUI and exports them to the
+# Domain 4 backends (Tempo for traces, Prometheus for metrics). GenAI semantic
+# conventions: gen_ai.request.model, gen_ai.usage.{input,output}_tokens, enduser.id.
+# Docs: https://opentelemetry.io/docs/specs/semconv/gen-ai/
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: oss500-apps
+  labels: { app.kubernetes.io/part-of: oss500 }
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc: { endpoint: 0.0.0.0:4317 }
+          http: { endpoint: 0.0.0.0:4318 }
+    processors:
+      batch: {}
+      # ai-observability: REDACT secrets/PII from telemetry — never log raw prompts
+      # containing credentials. Hash or drop sensitive attributes here.
+      attributes/redact:
+        actions:
+          - { key: gen_ai.prompt, action: delete }
+          - { key: gen_ai.completion, action: delete }
+          - { key: enduser.id, action: hash }
+    exporters:
+      # To the Domain 4 stack when it's up; logging exporter works standalone for the lab.
+      debug: { verbosity: detailed }
+      otlp/tempo:
+        endpoint: tempo.oss500-monitoring:4317
+        tls: { insecure: true }
+      prometheus:
+        endpoint: 0.0.0.0:8889
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [attributes/redact, batch]
+          exporters: [debug, otlp/tempo]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [debug, prometheus]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: oss500-apps
+  labels: { app.kubernetes.io/part-of: oss500, app: otel-collector }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: otel-collector } }
+  template:
+    metadata:
+      labels: { app: otel-collector, app.kubernetes.io/part-of: oss500 }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:latest
+          args: ["--config=/conf/config.yaml"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          ports:
+            - { containerPort: 4317 }
+            - { containerPort: 4318 }
+            - { containerPort: 8889 }
+          volumeMounts:
+            - { name: conf, mountPath: /conf }
+      volumes:
+        - { name: conf, configMap: { name: otel-collector-config } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: oss500-apps
+  labels: { app.kubernetes.io/part-of: oss500 }
+spec:
+  selector: { app: otel-collector }
+  ports:
+    - { name: otlp-grpc, port: 4317, targetPort: 4317 }
+    - { name: otlp-http, port: 4318, targetPort: 4318 }
+    - { name: prom, port: 8889, targetPort: 8889 }

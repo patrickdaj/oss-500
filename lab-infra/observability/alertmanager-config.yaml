@@ -1,0 +1,43 @@
+# Alertmanager routing for OSS-500 (obs-alerting).
+# Applied as the Alertmanager config secret by up.sh. This is DELIVERY/ROUTING —
+# grouping, inhibition, silences, receivers — as distinct from the RULE that fires.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-oss500-kube-prometheus-stack-alertmanager
+  namespace: oss500-monitoring
+  labels:
+    app.kubernetes.io/part-of: oss500
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+    route:
+      # Grouping bundles related alerts so one incident isn't 50 pages.
+      group_by: ['alertname', 'namespace']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 3h
+      receiver: default
+      routes:
+        # Route the security team's critical alerts to the SOC webhook receiver.
+        - matchers:
+            - team = security
+            - severity = critical
+          receiver: security-soc
+    # Inhibition: while a critical for a target is firing, suppress the matching
+    # warning for the same target — reduces duplicate noise.
+    inhibit_rules:
+      - source_matchers: [ severity = critical ]
+        target_matchers: [ severity = warning ]
+        equal: ['namespace', 'alertname']
+    receivers:
+      - name: default
+      - name: security-soc
+        webhook_configs:
+          # A local webhook sink stands in for PagerDuty/Slack in the lab.
+          - url: 'http://alert-sink.oss500-monitoring.svc:8080/'
+            send_resolved: true
+    # Silences (planned maintenance) are created at runtime in the Alertmanager UI,
+    # not declared here — used in the lab to prove routing != condition.

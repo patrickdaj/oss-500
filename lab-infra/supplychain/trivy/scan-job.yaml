@@ -1,0 +1,44 @@
+# One-shot Trivy scan as a Kubernetes Job (sc-scan / sc-sbom).
+# Reproduces a CI gate in-cluster: fails (Job error) on a CRITICAL fixable CVE.
+# Edit TARGET_IMAGE to the image under test.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: trivy-scan
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  backoffLimit: 0              # do not retry — a scan failure is the signal
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: oss500
+    spec:
+      restartPolicy: Never
+      # sc-securitycontext note: the scanner itself runs hardened (non-root, RO FS).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: trivy
+          image: aquasec/trivy:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          args:
+            - image
+            - --severity=CRITICAL
+            - --ignore-unfixed        # policy: don't fail on unactionable vulns
+            - --exit-code=1           # sc-scan: non-zero exit IS the gate
+            - "python:3.8-slim"       # TARGET_IMAGE
+          volumeMounts:
+            - { name: cache, mountPath: /tmp/.cache }
+            - { name: tmp, mountPath: /tmp }
+          env:
+            - { name: TRIVY_CACHE_DIR, value: /tmp/.cache }
+      volumes:
+        - { name: cache, emptyDir: {} }
+        - { name: tmp, emptyDir: {} }

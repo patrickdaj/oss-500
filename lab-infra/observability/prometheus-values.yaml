@@ -1,0 +1,57 @@
+# kube-prometheus-stack Helm values for OSS-500 (obs-metrics, obs-alerting).
+# chart: prometheus-community/kube-prometheus-stack
+# Namespace: oss500-monitoring
+fullnameOverride: oss500-kube-prometheus-stack
+
+commonLabels:
+  app.kubernetes.io/part-of: oss500
+
+# obs-metrics: Prometheus scrapes targets selected by ServiceMonitor/PodMonitor CRDs,
+# not a hand-edited prometheus.yml. Watch all namespaces for OSS-500 monitors.
+prometheus:
+  prometheusSpec:
+    retention: 24h
+    # Discover ServiceMonitors/PodMonitors cluster-wide regardless of Helm release label.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    # Keep the lab footprint bounded on the reference host.
+    resources:
+      requests: { cpu: 200m, memory: 512Mi }
+      limits:   { memory: 1Gi }
+
+# obs-alerting: Alertmanager routing/grouping/inhibition is supplied out-of-band by
+# alertmanager-config.yaml (an AlertmanagerConfig / secret applied by up.sh), so the
+# rule (condition) and the route (delivery) stay clearly separate.
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+
+# obs-dashboards: Grafana admin password is injected from grafana-admin.env by up.sh
+# (admin.existingSecret), never hard-coded here.
+grafana:
+  fullnameOverride: oss500-grafana
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  # Provisioning sidecar picks up dashboards/datasources labelled grafana_dashboard/datasource.
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+    datasources:
+      enabled: true
+      label: grafana_datasource
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts: ["grafana.localtest.me"]
+
+# node-exporter + kube-state-metrics ship security-relevant signals
+# (host resource usage; object state such as privileged/running-as-root pods).
+nodeExporter:
+  enabled: true
+kube-state-metrics:
+  enabled: true

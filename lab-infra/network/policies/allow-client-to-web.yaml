@@ -1,0 +1,49 @@
+# net-policy: the targeted allow that re-opens ONE path through the default-deny.
+# Only pods labelled app=client may reach app=web on TCP 8080 (and web may only be
+# reached by them). Everything else stays denied. This is east-west micro-segmentation:
+# identity is the pod label, not an IP.
+# SC-500 correspondence: NSG allow rule scoped to an application security group.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-client-to-web
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  podSelector:
+    matchLabels:
+      app: web                 # net-policy: this policy governs ingress to the web pods
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: client      # net-policy: only the client pods are allowed in
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# Companion egress allow so the client (under default-deny egress) may reach web.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-client-egress-to-web
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  podSelector:
+    matchLabels:
+      app: client
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: web
+      ports:
+        - protocol: TCP
+          port: 8080

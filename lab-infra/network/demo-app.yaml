@@ -1,0 +1,122 @@
+# net-ingress + waf: a tiny web workload behind TLS ingress with the WAF armed.
+# Pod spec is restricted-PSA compliant (oss500-apps enforces the restricted standard).
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: oss500-apps
+  labels:
+    app: web
+    app.kubernetes.io/part-of: oss500
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+        app.kubernetes.io/part-of: oss500
+    spec:
+      securityContext:                 # restricted PSA: pod-level hardening
+        runAsNonRoot: true
+        runAsUser: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          image: nginxinc/nginx-unprivileged:1.27-alpine   # listens on 8080 as non-root
+          ports:
+            - containerPort: 8080
+          securityContext:             # restricted PSA: container-level hardening
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:                # writable temp dirs so nginx runs read-only-root
+            - { name: tmp, mountPath: /tmp }
+            - { name: cache, mountPath: /var/cache/nginx }
+            - { name: run, mountPath: /var/run }
+          resources:
+            requests: { cpu: 20m, memory: 32Mi }
+            limits: { memory: 64Mi }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - { name: cache, emptyDir: {} }
+        - { name: run, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: oss500-apps
+  labels:
+    app: web
+    app.kubernetes.io/part-of: oss500
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+  annotations:
+    # net-ingress: cert-manager terminates TLS with a cert from the CA issuer.
+    cert-manager.io/cluster-issuer: ca-issuer
+    # waf-deploy: arm ModSecurity for THIS ingress (also enabled globally in values).
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    # waf-rules: load the OWASP Core Rule Set for this ingress.
+    nginx.ingress.kubernetes.io/enable-owasp-core-rules: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [demo.localtest.me]
+      secretName: web-tls          # net-ingress: cert-manager fills this Secret
+  rules:
+    - host: demo.localtest.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 8080
+---
+# net-policy companion: a throwaway client pod used to demo default-deny/allow.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  namespace: oss500-apps
+  labels:
+    app: client
+    app.kubernetes.io/part-of: oss500
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: client
+      image: curlimages/curl:8.10.1
+      command: ["sleep", "infinity"]
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+      resources:
+        requests: { cpu: 10m, memory: 16Mi }
+        limits: { memory: 32Mi }

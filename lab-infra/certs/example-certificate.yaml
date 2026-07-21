@@ -1,0 +1,30 @@
+# cert-lifecycle: a short-lived leaf certificate that visibly auto-renews.
+# Issued into oss500-apps by the CA ClusterIssuer.
+# SC-500 correspondence: Key Vault certificate with lifetime actions (auto-renew).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: demo-tls
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  secretName: demo-tls           # cert-manager writes tls.crt / tls.key here
+  commonName: demo.localtest.me
+  dnsNames:
+    - demo.localtest.me
+  # cert-lifecycle: deliberately short so renewal is observable in a lab session.
+  duration: 24h                  # cert valid for 24h
+  renewBefore: 12h               # cert-manager renews once <12h remain (i.e. at ~12h age)
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always       # cert-lifecycle: new key on every renewal
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+  issuerRef:
+    name: ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io

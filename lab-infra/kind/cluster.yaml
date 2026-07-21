@@ -1,0 +1,31 @@
+# kind cluster for the OSS-500 labs.
+# Create:  kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml
+# Delete:  kind delete cluster --name oss500
+# One control-plane + two workers so NetworkPolicy, scheduling, and node-level
+# labs (kube-bench, Falco DaemonSets) behave like a real multi-node cluster.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: oss500
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      # Label the ingress-ready node so ingress-nginx schedules here (net-ingress).
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      # Expose ingress on localhost so browser-based labs (Keycloak, Open WebUI,
+      # Grafana) are reachable without port-forwards.
+      - containerPort: 80
+        hostPort: 8080
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 8443
+        protocol: TCP
+  - role: worker
+  - role: worker
+# gov-iac: encryption-at-rest for etcd Secrets (data-encrypt) is layered on in
+# lab-infra/encryption/ via an EncryptionConfiguration; kept out of the base so
+# the encryption lab shows the before/after.

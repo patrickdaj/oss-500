@@ -1,0 +1,33 @@
+# Grafana data sources for OSS-500 (obs-dashboards), provisioned via the sidecar
+# (label grafana_datasource=1). Grafana stores NOTHING itself — it queries these
+# backends. Killing Grafana loses no data.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oss500-grafana-datasources
+  namespace: oss500-monitoring
+  labels:
+    app.kubernetes.io/part-of: oss500
+    grafana_datasource: "1"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://oss500-kube-prometheus-stack-prometheus.oss500-monitoring.svc:9090
+        isDefault: true
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://oss500-loki.oss500-monitoring.svc:3100
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://oss500-tempo.oss500-monitoring.svc:3100
+        # obs-dashboards: link traces->logs so a span jumps to its pod's Loki logs
+        # (the metrics->logs->traces correlation the SOC investigation relies on).
+        jsonData:
+          tracesToLogsV2:
+            datasourceUid: loki

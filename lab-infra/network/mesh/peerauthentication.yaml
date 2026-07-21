@@ -1,0 +1,15 @@
+# net-mesh: enforce mutual TLS for all workloads in oss500-apps.
+# STRICT mode means the sidecars will ONLY accept mTLS connections — any plaintext
+# caller (a pod without the Istio sidecar) is rejected. This is identity-based,
+# encrypted east-west traffic: the zero-trust network SC-500 calls Private Link /
+# zero-trust networking.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  mtls:
+    mode: STRICT        # net-mesh: reject non-mTLS traffic

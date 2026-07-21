@@ -1,0 +1,46 @@
+# Intentionally-INSECURE workload for the posture lab (vuln-cluster, vuln-remediate).
+# It deliberately violates hardening controls so Kubescape/Trivy have real findings:
+#   runs as root · privileged · hostPath mount · no resource limits · pinned OLD image.
+#
+# IMPORTANT: deploy this into oss500-security (privileged PSA), NOT oss500-apps —
+# the restricted Pod Security Admission on oss500-apps would REJECT it outright.
+# That rejection is itself the lesson (admission gating prevents this from ever
+# running); we place it in the privileged namespace only so the scanners can
+# evaluate a live insecure pod.  ->  kubectl apply -f insecure-demo.yaml -n oss500-security
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: insecure-demo
+  labels:
+    app: insecure-demo
+    app.kubernetes.io/part-of: oss500
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: insecure-demo }
+  template:
+    metadata:
+      labels:
+        app: insecure-demo
+        app.kubernetes.io/part-of: oss500
+    spec:
+      containers:
+        - name: app
+          # Pinned OLD tag on purpose so Trivy reports fixable CVEs (vuln-remediate).
+          image: nginx:1.21.0
+          securityContext:
+            # vuln-cluster: every one of these is a Kubescape control failure.
+            privileged: true
+            runAsUser: 0
+            allowPrivilegeEscalation: true
+            readOnlyRootFilesystem: false
+          # No resource requests/limits — another failing control.
+          volumeMounts:
+            - name: hostroot
+              mountPath: /host
+      volumes:
+        # hostPath into the node filesystem — high blast radius (a top finding).
+        - name: hostroot
+          hostPath:
+            path: /
+            type: Directory

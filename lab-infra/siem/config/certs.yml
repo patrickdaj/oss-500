@@ -1,0 +1,12 @@
+# Node/admin identities for the Wazuh cert generator (siem-deploy).
+# Names must match the hostnames used in docker-compose.yml.
+nodes:
+  indexer:
+    - name: wazuh.indexer
+      ip: wazuh.indexer
+  server:
+    - name: wazuh.manager
+      ip: wazuh.manager
+  dashboard:
+    - name: wazuh.dashboard
+      ip: wazuh.dashboard

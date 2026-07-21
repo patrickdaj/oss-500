@@ -1,0 +1,37 @@
+# PrometheusRule for OSS-500 (obs-alerting).
+# The RULE (condition) lives here in Prometheus; the ROUTE (delivery) lives in
+# alertmanager-config.yaml. Keeping them separate is the exam-critical distinction.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: oss500-security-rules
+  namespace: oss500-monitoring
+  labels:
+    app.kubernetes.io/part-of: oss500
+    # Selected by the kube-prometheus-stack ruleSelector (release label).
+    release: oss500-kube-prometheus-stack
+spec:
+  groups:
+    - name: oss500.security
+      rules:
+        # obs-alerting: fire when the demo app's auth-failure rate (derived from Loki
+        # logs via a recording rule / or from a metrics counter) crosses threshold for 2m.
+        # `for: 2m` prevents flapping on a transient blip.
+        - alert: AuthFailureSpike
+          expr: sum(rate(authlog_failed_logins_total[2m])) > 0.2
+          for: 2m
+          labels:
+            severity: critical
+            team: security
+          annotations:
+            summary: "Spike in authentication failures"
+            description: "Failed-login rate {{ $value | printf \"%.2f\" }}/s over 2m — possible brute force."
+        # A restart/crash-loop can indicate a killed exploit or an unstable workload.
+        - alert: KubePodCrashLooping
+          expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+          for: 15m
+          labels:
+            severity: warning
+            team: security
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash-looping"

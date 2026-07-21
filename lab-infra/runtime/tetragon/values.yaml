@@ -1,0 +1,19 @@
+# Tetragon Helm values — cilium/tetragon  (rt-tetragon)
+# Docs: https://tetragon.io/docs/
+
+tetragon:
+  # part-of label for teardown queries.
+  extraPodLabels:
+    app.kubernetes.io/part-of: oss500
+
+# rt-tetragon: enforcement (Sigkill/Override) requires the privileged agent with
+# host access to load eBPF programs into the kernel — hence oss500-security.
+enablePolicyFilter: true       # allow namespaced TracingPolicy targeting
+
+# Export process/network events enriched with Kubernetes identity (pod, ns, labels,
+# image) — the low-overhead audit trail Falco's full-syscall logging is heavier than.
+exportAllowList: |-
+  {"event_set":["PROCESS_EXEC","PROCESS_EXIT","PROCESS_KPROBE"]}
+
+# Grafana/JSON export can be layered on with the Domain 4 stack; getevents works standalone:
+#   kubectl -n oss500-security exec ds/tetragon -c tetragon -- tetra getevents -o compact

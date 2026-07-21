@@ -1,0 +1,27 @@
+# net-policy: once egress is default-denied, pods can't even resolve DNS.
+# This policy re-permits egress to kube-dns (UDP/TCP 53) for all pods in the
+# namespace — the minimal exception every default-deny egress design needs.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns          # CoreDNS pods
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

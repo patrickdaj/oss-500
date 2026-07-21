@@ -1,0 +1,34 @@
+# Node
+node_modules/
+
+# Local cluster / kube state
+kubeconfig
+*.kubeconfig
+.kube/
+kind-*.yaml.local
+
+# Secrets & credentials — never commit
+.env
+.env.*
+*.env
+vault-init.json
+*-unseal-key*
+*.token
+root-token*
+*.key
+*.pem
+*.crt.local
+*_rsa
+*_ed25519
+secrets.local.*
+
+# Local lab overrides (commit the *.example templates instead)
+*.local.yaml
+terraform.tfvars
+
+# OS / editor
+.DS_Store
+*.swp
+
+# Lab-generated etcd encryption key (KEK) — seed from the .example, never commit
+lab-infra/encryption/encryption-config.yaml

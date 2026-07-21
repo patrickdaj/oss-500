@@ -1,0 +1,676 @@
+# Checkpoint quiz 2 — authored from domains/2-secrets-data-networking/ notes.
+# Schema: see openspec study-data-format spec. Answers are ZERO-BASED indexes.
+id: quiz-2
+title: "Checkpoint 2 — Secrets, data, and networking"
+domain: d2
+passPercent: 80
+questions:
+  - id: q2-01
+    objectiveIds: [vault-deploy]
+    type: single
+    stem: >-
+      You initialize a new HashiCorp Vault server and it reports itself as
+      "Sealed: true". An engineer says the root token from
+      `vault operator init` should let them start reading secrets immediately.
+      What is actually required first?
+    options:
+      - "Nothing — the root token unseals Vault implicitly on first use"
+      - "A quorum of unseal key shares must be supplied to reconstruct the master key and decrypt the storage backend"
+      - "Restart the Vault process, which auto-unseals from the storage backend"
+      - "Set VAULT_TOKEN to the root token, which disables the seal"
+    answer: [1]
+    explanation: >-
+      A sealed Vault holds no plaintext master key, so it cannot decrypt its
+      storage backend or serve any request, regardless of token. Unsealing
+      requires a threshold of Shamir key shares (e.g. 3 of 5) to reconstruct
+      the master key. Only after unsealing does the root token become usable.
+    docUrl: "https://developer.hashicorp.com/vault/docs/concepts/seal"
+  - id: q2-02
+    objectiveIds: [vault-deploy]
+    type: single
+    stem: >-
+      You are running Vault in HA on Kubernetes and want to avoid an operator
+      manually entering unseal shares every time a pod restarts, while keeping
+      the master key protected by an external root of trust. Which approach
+      fits?
+    options:
+      - "Run Vault in -dev mode so it starts unsealed"
+      - "Configure auto-unseal with a transit/KMS seal that wraps the master key with an external key"
+      - "Store the unseal keys in a Kubernetes Secret mounted into the pod"
+      - "Set the Shamir threshold to 1 so any single share unseals it"
+    answer: [1]
+    explanation: >-
+      Auto-unseal delegates protection of the master key to an external
+      service (a Transit seal on another Vault, or a cloud/HSM KMS). Vault then
+      unseals itself on start without human key entry. Dev mode is in-memory
+      and insecure; storing unseal keys in a Secret defeats the purpose; a
+      threshold of 1 removes the split-knowledge protection.
+    docUrl: "https://developer.hashicorp.com/vault/docs/concepts/seal#auto-unseal"
+  - id: q2-03
+    objectiveIds: [vault-access]
+    type: single
+    stem: >-
+      An application should be able to read secrets only under
+      `secret/data/app/*` and nothing else. Which Vault construct enforces
+      this, and how is it attached to the app?
+    options:
+      - "A firewall rule on the Vault listener restricting the app's IP"
+      - "An ACL policy granting read on that path, bound to the auth role the app logs in with"
+      - "A Kubernetes RBAC Role in the app's namespace"
+      - "The root token, scoped down with an environment variable"
+    answer: [1]
+    explanation: >-
+      Vault authorization is path-based ACL policies (HCL granting
+      capabilities like read/list on a path), attached to the identity a
+      client receives from an auth method. Vault policies are not Kubernetes
+      RBAC and are not IP filters; the root token has no path restrictions.
+    docUrl: "https://developer.hashicorp.com/vault/docs/concepts/policies"
+  - id: q2-04
+    objectiveIds: [vault-access]
+    type: multi
+    stem: >-
+      A workload authenticates to Vault using the Kubernetes auth method. Which
+      two elements does Vault verify or bind when that pod logs in? (Select two)
+    options:
+      - "The ServiceAccount JWT the pod presents, validated against the cluster's token review / OIDC issuer"
+      - "The role's bound ServiceAccount names and namespaces"
+      - "The pod's image digest signature"
+      - "The node's TPM attestation quote"
+    answer: [0, 1]
+    explanation: >-
+      Kubernetes auth validates the presented ServiceAccount token (via the
+      TokenReview API or the cluster's OIDC issuer) and checks it against the
+      role's bound_service_account_names and bound_service_account_namespaces
+      before issuing a Vault token with the mapped policies. Image signatures
+      and TPM attestation are not part of this auth method.
+    docUrl: "https://developer.hashicorp.com/vault/docs/auth/kubernetes"
+  - id: q2-05
+    objectiveIds: [vault-dynamic]
+    type: single
+    stem: >-
+      Instead of a shared database password stored in a Secret, you configure
+      Vault's database secrets engine so each app instance calls
+      `vault read database/creds/app`. What is the security advantage the exam
+      is looking for?
+    options:
+      - "The password is base64-encoded so it can't be read"
+      - "Vault issues a unique, short-lived credential per request that it can revoke and that auto-expires with its lease"
+      - "The credential is encrypted at rest in etcd"
+      - "The app no longer needs any network access to the database"
+    answer: [1]
+    explanation: >-
+      Dynamic secrets are generated on demand, unique per consumer, tied to a
+      lease with a TTL, and revocable — so a leaked credential is short-lived
+      and traceable, and there is no long-lived shared password. Base64 and
+      etcd encryption are unrelated; the app still connects to the DB normally.
+    docUrl: "https://developer.hashicorp.com/vault/docs/secrets/databases"
+  - id: q2-06
+    objectiveIds: [vault-dynamic]
+    type: single
+    stem: >-
+      A dynamic database credential was issued with a 1-hour lease. Thirty
+      minutes in, you detect the consuming pod is compromised. What is the
+      fastest correct containment in Vault, and what happens to the DB user?
+    options:
+      - "Wait for the lease to expire on its own; nothing else is possible"
+      - "Run `vault lease revoke` on the lease (or `-prefix`); Vault runs the revocation SQL and drops the database user immediately"
+      - "Delete the Vault policy, which retroactively invalidates the credential"
+      - "Rotate the app's ServiceAccount token, which cascades to the DB user"
+    answer: [1]
+    explanation: >-
+      Leases can be revoked before expiry with `vault lease revoke` (single or
+      by prefix), which triggers the engine's revocation statements to drop the
+      database user right away. Deleting a policy or rotating an SA token does
+      not remove an already-created database user.
+    docUrl: "https://developer.hashicorp.com/vault/docs/concepts/lease"
+  - id: q2-07
+    objectiveIds: [vault-rotation]
+    type: single
+    stem: >-
+      When you configure Vault's database secrets engine, you give it an admin
+      account. A reviewer worries that admin password now lives in your
+      configuration management. What does `vault write -f database/rotate-root`
+      accomplish?
+    options:
+      - "It rotates every dynamic credential Vault has issued"
+      - "It changes the root/admin DB password to a value only Vault knows, so the copy in your config becomes useless"
+      - "It deletes the database connection so no credentials can be issued"
+      - "It re-encrypts the Vault storage backend with a new master key"
+    answer: [1]
+    explanation: >-
+      rotate-root changes the configured admin credential to a new value known
+      only to Vault, eliminating the human-known bootstrap password. It does
+      not touch issued dynamic leases, delete the connection, or reseal Vault.
+    docUrl: "https://developer.hashicorp.com/vault/api-docs/secret/databases#rotate-root-credentials"
+  - id: q2-08
+    objectiveIds: [vault-rotation]
+    type: single
+    stem: >-
+      A legacy third-party API only accepts one static API key that must be
+      rotated on a schedule with zero-downtime, and you want history/rollback.
+      Which Vault capability fits best?
+    options:
+      - "The KV v2 engine with versioning plus a scheduled rotation job that writes the new key as a new version"
+      - "The transit engine, since it rotates keys automatically"
+      - "A dynamic database role, reused for the API"
+      - "Storing the key in a Kubernetes Secret with an annotation"
+    answer: [0]
+    explanation: >-
+      Static third-party secrets that can't be generated on demand live in KV
+      v2, whose versioning gives history and rollback; rotation is a scheduled
+      write of a new version (or an automated rotation for supported plugins).
+      Transit encrypts data and doesn't store your external API key; dynamic DB
+      roles don't apply to an opaque third-party key.
+    docUrl: "https://developer.hashicorp.com/vault/docs/secrets/kv/kv-v2"
+  - id: q2-09
+    objectiveIds: [vault-k8s]
+    type: single
+    stem: >-
+      You want a pod to receive a Vault secret as a file at
+      `/vault/secrets/config`, without the secret ever becoming a Kubernetes
+      Secret object. Which delivery mechanism matches, and how is it triggered?
+    options:
+      - "The Secrets Store CSI driver, which always creates a synced Kubernetes Secret"
+      - "The Vault Agent Injector, via `vault.hashicorp.com/agent-inject` pod annotations that add a sidecar writing to an in-memory volume"
+      - "An init container that runs `kubectl create secret`"
+      - "envFrom referencing a Vault URL directly"
+    answer: [1]
+    explanation: >-
+      The Vault Agent Injector mutates the pod to add an agent sidecar that
+      authenticates and renders secrets into a shared in-memory (tmpfs) volume
+      at /vault/secrets — no Kubernetes Secret is created. The CSI driver
+      mounts secrets as a volume and only creates a synced K8s Secret if you
+      explicitly enable secretObjects.
+    docUrl: "https://developer.hashicorp.com/vault/docs/platform/k8s/injector"
+  - id: q2-10
+    objectiveIds: [vault-k8s]
+    type: single
+    stem: >-
+      Comparing the Vault Agent Injector and the Secrets Store CSI driver, a
+      teammate claims they are interchangeable. Which distinction is correct?
+    options:
+      - "The CSI driver renders secrets to a tmpfs sidecar; the injector mounts a CSI volume"
+      - "The injector adds a sidecar/init container per pod and writes to a shared volume; the CSI driver mounts secrets through a SecretProviderClass as a CSI volume and can optionally sync a K8s Secret"
+      - "Only the CSI driver supports Kubernetes auth to Vault"
+      - "The injector requires the secret to first exist as a Kubernetes Secret"
+    answer: [1]
+    explanation: >-
+      The injector is a mutating webhook that adds Vault Agent sidecar/init
+      containers writing to a shared in-memory volume; the CSI driver uses a
+      SecretProviderClass and the Secrets Store CSI interface to mount secrets
+      as a volume, optionally syncing a Kubernetes Secret. Both can use
+      Kubernetes auth; neither requires a pre-existing K8s Secret.
+    docUrl: "https://developer.hashicorp.com/vault/docs/platform/k8s/csi"
+  - id: q2-11
+    objectiveIds: [vault-audit]
+    type: single
+    stem: >-
+      Compliance asks for a tamper-evident record of every secret access in
+      Vault, but is worried the log itself will leak secret values. What does
+      enabling a Vault audit device (e.g. `vault audit enable file`) provide?
+    options:
+      - "A log with all request/response data in plaintext, so it must be encrypted separately"
+      - "A log where sensitive string values are HMAC'd with a per-Vault key, recording who/what/when without exposing the secret value"
+      - "Only failed requests, to reduce volume"
+      - "Metrics counters only, not per-request records"
+    answer: [1]
+    explanation: >-
+      Audit devices record every authenticated request and response, but
+      sensitive values are hashed (HMAC-SHA256 with an internal key) so the log
+      proves access without disclosing the secret. Vault refuses to service
+      requests if it cannot write to at least one enabled audit device.
+    docUrl: "https://developer.hashicorp.com/vault/docs/audit"
+  - id: q2-12
+    objectiveIds: [key-transit]
+    type: single
+    stem: >-
+      Developers want "encryption as a service" so application data is
+      encrypted with a key that never leaves central control, and apps never
+      handle raw key material. Which Vault engine and data flow is correct?
+    options:
+      - "The KV engine; the app fetches the key and encrypts locally"
+      - "The transit engine; the app sends plaintext to Vault, Vault returns ciphertext, and the key stays inside Vault"
+      - "The database engine; it encrypts columns transparently"
+      - "The PKI engine; it wraps data in a certificate"
+    answer: [1]
+    explanation: >-
+      The transit engine performs cryptographic operations inside Vault: the
+      app sends base64 plaintext to transit/encrypt/<key> and gets ciphertext
+      back; the key material never leaves Vault. That is exactly the
+      encryption-as-a-service / bring-your-own-crypto model. KV would hand the
+      key to the app; database/PKI solve different problems.
+    docUrl: "https://developer.hashicorp.com/vault/docs/secrets/transit"
+  - id: q2-13
+    objectiveIds: [key-transit]
+    type: single
+    stem: >-
+      After rotating a transit key with `vault write -f transit/keys/app/rotate`,
+      old ciphertext prefixed `vault:v1:` must still decrypt while new writes
+      use v2. What behavior of the transit engine supports this?
+    options:
+      - "Rotation deletes v1, so old ciphertext must be re-encrypted before rotating"
+      - "Each ciphertext carries a key-version prefix; Vault keeps prior versions to decrypt old data while encrypting new data with the latest version"
+      - "The app must store which key version it used"
+      - "Transit keys cannot be rotated once data is encrypted"
+    answer: [1]
+    explanation: >-
+      Transit ciphertext is versioned (vault:v1:, vault:v2:, ...). Vault
+      retains earlier key versions (down to min_decryption_version) so
+      previously encrypted data still decrypts after rotation, while new
+      encryptions use the latest version. You can later `rewrap` to upgrade old
+      ciphertext.
+    docUrl: "https://developer.hashicorp.com/vault/docs/secrets/transit#key-rotation"
+  - id: q2-14
+    objectiveIds: [key-hsm]
+    type: single
+    stem: >-
+      An auditor requires that the root of trust protecting Vault's master key
+      be a FIPS 140-2 validated HSM, integrated over PKCS#11. Which statement
+      is accurate for planning this?
+    options:
+      - "Any open-source Vault build supports PKCS#11 HSM seal out of the box"
+      - "HSM auto-unseal / seal-wrap via PKCS#11 is a Vault Enterprise feature; a real HSM is a hardware root of trust, and SoftHSM is only for testing the integration"
+      - "The HSM stores every secret directly, replacing Vault storage"
+      - "PKCS#11 is only used for TLS on the listener, not for sealing"
+    answer: [1]
+    explanation: >-
+      HSM-backed seal (and managed keys) over PKCS#11 is a Vault Enterprise
+      capability; the HSM acts as the hardware root of trust wrapping the
+      master key, analogous to Azure Managed HSM. SoftHSM can stand in for lab
+      testing but is not a real root of trust. The HSM protects key material,
+      not bulk secret storage.
+    docUrl: "https://developer.hashicorp.com/vault/docs/configuration/seal/pkcs11"
+  - id: q2-15
+    objectiveIds: [cert-issuer]
+    type: single
+    stem: >-
+      You want every Certificate resource in the cluster to be signed by a
+      single internal CA you control, with no external ACME dependency. Which
+      cert-manager objects do you create?
+    options:
+      - "An ACME ClusterIssuer pointing at Let's Encrypt"
+      - "A CA-type ClusterIssuer referencing a Secret that holds your CA key/cert, then Certificate resources referencing that issuer"
+      - "A self-signed Issuer in every namespace, one per app"
+      - "A SecretProviderClass mapping certs from Vault"
+    answer: [1]
+    explanation: >-
+      A CA ClusterIssuer signs certificates from a CA key/cert stored in a
+      Secret and is cluster-scoped so all namespaces can use it. ACME is for
+      publicly-trusted certs via challenges; a bare self-signed issuer has no
+      chain of trust; SecretProviderClass is CSI, not cert-manager issuance.
+    docUrl: "https://cert-manager.io/docs/configuration/ca/"
+  - id: q2-16
+    objectiveIds: [cert-issuer]
+    type: single
+    stem: >-
+      An Ingress annotated with `cert-manager.io/cluster-issuer` and an ACME
+      HTTP-01 issuer never gets a certificate; the Order is stuck pending. What
+      is the most likely cause the exam expects?
+    options:
+      - "cert-manager requires the certificate to be created manually first"
+      - "The ACME HTTP-01 challenge path (/.well-known/acme-challenge/) is not reachable from the ACME server, so the domain can't be validated"
+      - "ClusterIssuers cannot be referenced from an Ingress"
+      - "The Certificate needs a Vault transit key to sign"
+    answer: [1]
+    explanation: >-
+      HTTP-01 validation requires the ACME server to reach the solver at
+      http://<domain>/.well-known/acme-challenge/<token>. If ingress/DNS/
+      firewalling blocks that path, the challenge stays pending and no cert is
+      issued. ClusterIssuers are referenceable from Ingress via annotation, and
+      issuance doesn't require manual certs or transit.
+    docUrl: "https://cert-manager.io/docs/configuration/acme/http01/"
+  - id: q2-17
+    objectiveIds: [cert-lifecycle]
+    type: single
+    stem: >-
+      A Certificate has `duration: 24h` and `renewBefore: 8h`. A colleague
+      worries someone must manually reissue it daily. What does cert-manager
+      actually do?
+    options:
+      - "Nothing automatic — you must run cmctl renew each day"
+      - "It automatically reissues and updates the Secret roughly 8h before expiry, rotating tls.crt/tls.key with no manual action"
+      - "It emails an operator when the cert expires"
+      - "It revokes the cert at 24h and stops serving TLS"
+    answer: [1]
+    explanation: >-
+      cert-manager continuously reconciles Certificate resources and renews
+      automatically at duration minus renewBefore (here ~16h in), writing the
+      new key pair into the referenced Secret. cmctl renew only forces an early
+      renewal; day-to-day renewal is automatic.
+    docUrl: "https://cert-manager.io/docs/usage/certificate/"
+  - id: q2-18
+    objectiveIds: [net-policy]
+    type: single
+    stem: >-
+      Two pods in namespace `oss500-apps` can currently reach each other. You
+      apply a NetworkPolicy that selects all pods with an empty podSelector and
+      lists `policyTypes: [Ingress]` with no ingress rules. What is the result?
+    options:
+      - "Nothing changes — an empty policy is ignored"
+      - "All ingress to every pod in the namespace is denied (default-deny ingress), so cross-pod curls now time out"
+      - "All egress is denied but ingress is unaffected"
+      - "Only traffic from other namespaces is denied"
+    answer: [1]
+    explanation: >-
+      A policy selecting all pods with Ingress in policyTypes and no ingress
+      rules is the canonical default-deny-ingress: once any policy selects a
+      pod, only explicitly allowed traffic is permitted, so with no allow rules
+      all inbound is dropped. Egress is untouched unless you also default-deny
+      egress.
+    docUrl: "https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+  - id: q2-19
+    objectiveIds: [net-policy]
+    type: multi
+    stem: >-
+      After applying a default-deny-egress NetworkPolicy, your pods can no
+      longer resolve service names. Which two facts explain and fix this?
+      (Select two)
+    options:
+      - "Default-deny egress also blocks DNS to kube-dns/CoreDNS unless you add an egress allow rule for it"
+      - "You must add an egress rule permitting UDP/TCP 53 to the kube-system DNS pods (or namespace) label"
+      - "NetworkPolicy never affects DNS, so the cause is unrelated"
+      - "DNS is exempt from all NetworkPolicies by design"
+    answer: [0, 1]
+    explanation: >-
+      DNS is ordinary egress traffic; a default-deny-egress policy blocks it
+      too, which is a classic footgun. The fix is an explicit egress rule
+      allowing port 53 (UDP and TCP) to the DNS pods, typically via a
+      namespaceSelector/podSelector for kube-system CoreDNS. NetworkPolicies
+      are not DNS-exempt.
+    docUrl: "https://kubernetes.io/docs/concepts/services-networking/network-policies/#default-deny-all-egress-traffic"
+  - id: q2-20
+    objectiveIds: [net-mesh]
+    type: single
+    stem: >-
+      Security wants all service-to-service traffic in a namespace to be
+      mutually authenticated and encrypted, rejecting any plaintext, using
+      workload identity rather than IPs. Which Istio configuration enforces
+      this?
+    options:
+      - "A NetworkPolicy with default-deny ingress"
+      - "A PeerAuthentication with mtls mode STRICT for the namespace"
+      - "An Ingress with TLS termination"
+      - "A transit key encrypting the payloads"
+    answer: [1]
+    explanation: >-
+      PeerAuthentication in STRICT mode requires mTLS for all sidecar traffic
+      in scope, rejecting plaintext, with identity carried in the SPIFFE
+      certificate issued to each workload. NetworkPolicy filters by
+      label/IP/port but doesn't do mTLS; ingress TLS is north-south only.
+    docUrl: "https://istio.io/latest/docs/tasks/security/authentication/authn-policy/"
+  - id: q2-21
+    objectiveIds: [net-mesh]
+    type: single
+    stem: >-
+      With mTLS in STRICT mode enabled mesh-wide, you now need "service A may
+      call service B, but service C may not," based on workload identity. Which
+      mesh object expresses this, and what identity does it match on?
+    options:
+      - "A NetworkPolicy matching pod IP ranges"
+      - "An Istio AuthorizationPolicy allowing the source principal (SPIFFE identity/ServiceAccount) of A to B, denying others"
+      - "A PeerAuthentication per service"
+      - "An Ingress annotation restricting source namespaces"
+    answer: [1]
+    explanation: >-
+      AuthorizationPolicy makes identity-aware allow/deny decisions on the
+      authenticated principal (the SPIFFE ID derived from the workload's
+      ServiceAccount), enabling least-privilege east-west authorization.
+      PeerAuthentication governs whether mTLS is required, not who may call
+      whom.
+    docUrl: "https://istio.io/latest/docs/tasks/security/authorization/authz-http/"
+  - id: q2-22
+    objectiveIds: [net-ingress]
+    type: single
+    stem: >-
+      You expose an internal app through ingress-nginx and want TLS terminated
+      at the ingress using an automatically issued and renewed certificate.
+      What is the minimal correct wiring?
+    options:
+      - "Manually create a tls Secret and rotate it by hand each renewal"
+      - "Add a `cert-manager.io/cluster-issuer` annotation and a `tls:` block to the Ingress so cert-manager issues and renews the referenced Secret"
+      - "Enable ModSecurity, which provides the certificate"
+      - "Set the Service type to LoadBalancer with TLS passthrough"
+    answer: [1]
+    explanation: >-
+      The Ingress tls block names a Secret and host; the
+      cert-manager.io/cluster-issuer annotation makes cert-manager issue and
+      auto-renew that Secret. TLS then terminates at ingress-nginx. Manual
+      Secrets don't auto-renew; ModSecurity is a WAF, not a cert source;
+      passthrough would move TLS to the backend.
+    docUrl: "https://cert-manager.io/docs/usage/ingress/"
+  - id: q2-23
+    objectiveIds: [net-ingress]
+    type: single
+    stem: >-
+      Beyond TLS, an internal dashboard behind ingress-nginx must require
+      authentication before requests reach the backend, without modifying the
+      app. Which ingress-nginx capability is the intended answer?
+    options:
+      - "The `nginx.ingress.kubernetes.io/auth-url` external-auth annotation delegating auth to a forward-auth service such as oauth2-proxy"
+      - "A NetworkPolicy allowing only authenticated pods"
+      - "A PeerAuthentication STRICT policy"
+      - "Enabling the OWASP CRS"
+    answer: [0]
+    explanation: >-
+      ingress-nginx external authentication (auth-url / forward-auth) sends a
+      subrequest to an auth service (e.g. oauth2-proxy fronting an OIDC
+      provider); only a 2xx lets the request through, adding authenticated
+      access without app changes. NetworkPolicy/mTLS/WAF address different
+      layers.
+    docUrl: "https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#external-authentication"
+  - id: q2-24
+    objectiveIds: [net-firewall]
+    type: single
+    stem: >-
+      In the perimeter-firewall walkthrough (OPNsense/pfSense/nftables), how
+      does a stateful firewall's default posture differ from a Kubernetes
+      NetworkPolicy, conceptually?
+    options:
+      - "Both default to deny with no configuration"
+      - "A stateful perimeter firewall filters north-south traffic at the network edge with explicit rules and connection tracking, while NetworkPolicy segments east-west pod traffic inside the cluster; both express default-deny + explicit-allow"
+      - "NetworkPolicy replaces the need for any perimeter firewall"
+      - "A perimeter firewall inspects application-layer payloads by default, like a WAF"
+    answer: [1]
+    explanation: >-
+      A perimeter/host firewall governs edge (north-south) traffic with
+      stateful connection tracking and explicit rules; NetworkPolicy segments
+      in-cluster east-west traffic by label. They are complementary layers, and
+      both are strongest as default-deny with explicit allows. A stateful L3/L4
+      firewall is not an L7 WAF.
+    docUrl: "https://docs.opnsense.org/manual/firewall.html"
+  - id: q2-25
+    objectiveIds: [waf-deploy]
+    type: single
+    stem: >-
+      You enable ModSecurity on an ingress-nginx Ingress but attacks still
+      succeed; the audit log shows the rules matched. You find the config set
+      `SecRuleEngine DetectionOnly`. What is happening and what changes it to
+      blocking?
+    options:
+      - "DetectionOnly blocks but doesn't log; switch to On to add logging"
+      - "DetectionOnly evaluates and logs rule matches but does not block; set `SecRuleEngine On` to actually reject offending requests"
+      - "The rules are disabled entirely; re-enable them"
+      - "ModSecurity only works on HTTP, so enable it for HTTPS"
+    answer: [1]
+    explanation: >-
+      DetectionOnly is a monitor mode: rules evaluate and log but no request is
+      blocked — useful for tuning. SecRuleEngine On enforces, returning 403 on
+      anomaly. This is the classic detect-vs-prevent distinction (mirrors Azure
+      WAF Detection vs Prevention).
+    docUrl: "https://kubernetes.github.io/ingress-nginx/user-guide/third-party-addons/modsecurity/"
+  - id: q2-26
+    objectiveIds: [waf-rules]
+    type: single
+    stem: >-
+      After enabling the OWASP Core Rule Set on your WAF, legitimate requests
+      with rich JSON bodies start getting blocked. You are at paranoia level 3.
+      What is the correct first tuning move?
+    options:
+      - "Disable the CRS entirely"
+      - "Lower the paranoia level (e.g. to PL1) and/or add targeted rule exclusions, since higher paranoia levels trade more false positives for more coverage"
+      - "Raise the anomaly threshold to 0 so nothing scores"
+      - "Switch to DetectionOnly permanently"
+    answer: [1]
+    explanation: >-
+      CRS paranoia levels (PL1–PL4) increase detection aggressiveness at the
+      cost of false positives; PL1 is the recommended starting point. Tune by
+      lowering PL and adding scoped exclusions for known-good traffic, not by
+      disabling the rule set or zeroing the scoring. DetectionOnly stops
+      protection.
+    docUrl: "https://coreruleset.org/docs/concepts/paranoia_levels/"
+  - id: q2-27
+    objectiveIds: [waf-rules]
+    type: single
+    stem: >-
+      The OWASP CRS uses anomaly scoring. What does that mean for how a request
+      is blocked, versus a rule-per-block model?
+    options:
+      - "Every matching rule immediately blocks the request"
+      - "Each matching rule adds to an anomaly score; the request is blocked only when the inbound (or outbound) score crosses a configured threshold"
+      - "Only the last rule in the chain decides"
+      - "Scoring is advisory and never blocks"
+    answer: [1]
+    explanation: >-
+      CRS (collaborative detection / anomaly scoring mode) accumulates a score
+      across matched rules and blocks when the inbound_anomaly_score_threshold
+      is exceeded, reducing single-rule false positives and letting you tune
+      the threshold. It does block once the threshold is crossed.
+    docUrl: "https://coreruleset.org/docs/concepts/anomaly_scoring/"
+  - id: q2-28
+    objectiveIds: [waf-verify]
+    type: single
+    stem: >-
+      To prove the WAF works, you send `GET /?id=1' OR '1'='1` and expect it to
+      be stopped. With CRS enforcing, what do you observe, and where do you
+      confirm the reason?
+    options:
+      - "A 200 with the payload reflected; confirm in the app logs"
+      - "An HTTP 403 from the WAF; the ModSecurity audit log shows the matched SQLi rule id and the anomaly score"
+      - "A 500 error with no log entry"
+      - "A redirect to the login page"
+    answer: [1]
+    explanation: >-
+      An enforcing CRS returns 403 for the SQL-injection pattern, and the
+      ModSecurity audit log records the triggered rule id(s) and accumulated
+      anomaly score — the observable proof the control worked. A 200 would mean
+      the WAF isn't enforcing.
+    docUrl: "https://coreruleset.org/docs/development/testing/"
+  - id: q2-29
+    objectiveIds: [waf-verify]
+    type: single
+    stem: >-
+      A single CRS rule keeps blocking a legitimate endpoint (a confirmed false
+      positive), but you want to keep the rest of the rule set enforcing.
+      What is the surgical fix?
+    options:
+      - "Set SecRuleEngine DetectionOnly globally"
+      - "Add a scoped exclusion / `SecRuleRemoveById` for that specific rule id (ideally only on that route), leaving the rest of CRS active"
+      - "Drop the paranoia level to 0"
+      - "Delete the ModSecurity module"
+    answer: [1]
+    explanation: >-
+      False positives are handled with targeted exclusions — removing or
+      relaxing the specific offending rule id (scoped to the affected path via
+      ctl:ruleRemoveById) — so overall protection stays on. Disabling
+      enforcement globally or gutting the rule set overcorrects.
+    docUrl: "https://coreruleset.org/docs/concepts/false_positives_tuning/"
+  - id: q2-30
+    objectiveIds: [data-encrypt]
+    type: single
+    stem: >-
+      A colleague says Kubernetes Secrets are safe because kubectl shows them
+      base64-encoded. You dump the raw etcd key for a Secret and read the value
+      in cleartext. What actually encrypts Secrets at rest?
+    options:
+      - "Base64 encoding is encryption once RBAC is applied"
+      - "An EncryptionConfiguration on the kube-apiserver (aescbc/secretbox or a KMS provider) so Secrets are stored as ciphertext in etcd"
+      - "Enabling TLS on the etcd peer port"
+      - "Setting the Secret's type to Opaque"
+    answer: [1]
+    explanation: >-
+      Base64 is encoding, not encryption — anyone reading etcd sees the value.
+      Encryption at rest requires the apiserver's
+      --encryption-provider-config pointing at an EncryptionConfiguration
+      (aescbc/secretbox for a local key, or a KMS provider like Vault for an
+      external key), after which etcd holds k8s:enc: ciphertext. TLS on etcd
+      protects in-transit, not at-rest.
+    docUrl: "https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/"
+  - id: q2-31
+    objectiveIds: [data-encrypt]
+    type: multi
+    stem: >-
+      You just added an EncryptionConfiguration and restarted the apiserver.
+      Which two things are true about Secrets that already existed? (Select two)
+    options:
+      - "Existing Secrets remain stored in their prior (plaintext) form until they are rewritten"
+      - "Running `kubectl get secrets -A -o json | kubectl replace -f -` re-encrypts existing Secrets by rewriting them"
+      - "All existing Secrets are re-encrypted instantly on apiserver restart"
+      - "You must delete and recreate every Secret manually to encrypt them"
+    answer: [0, 1]
+    explanation: >-
+      Encryption applies on write, so pre-existing Secrets stay in their old
+      form until updated. The standard remediation is to force a rewrite of all
+      Secrets (kubectl get ... | kubectl replace -f -) so they are re-persisted
+      under the new provider. A restart alone does not re-encrypt old data, and
+      manual delete/recreate is unnecessary.
+    docUrl: "https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#ensure-all-secrets-are-encrypted"
+  - id: q2-32
+    objectiveIds: [data-secretscan]
+    type: single
+    stem: >-
+      Before shipping, you want to catch AWS keys and other credentials
+      committed to a git repository, including in past history. Which tool and
+      invocation fits?
+    options:
+      - "Trivy image scanning, which only inspects running containers"
+      - "Gitleaks, e.g. `gitleaks detect --source .`, which scans the working tree and git history for secret patterns"
+      - "kubectl get secrets, to list what's exposed"
+      - "ModSecurity audit logs"
+    answer: [1]
+    explanation: >-
+      Gitleaks scans repositories (working tree and commit history) with regex/
+      entropy rules to find committed credentials, and runs well as a
+      pre-commit or CI gate. Trivy scans images/filesystems (it also has a
+      secret scanner), but history-aware git scanning is Gitleaks' niche;
+      kubectl and WAF logs don't scan source.
+    docUrl: "https://github.com/gitleaks/gitleaks"
+  - id: q2-33
+    objectiveIds: [data-secretscan]
+    type: single
+    stem: >-
+      You want a single tool in CI to scan a built container image for both
+      known CVEs and embedded plaintext secrets (like a baked-in token). Which
+      command matches?
+    options:
+      - "`gitleaks detect` on the image tarball only"
+      - "`trivy image <image>`, which reports vulnerabilities and, with its secret scanner, embedded secrets"
+      - "`kubectl describe pod`"
+      - "`vault kv get` against the registry"
+    answer: [1]
+    explanation: >-
+      Trivy scans container images (and filesystems/repos) for vulnerabilities
+      and, via its built-in secret scanner, for embedded plaintext secrets in
+      one pass — ideal as a CI gate. Gitleaks targets git repos; kubectl and
+      Vault are unrelated to image scanning.
+    docUrl: "https://github.com/aquasecurity/trivy"
+  - id: q2-34
+    objectiveIds: [vault-access, vault-audit]
+    type: single
+    stem: >-
+      An app's Vault token can read `secret/data/app/*` but a developer reports
+      it returns 403 on `secret/data/finance/db`. Before changing anything, how
+      do you confirm what the token is allowed to do, and where would the denied
+      attempt be recorded?
+    options:
+      - "Grant the token root to test, then narrow later"
+      - "Use `vault token capabilities <token> secret/data/finance/db` to check its policy result; the denied request is captured in the audit device log"
+      - "Read the Kubernetes RBAC RoleBinding for the pod"
+      - "Restart Vault to reset the token's permissions"
+    answer: [1]
+    explanation: >-
+      vault token capabilities shows the effective capabilities a token has on
+      a path from its attached policies, confirming the 403 is expected
+      least-privilege behavior rather than a bug; the denied access is logged by
+      the enabled audit device. Granting root or restarting Vault are both
+      wrong responses.
+    docUrl: "https://developer.hashicorp.com/vault/docs/concepts/policies#testing-vault-policies"

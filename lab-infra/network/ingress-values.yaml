@@ -1,0 +1,49 @@
+# kubernetes/ingress-nginx Helm values for OSS-500 with a ModSecurity WAF.
+# Chart: ingress-nginx/ingress-nginx  (https://kubernetes.github.io/ingress-nginx)
+# SC-500 correspondence: Azure Application Gateway WAF (OWASP managed rule set).
+# Objectives: net-ingress waf-deploy waf-rules
+controller:
+  # kind flavour: bind the controller to the ingress-ready node and hostPorts so
+  # it is reachable on localhost:8080/8443 (matches lab-infra/kind/cluster.yaml).
+  hostPort:
+    enabled: true
+  service:
+    type: NodePort
+  nodeSelector:
+    ingress-ready: "true"
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Equal
+      effect: NoSchedule
+
+  config:
+    # waf-deploy: turn on the embedded ModSecurity WAF engine globally.
+    enable-modsecurity: "true"
+    # waf-rules: load the OWASP Core Rule Set that ships in the controller image.
+    enable-owasp-modsecurity-crs: "true"
+    # waf-deploy / waf-rules: base ModSecurity config. Start in DetectionOnly to
+    # baseline false positives, then flip SecRuleEngine to On to actually BLOCK.
+    modsecurity-snippet: |
+      SecRuleEngine On
+      SecRequestBodyAccess On
+      SecAuditEngine RelevantOnly
+      SecAuditLog /var/log/modsec/audit.log
+      SecAuditLogParts ABIJDEFHZ
+      # waf-rules: CRS anomaly-scoring mode. Paranoia level 1 = fewest false
+      # positives; raise toward 4 for stricter matching. Blocking happens when the
+      # summed rule scores cross these thresholds.
+      SecAction "id:900000,phase:1,pass,t:none,nolog,\
+        setvar:tx.paranoia_level=1"
+      SecAction "id:900110,phase:1,pass,t:none,nolog,\
+        setvar:tx.inbound_anomaly_score_threshold=5,\
+        setvar:tx.outbound_anomaly_score_threshold=4"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+  podLabels:
+    app.kubernetes.io/part-of: oss500

@@ -1,0 +1,28 @@
+# A Wazuh agent to onboard for the lab (siem-collect).
+# Enrolls with the manager, ships auth.log + FIM + SCA. Run after the main stack:
+#   docker compose -p oss500 -f agent-compose.yml up -d
+name: oss500
+
+services:
+  wazuh.agent:
+    image: wazuh/wazuh-agent:${WAZUH_VERSION:-4.9.2}
+    hostname: wazuh.agent
+    restart: always
+    environment:
+      # siem-collect: enroll to the manager (1515) and stream events (1514).
+      WAZUH_MANAGER: wazuh.manager
+      WAZUH_AGENT_NAME: oss500-agent
+      WAZUH_REGISTRATION_SERVER: wazuh.manager
+    # Join the same compose network as the manager stack.
+    networks:
+      - default
+    volumes:
+      - wazuh_agent_var:/var/ossec
+
+networks:
+  default:
+    name: oss500_default
+    external: true
+
+volumes:
+  wazuh_agent_var:

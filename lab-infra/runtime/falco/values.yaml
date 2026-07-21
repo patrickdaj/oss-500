@@ -1,0 +1,55 @@
+# Falco Helm values — falcosecurity/falco  (rt-falco, rt-response)
+# Docs: https://falco.org/docs/  Chart: https://github.com/falcosecurity/charts
+
+# app.kubernetes.io/part-of label so teardown queries find it (lab-infra convention).
+podLabels:
+  app.kubernetes.io/part-of: oss500
+
+# rt-falco: use the MODERN eBPF probe — no kernel-module compilation, safer, the
+# current default. Requires the privileged oss500-security namespace (eBPF needs
+# host/kernel access — the documented exception to pod-psa/pod-securitycontext).
+driver:
+  enabled: true
+  kind: modern_ebpf
+
+# Emit alerts as JSON (machine-parseable, what Falcosidekick consumes).
+falco:
+  json_output: true
+  json_include_output_property: true
+  log_level: info
+  priority: notice           # emit notice and above
+  # rt-falco: local overrides go here — tune WITHOUT editing shipped falco_rules.yaml.
+  rules_files:
+    - /etc/falco/falco_rules.yaml         # maintained default rule set (Falco/MITRE)
+    - /etc/falco/falco_rules.local.yaml   # your exceptions/overrides
+    - /etc/falco/rules.d
+
+# Example local override: exception for a known-good exec so tuning is demonstrable.
+customRules:
+  falco_rules.local.yaml: |-
+    # rt-falco: silence a known-good health-check exec without touching shipped rules.
+    - macro: known_health_probe
+      condition: (proc.name in (livenessprobe, readinessprobe))
+    # Extend the shipped rule with an exception rather than redefining it.
+    - rule: Terminal shell in container
+      append: true
+      condition: and not known_health_probe
+
+# rt-response: ship alerts to Falcosidekick, which fans them out (see falcosidekick/values.yaml).
+falcosidekick:
+  enabled: true
+  fullfqdn: false
+  webui:
+    enabled: true            # live alert feed at svc/falcosidekick-ui:2802
+  config:
+    # Store every alert in Loki so runtime detections reach the Domain 4 SIEM.
+    loki:
+      hostport: "http://loki.oss500-monitoring:3100"
+      minimumpriority: "notice"
+    # Slack webhook is injected by up.sh from falcosidekick-slack.secret when present.
+    slack:
+      minimumpriority: "warning"
+    # Forward to Falco Talon for automated response (rt-response).
+    webhook:
+      address: "http://falco-talon.oss500-security:2803/"
+      minimumpriority: "notice"

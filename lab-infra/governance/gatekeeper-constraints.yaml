@@ -1,0 +1,24 @@
+# OPA Gatekeeper Constraint for the OSS-500 governance lab (gov-gatekeeper).
+# A Constraint is an INSTANCE of a ConstraintTemplate: it says WHERE the policy
+# applies (spec.match) and HOW HARD (spec.enforcementAction). This is the scoped
+# "assignment" half of the model — the analogue of an Azure Policy *assignment*.
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: ns-must-have-owner
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  # gov-gatekeeper: enforcementAction is the exam-critical dial —
+  #   deny   = block the request at admission        (= Azure Policy Deny effect)
+  #   dryrun = allow, but record the violation in .status (= Azure Policy Audit)
+  #   warn   = allow, return a warning to the client
+  # Roll out with dryrun, confirm the audit results, THEN switch to deny.
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Namespace"]
+  parameters:
+    labels: ["owner"]   # every Namespace must carry an owner label

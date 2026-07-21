@@ -1,0 +1,126 @@
+# OTel-instrumented demo for OSS-500 (obs-traces).
+# A frontend Flask app calls a backend Flask app; OpenTelemetry auto-instrumentation
+# propagates the W3C traceparent header so Tempo shows a parent (frontend) span with
+# a child (backend) span. Both export OTLP to the otel-collector, which forwards to Tempo.
+#
+# NOTE: containers pip-install OpenTelemetry at start (needs egress). For an offline
+# host, bake these into a local image instead — the trace behavior is identical.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traced-backend
+  namespace: oss500-apps
+  labels: { app: traced-backend, app.kubernetes.io/part-of: oss500 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: traced-backend } }
+  template:
+    metadata:
+      labels: { app: traced-backend, app.kubernetes.io/part-of: oss500 }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: backend
+          image: python:3.12-slim
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+          env:
+            - { name: HOME, value: /home/app }
+            - { name: PYTHONUSERBASE, value: /home/app/.local }
+            - { name: PATH, value: "/home/app/.local/bin:/usr/local/bin:/usr/bin:/bin" }
+            - { name: OTEL_SERVICE_NAME, value: traced-backend }
+            - { name: OTEL_TRACES_EXPORTER, value: otlp }
+            - { name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector.oss500-monitoring.svc:4318" }
+            - { name: OTEL_EXPORTER_OTLP_PROTOCOL, value: http/protobuf }
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              pip install --user -q flask opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-flask
+              cat > /home/app/app.py <<'PY'
+              from flask import Flask
+              app = Flask(__name__)
+              @app.route("/data")
+              def data(): return {"ok": True, "value": 42}
+              PY
+              opentelemetry-instrument flask --app /home/app/app.py run --host 0.0.0.0 --port 8001
+          ports: [{ containerPort: 8001 }]
+          resources: { requests: { cpu: 25m, memory: 96Mi }, limits: { memory: 256Mi } }
+          volumeMounts: [{ name: home, mountPath: /home/app }]
+      volumes: [{ name: home, emptyDir: {} }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traced-backend
+  namespace: oss500-apps
+  labels: { app: traced-backend, app.kubernetes.io/part-of: oss500 }
+spec:
+  selector: { app: traced-backend }
+  ports: [{ port: 8001, targetPort: 8001 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traced-frontend
+  namespace: oss500-apps
+  labels: { app: traced-frontend, app.kubernetes.io/part-of: oss500 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: traced-frontend } }
+  template:
+    metadata:
+      labels: { app: traced-frontend, app.kubernetes.io/part-of: oss500 }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: frontend
+          image: python:3.12-slim
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+          env:
+            - { name: HOME, value: /home/app }
+            - { name: PYTHONUSERBASE, value: /home/app/.local }
+            - { name: PATH, value: "/home/app/.local/bin:/usr/local/bin:/usr/bin:/bin" }
+            - { name: OTEL_SERVICE_NAME, value: traced-frontend }
+            - { name: OTEL_TRACES_EXPORTER, value: otlp }
+            - { name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector.oss500-monitoring.svc:4318" }
+            - { name: OTEL_EXPORTER_OTLP_PROTOCOL, value: http/protobuf }
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              pip install --user -q flask requests opentelemetry-distro opentelemetry-exporter-otlp \
+                opentelemetry-instrumentation-flask opentelemetry-instrumentation-requests
+              cat > /home/app/app.py <<'PY'
+              import requests
+              from flask import Flask
+              app = Flask(__name__)
+              @app.route("/api")
+              def api():
+                  # requests is auto-instrumented -> traceparent propagates to backend,
+                  # so the backend span becomes a child of this frontend span.
+                  r = requests.get("http://traced-backend.oss500-apps.svc:8001/data", timeout=5)
+                  return {"frontend": "ok", "backend": r.json()}
+              PY
+              opentelemetry-instrument flask --app /home/app/app.py run --host 0.0.0.0 --port 8000
+          ports: [{ containerPort: 8000 }]
+          resources: { requests: { cpu: 25m, memory: 96Mi }, limits: { memory: 256Mi } }
+          volumeMounts: [{ name: home, mountPath: /home/app }]
+      volumes: [{ name: home, emptyDir: {} }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traced-frontend
+  namespace: oss500-apps
+  labels: { app: traced-frontend, app.kubernetes.io/part-of: oss500 }
+spec:
+  selector: { app: traced-frontend }
+  ports: [{ port: 8000, targetPort: 8000 }]

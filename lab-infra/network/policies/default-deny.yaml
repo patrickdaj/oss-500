@@ -1,0 +1,18 @@
+# net-policy: default-deny baseline for oss500-apps.
+# An empty podSelector selects EVERY pod in the namespace; naming both policyTypes
+# with no ingress/egress rules denies all traffic in both directions. This is the
+# zero-trust starting point — nothing talks until an explicit allow policy opens a path.
+# SC-500 correspondence: NSG default-deny / micro-segmentation.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  podSelector: {}          # net-policy: matches all pods in the namespace
+  policyTypes:
+    - Ingress
+    - Egress               # net-policy: deny egress too (many teams forget this half)
+  # No ingress/egress stanzas => deny all.

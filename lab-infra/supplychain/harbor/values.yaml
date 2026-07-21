@@ -1,0 +1,47 @@
+# Harbor Helm values — harbor/harbor  (sc-registry, sc-scan)
+# Docs: https://goharbor.io/docs/  Chart: https://github.com/goharbor/harbor-helm
+
+expose:
+  type: ingress
+  tls:
+    enabled: true
+    certSource: auto            # self-signed for the local lab (trust the CA or use --insecure)
+  ingress:
+    hosts:
+      core: harbor.oss500.local
+    className: nginx            # shared ingress-nginx (kind maps :8080/:8443 -> localhost)
+externalURL: https://harbor.oss500.local
+
+# harborAdminPassword is injected by up.sh from harbor-admin.secret (never hard-coded).
+
+# sc-scan: ship the built-in Trivy scanner and scan images on push + continuously.
+trivy:
+  enabled: true
+  vulnType: "os,library"       # OS packages AND language deps
+  severity: "CRITICAL,HIGH"
+  ignoreUnfixed: false         # per-project "prevent vulnerable from running" set in UI
+
+# Keep the footprint laptop-friendly: no Redis/DB HA, modest storage.
+persistence:
+  enabled: true
+  persistentVolumeClaim:
+    registry:
+      size: 5Gi
+    database:
+      size: 1Gi
+    redis:
+      size: 1Gi
+    trivy:
+      size: 1Gi
+
+# part-of label for teardown discovery.
+core:
+  podLabels:
+    app.kubernetes.io/part-of: oss500
+registry:
+  podLabels:
+    app.kubernetes.io/part-of: oss500
+
+# Notarysignatures: Harbor stores cosign signatures as OCI artifacts alongside images;
+# set a project-level cosign content-trust policy in the UI to serve ONLY signed images
+# (sc-registry). Trivy "prevent vulnerable images from running" is the registry-side gate.

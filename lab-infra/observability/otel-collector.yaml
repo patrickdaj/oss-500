@@ -1,0 +1,114 @@
+# OpenTelemetry Collector for OSS-500 (obs-traces).
+# One deploy-once fan-out point: receive OTLP from instrumented apps, then export
+# traces to Tempo, metrics to Prometheus (scraped), and logs to Loki. This is the
+# modern pattern — apps emit OTLP once; the Collector routes to many backends.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: oss500-monitoring
+  labels:
+    app.kubernetes.io/part-of: oss500
+data:
+  config.yaml: |
+    receivers:
+      # Apps send OTLP (the OpenTelemetry protocol) here on 4317/4318.
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      # Batch to reduce export overhead; memory_limiter guards the lab host.
+      batch: {}
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+    exporters:
+      # Traces -> Tempo (OTLP gRPC).
+      otlp/tempo:
+        endpoint: oss500-tempo.oss500-monitoring.svc:4317
+        tls:
+          insecure: true
+      # Metrics -> exposed for Prometheus to scrape (a ServiceMonitor selects this).
+      prometheus:
+        endpoint: 0.0.0.0:8889
+      # Logs -> Loki via the OTLP-native Loki endpoint.
+      otlphttp/loki:
+        endpoint: http://oss500-loki.oss500-monitoring.svc:3100/otlp
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlp/tempo]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [prometheus]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlphttp/loki]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: oss500-monitoring
+  labels:
+    app.kubernetes.io/part-of: oss500
+    app.kubernetes.io/name: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: otel-collector
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: otel-collector
+        app.kubernetes.io/part-of: oss500
+    spec:
+      # baseline PSA namespace: run hardened even though this is infra tooling.
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: collector
+          image: otel/opentelemetry-collector-contrib:0.111.0
+          args: ["--config=/conf/config.yaml"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          ports:
+            - { name: otlp-grpc, containerPort: 4317 }
+            - { name: otlp-http, containerPort: 4318 }
+            - { name: prom, containerPort: 8889 }
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits:   { memory: 256Mi }
+          volumeMounts:
+            - { name: config, mountPath: /conf }
+      volumes:
+        - name: config
+          configMap: { name: otel-collector-config }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: oss500-monitoring
+  labels:
+    app.kubernetes.io/part-of: oss500
+    app.kubernetes.io/name: otel-collector
+spec:
+  selector:
+    app.kubernetes.io/name: otel-collector
+  ports:
+    - { name: otlp-grpc, port: 4317, targetPort: 4317 }
+    - { name: otlp-http, port: 4318, targetPort: 4318 }
+    - { name: prom, port: 8889, targetPort: 8889 }

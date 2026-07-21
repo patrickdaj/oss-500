@@ -1,0 +1,30 @@
+# Portable Sigma detection (siem-detect) — write once, convert to any backend.
+#   sigma convert -t opensearch -p sysmon ssh-bruteforce.yml   # -> OpenSearch DSL/query
+#   sigma convert -t kusto ssh-bruteforce.yml                  # -> Sentinel KQL analytics rule
+# Sigma is a FORMAT, not an engine: it detects nothing until converted and deployed.
+title: SSH Brute Force - Repeated Failed Logins
+id: 9f6a2b1c-3d4e-4f5a-8b7c-0d1e2f3a4b5c
+status: experimental
+description: Detects repeated SSH authentication failures from a single source, indicating brute-force.
+author: OSS-500
+date: 2026/04/26
+references:
+  - https://attack.mitre.org/techniques/T1110/
+logsource:
+  product: linux
+  service: sshd
+detection:
+  selection:
+    # Normalized fields produced by the sshd decoder (siem-collect).
+    - 'Failed password'
+    - 'authentication failure'
+  timeframe: 2m
+  condition: selection | count() by src_ip > 5
+falsepositives:
+  - Legitimate users repeatedly mistyping passwords
+  - Vulnerability scanners
+level: high
+tags:
+  - attack.credential_access
+  - attack.t1110          # MITRE ATT&CK: Brute Force
+  - attack.t1110.001      # Password Guessing
