@@ -6,10 +6,10 @@ Set up the reference host and the cluster once here; every later phase reuses it
 
 ## Day 1 — Linux, shell, and containers
 
-- [ ] **[2h] Linux/CLI refresher** — users/groups, file permissions, processes, systemd basics, `journalctl`, networking (`ss`, `ip`, `curl`). You'll read a lot of container and pod logs this course.
-- [ ] **[2h] Containers and OCI images** — images vs containers, layers, `docker run`/`build`, registries, `Dockerfile` hardening basics (non-root `USER`, minimal base). Concept anchor for supply-chain security later.
+- [ ] **[2h] Linux/CLI refresher** — users/groups/UIDs, file permissions, processes, namespaces + capabilities, systemd basics, `journalctl`, networking (`ss`, `ip`, `curl`, `dig`). Notes: [domains/0-fundamentals/00-linux-cli.md](../domains/0-fundamentals/00-linux-cli.md). You'll read a lot of container and pod logs this course.
+- [ ] **[2h] Containers and OCI images** — images vs containers, layers, `docker run`/`build`, registries, `Dockerfile` hardening basics (non-root `USER`, minimal base). Notes: [domains/0-fundamentals/01-containers.md](../domains/0-fundamentals/01-containers.md). Concept anchor for supply-chain security later.
 - [ ] **[1.5h] Build and inspect an image** — write a tiny Dockerfile, build it, `docker history`, run it as non-root, see it fail to write to a read-only path.
-- [ ] **[1h] Notes** — start [domains/0-fundamentals/01-containers.md](../domains/0-fundamentals/01-containers.md); note what "rootless" and "read-only root filesystem" mean.
+- [ ] **[1h] Notes review** — finish both fundamentals notes above; be able to explain "a container is just a process," "rootless," and "read-only root filesystem."
 
 ## Day 2 — Kubernetes primitives
 
