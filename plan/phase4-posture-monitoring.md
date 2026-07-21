@@ -28,7 +28,7 @@ Notes live in [`domains/4-posture-monitoring/`](../domains/4-posture-monitoring/
 
 - [ ] **[2h] Read SIEM hunt/response + network notes** — `siem-hunt`, `siem-response`, then [network-detection.md](../domains/4-posture-monitoring/network-detection.md) (`nid-suricata`, `nid-zeek`). DSL `bool`+aggregations ≈ KQL `summarize by`; active-response guardrails; IDS vs IPS; Zeek behavioral logs.
 - [ ] **[2h] Lab Parts D–E — hunt + automated response** — run the OpenSearch DSL aggregation to surface the attacking IP, then trip active response and watch `firewall-drop` block the IP and auto-revert after the timeout. **Then tear the SIEM down** (`./down.sh -v`) to reclaim RAM.
-- [ ] **[2h] Network detection lab** — [`lab-infra/network-detection`](../lab-infra/network-detection/) `./up.sh`; `suricata-update`; fire the `testmynids.org` signature and confirm the `event_type:"alert"` in `eve.json`; read the same request behaviorally in Zeek's `http.log`/`conn.log`. `./down.sh`.
+- [ ] **[2h] Network detection lab** — [d4-network-detection](../labs/d4-network-detection.md) with [`lab-infra/network-detection`](../lab-infra/network-detection/) `./up.sh`; `suricata-update`; fire the `testmynids.org` signature and confirm the `event_type:"alert"` in `eve.json`; read the same request behaviorally in Zeek's `http.log`/`conn.log`. `./down.sh`.
 - [ ] **[0.5h] Quiz** — `q4-11`–`q4-24` (SIEM + network). Note any misses for the flex day.
 
 ## Day 5 — Vulnerability & posture (Kubescape, kube-bench, Trivy)
