@@ -27,10 +27,14 @@ Exam gotchas:
 - The `start-dev` H2 database and disabled HTTPS are *dev only*; a "why did all my users vanish after a restart / why are tokens rejected in prod" scenario is almost always dev-mode persistence or a mismatched hostname/issuer.
 - The **issuer URL is trust-critical**: clients validate the `iss` claim against their discovery document. Change the public hostname and every existing token/client breaks — same lesson as changing an Entra tenant's federation metadata.
 - Realm roles vs client roles map to Entra directory roles vs app roles; putting an app-specific permission in a realm role over-broadens it.
+- The **bootstrap admin** (env `KEYCLOAK_ADMIN`/`KC_BOOTSTRAP_ADMIN_USERNAME`) lives in the **master** realm and is a temporary break-glass account; leaving the default `admin`/`admin` credentials or the bootstrap admin enabled in a running system is the Keycloak echo of an un-rotated Global Admin. Create a per-admin account and disable the bootstrap one.
 
 **Resources:**
 - [Keycloak Server Administration Guide — realms, users, groups](https://www.keycloak.org/docs/latest/server_admin/index.html) (~30 min)
 - [Configuring Keycloak for production](https://www.keycloak.org/server/configuration-production) (~15 min)
+- [Keycloak — Configuring the hostname (issuer URL / trust)](https://www.keycloak.org/server/hostname) (~15 min)
+- [Keycloak — Configuring the database (Postgres for prod)](https://www.keycloak.org/server/db) (~10 min)
+- [Keycloak — Getting started on Kubernetes](https://www.keycloak.org/getting-started/getting-started-kube) (~20 min)
 
 ## Configure authentication methods, including MFA, OTP, and WebAuthn passwordless
 
@@ -49,7 +53,7 @@ Second factors available out of the box:
 kcadm.sh update realms/oss500 -s 'requiredActions[+]={"alias":"CONFIGURE_TOTP","enabled":true,"defaultAction":true}'
 ```
 
-WebAuthn requires the realm's **WebAuthn Policy** (relying-party ID = your hostname, user-verification preference, attestation) to be set — the RP ID must match the public hostname or registration silently fails, the single most common WebAuthn misconfiguration.
+WebAuthn requires the realm's **WebAuthn Policy** (relying-party ID = your hostname, user-verification preference, attestation) to be set — the RP ID must match the public hostname or registration silently fails, the single most common WebAuthn misconfiguration. Keycloak deliberately has **no built-in push/number-matching factor** (unlike Microsoft Authenticator); the phishing-resistant path is WebAuthn/FIDO2, and the framing to carry into the exam is NIST 800-63B's **authenticator assurance levels (AAL)** — TOTP and OTP-over-a-channel are AAL2 but phishable, while a hardware FIDO2 authenticator with user verification reaches the phishing-resistant bar.
 
 Exam gotchas:
 
@@ -57,10 +61,14 @@ Exam gotchas:
 - **WebAuthn passwordless is the phishing-resistant option**; TOTP and Authenticator-style push are MFA but still phishable (attacker-in-the-middle relay). Match "phishing-resistant" questions to FIDO2/WebAuthn, never to OTP.
 - **RP ID must equal the public hostname** — a mismatch (or plain HTTP) breaks WebAuthn registration; the Entra analogue is a broken passkey registration when the domain isn't verified.
 - `CONFIGURE_TOTP` as a **required action** is the bootstrap-enrolment mechanism, the Keycloak counterpart of the Entra Temporary Access Pass / registration campaign.
+- **`ALTERNATIVE` vs `REQUIRED` in a flow**: passwordless is added as an `ALTERNATIVE` to username/password (either one logs you in), whereas a second factor is `REQUIRED` (both password *and* OTP). Confusing the two either weakens login (OTP becomes optional) or breaks passwordless (it demands a password too).
 
 **Resources:**
 - [Keycloak — Configuring authentication (flows, executions, requirements)](https://www.keycloak.org/docs/latest/server_admin/index.html#configuring-authentication) (~25 min)
 - [Keycloak — WebAuthn and passwordless](https://www.keycloak.org/docs/latest/server_admin/index.html#_webauthn) (~15 min)
+- [NIST SP 800-63B — Authentication & authenticator assurance levels (AAL)](https://pages.nist.gov/800-63-3/sp800-63b.html) (~30 min)
+- [OWASP — Multifactor Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html) (~15 min)
+- [WebAuthn Guide — how FIDO2/WebAuthn works](https://webauthn.guide/) (~15 min)
 
 ## Implement conditional access via authentication flows and authorization policies
 
@@ -84,10 +92,14 @@ Exam gotchas:
 - **Step-up MFA = a `CONDITIONAL` subflow** keyed on a role/attribute condition with a `REQUIRED` OTP/WebAuthn execution — not a global MFA toggle.
 - A **break-glass equivalent** matters here too: if a condition or a mandatory factor can lock every admin out, you need an excluded account/flow — the same lesson as excluding break-glass accounts from a blocking CA policy.
 - Authorization Services policies are **deny-by-default**: no matching permission means no access; over-broad JS policies are the usual "why can everyone export" bug.
+- **`acr`/step-up is claim-driven**: after a step-up subflow forces MFA, the token carries a higher `acr` (authentication context class reference) value; a resource server that doesn't *check* `acr` gains nothing from the step-up. Entra expresses the same idea with authentication-context CA policies.
 
 **Resources:**
 - [Keycloak Authorization Services Guide](https://www.keycloak.org/docs/latest/authorization_services/index.html) (~30 min)
 - [Keycloak — Conditions in authentication flows](https://www.keycloak.org/docs/latest/server_admin/index.html#_conditional-flows) (~10 min)
+- [Keycloak — Policy overview (RBAC/ABAC/time/JS policies)](https://www.keycloak.org/docs/latest/authorization_services/index.html#_policy_overview) (~15 min)
+- [Microsoft Learn — Conditional Access overview (the SC-500 control)](https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview) (~15 min)
+- [OWASP — Authorization Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html) (~15 min)
 
 ## Configure identity for applications: OIDC clients, service accounts, and scopes
 
@@ -117,10 +129,14 @@ Exam gotchas:
 - **Service accounts use the client-credentials grant** and are the app-as-itself (daemon) identity; their permissions come from role mappings on the service-account user, and, like Entra application permissions, they aren't a human's delegated access.
 - **Standard flow = authorization code**; enable **PKCE** for public clients. *Direct access grants* (resource-owner password) and *implicit* flow are legacy — enabling them needlessly is an audit finding, just like enabling ROPC/implicit on an Entra app.
 - Registration vs instance: Keycloak fuses them into one *client* object, but the exam still tests the Entra distinction (app registration = global definition, service principal = per-tenant instance carrying SSO/assignment/consent).
+- **Confidential clients should prefer keypair (JWT/private-key-jwt) over a shared secret** where possible — the same "certificate over client secret" hardening as an Entra app credential; a long-lived, never-rotated client secret is the classic finding.
 
 **Resources:**
 - [Keycloak — Managing OIDC clients](https://www.keycloak.org/docs/latest/server_admin/index.html#_oidc_clients) (~20 min)
 - [Keycloak — Service accounts](https://www.keycloak.org/docs/latest/server_admin/index.html#_service_accounts) (~10 min)
+- [RFC 9700 — Best Current Practice for OAuth 2.0 Security](https://datatracker.ietf.org/doc/html/rfc9700) (~30 min)
+- [RFC 7636 — PKCE for OAuth public clients](https://datatracker.ietf.org/doc/html/rfc7636) (~15 min)
+- [Microsoft Learn — App registrations vs service principals](https://learn.microsoft.com/en-us/entra/identity-platform/app-objects-and-service-principals) (~15 min)
 
 ## Configure identity federation and brokering across SAML/OIDC providers
 
@@ -147,10 +163,14 @@ Exam gotchas:
 - **First Login Flow + IdP mappers** control account linking and what upstream claims become — the security-critical step. An attacker-controlled upstream claim mapped into an admin role is a real escalation path.
 - SAML trust hinges on **signed assertions and correct metadata/certs**; a "federation configured but logins rejected / assertions untrusted" scenario is usually a signing-cert or entity-ID/ACS-URL mismatch — the same class as broken Entra SAML federation metadata.
 - Keycloak issues its *own* tokens after brokering; downstream apps never see the upstream token — the isolation that makes brokering safe, and why apps only trust one issuer.
+- **Account-linking hijack**: if the First Login Flow auto-links a brokered identity to a local account by an *unverified* email, an attacker who controls that email at the upstream IdP can take over the local account — require verified email or explicit linking, the federation twin of Entra's email-verified-domain requirement.
 
 **Resources:**
 - [Keycloak — Identity brokering](https://www.keycloak.org/docs/latest/server_admin/index.html#_identity_broker) (~25 min)
 - [Keycloak — Integrating identity providers (OIDC/SAML)](https://www.keycloak.org/docs/latest/server_admin/index.html#_general-idp-config) (~15 min)
+- [Keycloak — User federation (LDAP/Kerberos) — the *other* kind of federation](https://www.keycloak.org/docs/latest/server_admin/index.html#_user-storage-federation) (~15 min)
+- [Microsoft Learn — What is B2B collaboration in Entra External ID](https://learn.microsoft.com/en-us/entra/external-id/what-is-b2b) (~15 min)
+- [OWASP — SAML Security Cheat Sheet (signed assertions, XSW)](https://cheatsheetseries.owasp.org/cheatsheets/SAML_Security_Cheat_Sheet.html) (~15 min)
 
 ## Manage OAuth scopes, client scopes, and consent
 
@@ -176,10 +196,14 @@ Exam gotchas:
 - **Consent Required is per client.** First-party apps typically skip consent; third-party apps should require it. A consent-phishing / illicit-grant scenario is answered by requiring consent, least-privilege client scopes, and **revoking the recorded grant** — the same playbook as revoking an Entra OAuth permission grant.
 - Consent grants are **recorded and revocable** (Account Console / admin per-user) — the audit surface for "which apps did this user authorize," the Keycloak counterpart to reviewing enterprise-app permissions.
 - Scope ≠ role: a client scope can carry **role scope-mappings** that *narrow* which of the user's roles appear in the token (`Full Scope Allowed` off) — leaving Full Scope Allowed on is a common over-permission finding.
+- **Admin-consent equivalent**: some scopes shouldn't be user-consentable at all. In Entra that's "admin consent required"; in Keycloak you keep such scopes out of clients users can freely authorize and gate them behind admin-managed client configuration — the guardrail against consent-phishing to high-privilege scopes.
 
 **Resources:**
 - [Keycloak — Client scopes and protocol mappers](https://www.keycloak.org/docs/latest/server_admin/index.html#_client_scopes) (~20 min)
 - [Keycloak — Managing consent for clients](https://www.keycloak.org/docs/latest/server_admin/index.html#_consent) (~10 min)
+- [RFC 6749 §3.3 — Access token scope](https://datatracker.ietf.org/doc/html/rfc6749#section-3.3) (~10 min)
+- [Microsoft Learn — Consent and permissions overview](https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview) (~15 min)
+- [Microsoft — Incident response playbook: app consent grant (illicit consent)](https://learn.microsoft.com/en-us/security/operations/incident-response-playbook-app-consent) (~20 min)
 
 ## Summary
 

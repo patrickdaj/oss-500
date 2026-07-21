@@ -40,16 +40,35 @@ Enforcement is done by the **CNI plugin**, not the API server — so the CNI *mu
 
 This is the Kubernetes analog of **Network Security Groups / micro-segmentation**. An NSG is a stateful allow/deny list on a subnet/NIC by IP/port; a NetworkPolicy is the same idea keyed on **labels** instead of IPs (pods are ephemeral, labels are stable). "Default-deny then allow" is exactly the NSG hardening SC-500 wants.
 
+A subtle gap: a default-deny **egress** policy also blocks DNS, so pods can't resolve anything and everything "breaks" mysteriously. The standard fix is an explicit allow to `kube-dns`/CoreDNS on UDP/TCP 53:
+
+```yaml
+# allow-dns.yaml — pair with any default-deny-egress or the cluster stops resolving
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+```
+
 Exam gotchas:
 
 - NetworkPolicy is **default-allow until a policy selects the pod** — an empty `podSelector: {}` with both `policyTypes` is the canonical default-deny.
 - Enforcement is the **CNI's** job. Under a non-enforcing CNI (or default kindnet) policies may be silently ignored — install Calico to actually block.
 - Selectors are **label-based**, not IP-based — the segmentation follows workloads as they reschedule, unlike an IP-keyed NSG.
-- Egress policies are separate from ingress; locking down egress (e.g., only DNS + the DB) is what contains a compromised pod's outbound C2.
+- Egress policies are separate from ingress; locking down egress (e.g., only DNS + the DB) is what contains a compromised pod's outbound C2. Forgetting the **DNS allow** is the #1 default-deny-egress footgun.
+- NetworkPolicy is **namespaced and additive** — policies are OR'd, so you can't write a "deny" rule that overrides an allow; you restrict by *not* allowing. For richer L7/cluster-wide rules you need `AdminNetworkPolicy` or Calico's `GlobalNetworkPolicy`.
 
 **Resources:**
-- [NetworkPolicy concepts](https://kubernetes.io/docs/concepts/services-networking/network-policies/) (~20 min)
+- [NetworkPolicy concepts (Kubernetes)](https://kubernetes.io/docs/concepts/services-networking/network-policies/) (~20 min)
 - [Calico for kind / NetworkPolicy enforcement](https://docs.tigera.io/calico/latest/getting-started/kubernetes/kind) (~15 min)
+- [Network Policy recipes (editable examples)](https://github.com/ahmetb/kubernetes-network-policy-recipes) (~20 min)
+- [AdminNetworkPolicy — cluster-scoped policy API](https://network-policy-api.sigs.k8s.io/api-overview/) (~15 min)
+- [NSA/CISA Kubernetes Hardening Guide — network separation](https://media.defense.gov/2022/Aug/29/2003066362/-1/-1/0/CTR_KUBERNETES_HARDENING_GUIDANCE_1.2_20220829.PDF) (~30 min, reference)
 
 ## Enforce mTLS and identity-aware east-west controls with a service mesh
 
@@ -86,16 +105,22 @@ spec:
 
 Now identity is cryptographic (the SPIFFE principal `…/sa/web`), not positional — the zero-trust ideal of "never trust the network, always verify identity." Combine with NetworkPolicy (defense in depth: L3/4 segmentation + L7 identity). Against SC-500 this covers **zero-trust networking / Private Link**: Azure Private Link keeps traffic off the public internet on a trusted backbone; a mesh goes further, making even *internal* east-west traffic authenticated and encrypted so location grants no trust.
 
+Under the hood the mesh runs its own **certificate authority** (Istiod's `istio-ca` or Linkerd's `identity` component) that mints short-lived (hours) SVID certs to each proxy and rotates them automatically — the workload never handles key material, and a stolen cert expires fast. This is the SPIFFE/SPIRE identity model in practice. Istio's newer **ambient mode** (ztunnel + waypoint) delivers the same mTLS without a per-pod sidecar, trading some L7 features for lower overhead.
+
 Exam gotchas:
 
 - NetworkPolicy is L3/4 by **label**; a mesh is L7 by **cryptographic identity** (mTLS). Use both — segmentation *and* authentication.
 - Istio `PeerAuthentication STRICT` rejects plaintext; a `PERMISSIVE` default (mesh onboarding) still accepts unencrypted traffic — a common "mTLS enabled but plaintext still works" misconfiguration.
 - Mesh identity is the pod's **ServiceAccount** (SPIFFE `spiffe://cluster.local/ns/<ns>/sa/<sa>`) — this is the workload identity from Domain 1, reused for network authz.
-- The sidecar must be injected (namespace/pod label) for the pod to participate; un-injected pods bypass the mesh's controls.
+- The sidecar must be injected (namespace/pod label `istio-injection=enabled`) for the pod to participate; un-injected pods bypass the mesh's controls — and an `AuthorizationPolicy` with an empty `rules: []` denies all, while no policy at all defaults to allow.
+- mTLS here is **east-west** encryption in transit; it's a different control from encryption at rest (`data-encrypt`) — the exam tests that you don't conflate them.
 
 **Resources:**
-- [Istio mutual TLS / PeerAuthentication](https://istio.io/latest/docs/tasks/security/authentication/mtls-migration/) (~20 min)
+- [Istio mutual TLS migration / PeerAuthentication](https://istio.io/latest/docs/tasks/security/authentication/mtls-migration/) (~20 min)
+- [Istio AuthorizationPolicy task](https://istio.io/latest/docs/tasks/security/authorization/authz-http/) (~20 min)
 - [Linkerd automatic mTLS](https://linkerd.io/2/features/automatic-mtls/) (~15 min)
+- [SPIFFE/SPIRE — workload identity concepts](https://spiffe.io/docs/latest/spiffe-about/overview/) (~20 min)
+- [Istio ambient mesh (sidecar-less mTLS)](https://istio.io/latest/docs/ambient/overview/) (~15 min)
 
 ## Secure ingress with TLS termination and authenticated access
 
@@ -138,8 +163,11 @@ Exam gotchas:
 - `ssl-redirect`/`force-ssl-redirect` is what actually stops plaintext HTTP; TLS being configured doesn't disable port 80 on its own.
 
 **Resources:**
-- [ingress-nginx TLS & annotations](https://kubernetes.github.io/ingress-nginx/user-guide/tls/) (~15 min)
-- [cert-manager with ingress-nginx](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/) (~20 min)
+- [ingress-nginx TLS & HTTPS](https://kubernetes.github.io/ingress-nginx/user-guide/tls/) (~15 min)
+- [ingress-nginx external OAUTH / auth-url annotations](https://kubernetes.github.io/ingress-nginx/examples/auth/oauth-external-auth/) (~15 min)
+- [cert-manager with ingress-nginx (ACME tutorial)](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/) (~20 min)
+- [oauth2-proxy — configuration overview](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview) (~15 min)
+- [Kubernetes Gateway API (the successor to Ingress)](https://gateway-api.sigs.k8s.io/) (~15 min)
 
 ## Apply perimeter firewall and segmentation concepts for the host/edge — walkthrough
 
@@ -171,6 +199,9 @@ Exam gotchas:
 **Resources:**
 - [OPNsense firewall documentation](https://docs.opnsense.org/manual/firewall.html) (~20 min)
 - [nftables quick reference (netfilter.org)](https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes) (~15 min)
+- [pfSense firewall fundamentals](https://docs.netgate.com/pfsense/en/latest/firewall/index.html) (~20 min)
+- [nftables stateful firewall examples](https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_home_router) (~10 min)
+- [CIS Benchmarks (host firewall hardening baselines)](https://www.cisecurity.org/cis-benchmarks) (~15 min, reference)
 
 ## Summary
 

@@ -40,16 +40,23 @@ roleRef:
 
 Kubernetes ships default ClusterRoles you should recognize and reach for before writing your own: **`view`** (read-only, no secrets), **`edit`** (read/write workloads, no RBAC), **`admin`** (full namespace admin via RoleBinding), and **`cluster-admin`** (everything — the `system:masters` superuser). Because RBAC is **purely additive with no deny**, a subject's effective permission is the union of every rule from every role bound to it; you restrict by *not granting*, never by subtracting.
 
+Two structural details the exam likes. First, RBAC is only **one authorizer in a chain** (Node, RBAC, Webhook, …) evaluated by the API server; a request is allowed if *any* authorizer allows it, so `system:masters` (hard-coded, ignores RBAC) and Node authorization exist alongside your RBAC. Second, ClusterRoles can be **aggregated**: an `aggregationRule` with a label selector unions in every ClusterRole carrying the matching label — which is how the built-in `view`/`edit`/`admin` roles automatically pick up permissions for new CRDs, and a subtle over-grant vector if you label a powerful custom ClusterRole into `edit`. Subjects are `User`/`Group` (opaque strings the authenticator asserts — there is no `User` object in Kubernetes) and `ServiceAccount` (a real object); groups like `system:authenticated` and `system:serviceaccounts` are implicit and dangerous to bind.
+
 Exam gotchas:
 
 - **The binding sets the scope.** A ClusterRole bound by a RoleBinding is namespace-limited; the same ClusterRole bound by a ClusterRoleBinding is cluster-wide — the classic "why can this SA read secrets in *every* namespace" bug is a ClusterRoleBinding where a RoleBinding was intended.
 - **RBAC is additive, no deny rules.** Unlike Azure deny assignments, Kubernetes has no way to subtract a permission — you achieve restriction by scoping the grant. Answers proposing a "deny rule" are wrong.
 - **Prefer the built-in `view`/`edit`/`admin` ClusterRoles**; `cluster-admin` / `system:masters` is the break-glass superuser and almost never the right answer for a specific need.
 - `verbs`, `resources`, and `apiGroups` are all required and case-sensitive; the core API group is the **empty string `""`**, a frequent gotcha in hand-written rules.
+- **`roleRef` is immutable**: you cannot re-point an existing binding at a different role — you must delete and recreate it. A "changed the role but the binding still grants the old one" symptom is usually an un-recreated binding.
+- **RBAC authorizes API verbs, not arbitrary actions**: some powers (e.g. `exec`/`attach`/`port-forward`) map to subresources (`pods/exec`) you must name explicitly; granting `pods` alone does *not* grant `pods/exec`.
 
 **Resources:**
 - [Kubernetes — Using RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) (~30 min)
 - [Kubernetes — Default roles and role bindings](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#default-roles-and-role-bindings) (~15 min)
+- [Kubernetes — Authorization overview (the authorizer chain, `can-i`)](https://kubernetes.io/docs/reference/access-authn-authz/authorization/) (~15 min)
+- [CIS Kubernetes Benchmark (RBAC & access-control controls)](https://www.cisecurity.org/benchmark/kubernetes) (~20 min)
+- [Microsoft Learn — Azure RBAC overview (the SC-500 mapping)](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview) (~15 min)
 
 ## Apply least-privilege and separate duties across subjects
 
@@ -79,10 +86,14 @@ Exam gotchas:
 - **`create pods`/`create deployments` ⇒ access to any SA in the namespace** (the pod can run as it). Keep privileged ServiceAccounts out of namespaces where lots of subjects can create pods.
 - **Never bind roles to the `default` SA** and never grant `system:authenticated`/`system:unauthenticated` broad rights — both silently widen access to everyone.
 - Least privilege = **narrow role AND narrow scope AND narrow subject**; a `view` ClusterRole bound cluster-wide is still too broad if the job needed one namespace — the same "narrow the role and the scope" lesson as Azure RBAC.
+- **Least privilege is layered, not just RBAC**: the `create pods`→SA-takeover path is only closed when **Pod Security admission** (or a policy engine) also restricts what those pods can do; RBAC alone can't stop a permitted pod from running privileged. Pair `d1-k8s-rbac` with `d1-governance`.
 
 **Resources:**
 - [Kubernetes — RBAC good practices](https://kubernetes.io/docs/concepts/security/rbac-good-practices/) (~20 min)
 - [Kubernetes — Privilege escalation prevention (escalate/bind)](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping) (~10 min)
+- [Kubernetes — Security checklist](https://kubernetes.io/docs/concepts/security/security-checklist/) (~15 min)
+- [Kubernetes — Pod Security Standards (restricting what a pod can do)](https://kubernetes.io/docs/concepts/security/pod-security-standards/) (~15 min)
+- [OWASP — Kubernetes Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Kubernetes_Security_Cheat_Sheet.html) (~20 min)
 
 ## Audit RBAC to find over-permissioned subjects and risky bindings
 
@@ -110,10 +121,15 @@ Exam gotchas:
 - **Effective permission is the union of all bound roles** — you can't judge a subject from one binding. Tools exist precisely because additive RBAC hides the aggregate.
 - **`rbac-tool analysis`/`viz`** surface the classic risks (wildcards, cluster-admin, escalation verbs, default-SA bindings) — the equivalent of an access-review report of over-privileged principals.
 - Auditing is **detective**, not preventive: it finds the over-permission; enforcing it *stays* fixed is admission-time policy (Kyverno/Gatekeeper in `d1-governance`). Pair the two — find, then prevent recurrence.
+- **`kubectl auth can-i --list` is built in and needs no extra tooling** — it answers the reverse question for the *current* (or `--as`-impersonated) subject and is the fastest exam-legal way to enumerate effective permissions; `--as`/`--as-group` requires `impersonate` rights, itself an escalation verb.
+- **Audit must include ServiceAccounts, not just humans**: most over-privilege in a cluster is a workload SA with a stale ClusterRoleBinding, the direct analogue of an orphaned service-principal role assignment an access review should catch.
 
 **Resources:**
 - [rbac-tool (alcideio) — analysis, who-can, viz](https://github.com/alcideio/rbac-tool) (~15 min)
 - [kubectl-who-can (Aqua Security)](https://github.com/aquasecurity/kubectl-who-can) (~10 min)
+- [KubiScan (CyberArk) — find risky roles/bindings & escalation paths](https://github.com/cyberark/KubiScan) (~15 min)
+- [Kubernetes — Checking API access (`kubectl auth can-i`)](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access) (~10 min)
+- [Microsoft Learn — Access reviews (the SC-500 recertification control)](https://learn.microsoft.com/en-us/entra/id-governance/access-reviews-overview) (~15 min)
 
 ## Summary
 

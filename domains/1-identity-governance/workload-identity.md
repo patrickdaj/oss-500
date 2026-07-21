@@ -35,16 +35,22 @@ spec:
 
 Turning **`automountServiceAccountToken: false`** off by default (on the SA or per pod) is the baseline hardening step: a pod that doesn't call the API server has no business carrying an API token an attacker could steal. Audience-scoping matters just as much — a token minted `audience: vault` won't be accepted by the API server or any other relying party, containing blast radius the way a narrowly scoped managed-identity credential does.
 
+Two mechanics worth knowing for the exam framing. First, you can mint a token out-of-band with `kubectl create token reports --audience vault --duration 3600s -n oss500-apps` — the same `TokenRequest` API the kubelet uses, handy for testing federation. Second, the *legacy* path still exists: creating a `Secret` of type `kubernetes.io/service-account-token` yields a non-expiring token, and pre-1.24 clusters auto-created one per SA. Finding such a Secret mounted or stored is the "long-lived credential" anti-pattern — the k8s equivalent of a service-principal client secret checked into a config.
+
 Exam gotchas:
 
 - **Modern SA tokens are bound + projected + audience-scoped + expiring** (`TokenRequest`); the legacy auto-generated Secret token was non-expiring and is the thing you want gone. "Long-lived token found mounted in a pod" is a finding, not a feature.
 - **`automountServiceAccountToken: false`** is the default-deny for identity — set it on the `default` SA and opt in explicitly. The Azure parallel: don't attach an identity/credential a workload doesn't need.
 - The **audience** claim is a scoping control: a token for `audience: vault` is rejected everywhere else. Mirrors an access token scoped to one resource.
 - A ServiceAccount without any RoleBinding can still *authenticate* (it has an identity) but can't *do* anything in-cluster — identity and authorization are separate, exactly as in Azure (a managed identity with no role assignment).
+- **A projected token is not a bearer secret to hoard**: it's short-lived and pod-bound, so exfiltrating it buys an attacker only minutes and only for the token's `audience`. Contrast with the legacy Secret token, which is a durable credential — the reason "migrate off Secret-based SA tokens" is a hardening recommendation.
 
 **Resources:**
 - [Kubernetes — Configure ServiceAccounts for Pods](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) (~20 min)
 - [Kubernetes — Bound service account token volume projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#serviceaccount-token-volume-projection) (~15 min)
+- [Kubernetes — ServiceAccounts (concept)](https://kubernetes.io/docs/concepts/security/service-accounts/) (~15 min)
+- [Kubernetes — Managing ServiceAccounts (admin, token lifecycle)](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/) (~15 min)
+- [Microsoft Learn — Managed identities for Azure resources (overview)](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview) (~15 min)
 
 ## Federate workload identity to secret/cloud systems via the cluster OIDC issuer
 
@@ -71,10 +77,14 @@ Exam gotchas:
 - **Bind on `sub` (`system:serviceaccount:ns:name`) + `aud`** exactly. Trusting the issuer alone, or a wildcard subject, lets any pod assume the role — a real escalation and a favorite distractor.
 - **TokenReview (online) vs JWKS/OIDC (offline)** are two valid designs; cloud federation and Vault JWT auth use JWKS, Vault's `kubernetes` auth uses TokenReview. Know which needs cluster network reach.
 - The cluster must **publish a stable, reachable issuer** (`--service-account-issuer`); a private/unreachable or rotated issuer URL breaks external validation — the analogue of a broken federation metadata endpoint.
+- For cloud federation the relying party needs the JWKS **reachable at token-exchange time** (or the keys cached) and the SA token minted with the cloud's expected **audience** (e.g. `api://AzureADTokenExchange` for Azure). A default-audience k8s token won't be accepted — a common "federation configured but exchange fails" bug.
 
 **Resources:**
 - [Kubernetes — ServiceAccount issuer discovery (OIDC)](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-issuer-discovery) (~15 min)
 - [HashiCorp Vault — Kubernetes and JWT/OIDC auth methods](https://developer.hashicorp.com/vault/docs/auth/kubernetes) (~20 min)
+- [Microsoft Learn — Workload identity federation (the SC-500 control)](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation) (~20 min)
+- [Azure AD Workload Identity — federating k8s ServiceAccounts to Entra](https://azure.github.io/azure-workload-identity/docs/) (~20 min)
+- [AWS — IAM roles for service accounts (IRSA), the same OIDC pattern](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) (~20 min)
 
 ## Explain SPIFFE/SPIRE workload identity and mTLS-based service identity
 
@@ -95,10 +105,15 @@ Exam gotchas:
 - **Node attestation then workload attestation**: the agent proves the node, then proves the specific workload via selectors before issuing an SVID — attestation, not a shared secret, is the trust root.
 - SVIDs are **short-lived and auto-rotated**; the workload fetches them from the local **Workload API** socket and never stores a key — the same "no long-lived credential" property as a managed identity, extended to mTLS.
 - SPIFFE's job is **service-to-service identity/mTLS**, distinct from a Kubernetes SA token used to authenticate *to the API server or an external OIDC relying party*; a mesh mTLS question points at SPIFFE, an "authenticate to Vault/cloud" question points at `wi-oidc`.
+- **X509-SVID vs JWT-SVID**: X.509-SVIDs power mTLS (identity on both ends of the connection); JWT-SVIDs are bearer tokens for cases where you can't do mTLS (e.g. through an L7 proxy). Mixing them up matters — a bearer JWT-SVID replayed is a theft risk that mTLS's proof-of-possession avoids.
+- The **trust bundle** (the trust-domain CA's public keys) is what each side validates the peer's SVID against; cross-trust-domain communication needs **federation** of bundles, the mesh analogue of exchanging federation metadata between tenants.
 
 **Resources:**
 - [SPIFFE overview](https://spiffe.io/docs/latest/spiffe-about/overview/) (~15 min)
 - [SPIRE concepts — server, agent, attestation](https://spiffe.io/docs/latest/spire-about/spire-concepts/) (~20 min)
+- [SPIFFE-ID specification (URI format, trust domain)](https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE-ID.md) (~15 min)
+- [SPIRE — Quickstart for Kubernetes (hands-on)](https://spiffe.io/docs/latest/try/getting-started-k8s/) (~30 min)
+- [Istio — Security concepts (SPIFFE identities, mTLS)](https://istio.io/latest/docs/concepts/security/) (~20 min)
 
 ## Summary
 

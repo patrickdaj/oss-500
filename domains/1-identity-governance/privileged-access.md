@@ -23,16 +23,23 @@ spec:
 
 Because Teleport is an **identity-aware proxy**, every connection is authenticated and authorized centrally — there is no direct network path to the protected host that bypasses it. That closes the standing-bastion / shared-jump-host gap: instead of a permanent admin key on a bastion, each session is a freshly minted, expiring credential tied to an identity. Boundary reaches the same outcome differently — brokered, time-boxed **sessions** with credentials injected from a secrets store rather than long-lived certs — but the exam concept is identical: *just-in-time, short-lived, no standing privilege*.
 
+Mechanically, `tsh login` performs SSO (Teleport can broker to Keycloak/Entra/GitHub as the identity source — the `d1-idp` tie-in) and MFA, then the **Teleport Auth Service** signs a certificate whose extensions encode the user's **roles and traits**; every subsequent SSH/kube/db connection is authorized by re-evaluating those roles at the proxy. Because the credential is a short-TTL cert rather than a revocable session, immediate cutoff needs a **lock** (`tctl lock --user=alice` / `--role=db-admin`) — the Auth Service rejects locked identities in real time, the answer to "a cert is still valid but I must revoke access *now*." Additional standing-access controls layer on top: **`require_session_mfa`** (MFA per connection, not just at login) and **device trust** (only enrolled devices may connect) — the Teleport shape of Entra Conditional Access requiring MFA and a compliant device for privileged action.
+
 Exam gotchas:
 
 - **Short-lived certificate TTL is the JIT enforcement** — access ends when the cert expires, not when someone revokes it. Map "eliminate standing admin access / time-bound elevation" to this, exactly as PIM activation is time-boxed.
 - **No direct path around the proxy**: the security property depends on the protected resources only being reachable *through* Teleport/Boundary. A leftover direct SSH route defeats it — the analogue of a resource still reachable outside PIM's control.
 - Teleport = **short-lived certificates**; Boundary = **brokered sessions with injected credentials**. Both are JIT; don't assume "PAM" means only one mechanism.
 - Roles scope by **label**, not hostname lists — over-broad label selectors (`'*': '*'`) are the over-privilege finding, the PIM parallel to an eligible assignment scoped too widely.
+- **Short TTL ≠ instant revocation.** Because access ends by *expiry*, an already-issued cert stays valid for its window; to kill a session or identity immediately you need a **lock** (`tctl lock`), not a role edit. "Contain a compromised admin right now" → lock, not TTL.
+- **A shorter `max_session_ttl` trades convenience for exposure** but doesn't replace MFA/least-privilege; a 12h cert with `cluster-admin`-equivalent labels is still standing-ish over-privilege. TTL bounds *duration*, roles bound *scope* — the exam tests both.
 
 **Resources:**
 - [Teleport — Access Controls and roles](https://goteleport.com/docs/admin-guides/access-controls/guides/role-templates/) (~20 min)
 - [Teleport — Architecture and certificate-based access](https://goteleport.com/docs/reference/architecture/) (~20 min)
+- [Teleport — Core concepts (auth/proxy, roles, certs)](https://goteleport.com/docs/core-concepts/) (~15 min)
+- [HashiCorp Boundary — documentation (brokered JIT sessions)](https://developer.hashicorp.com/boundary/docs) (~20 min)
+- [Microsoft Learn — Configure Privileged Identity Management (PIM)](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure) (~20 min)
 
 ## Configure session recording and audit for privileged sessions
 
@@ -61,10 +68,15 @@ Exam gotchas:
 - **Audit events ≠ session recording**: the audit log is the structured who/what/when (feed a SIEM, drive access reviews); the recording is the replayable session. The exam distinguishes "log of the activation" from "replay of the session."
 - **Enhanced (BPF) recording** captures in-session commands/network/files beyond the terminal stream — the answer to "detect what a script actually did," not plain terminal replay.
 - Recording is what turns JIT access into **auditable** JIT access — the PIM value isn't just short-lived, it's short-lived *and reviewable*.
+- **Recording can be bypassed if a resource is reachable off-proxy** (see `pam-jit`): a session that never traverses Teleport is never recorded. Auditability depends on the same "no path around the proxy" invariant as JIT.
+- **Retention and export are the compliance half**: recordings/events must land in durable, access-controlled storage (S3 with object-lock, or a SIEM) to survive an attacker with host access and to satisfy log-retention requirements — the reason `-sync` streaming and off-cluster storage matter.
 
 **Resources:**
 - [Teleport — Session recording architecture](https://goteleport.com/docs/reference/architecture/session-recording/) (~15 min)
 - [Teleport — Audit log and events](https://goteleport.com/docs/reference/monitoring/audit/) (~15 min)
+- [Teleport — Enhanced session recording for SSH with BPF](https://goteleport.com/docs/enroll-resources/server-access/guides/bpf-session-recording/) (~20 min)
+- [NIST SP 800-92 — Guide to Computer Security Log Management](https://csrc.nist.gov/pubs/sp/800/92/final) (~30 min)
+- [Microsoft Learn — View audit history for roles in PIM](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-use-audit-log) (~15 min)
 
 ## Require approval workflows and role escalation for privileged roles
 
@@ -89,10 +101,14 @@ Exam gotchas:
 - **Separation of duties**: `request.roles` (can ask) and `review_requests.roles` (can approve) are distinct; a design where a user can approve their own request breaks the control — the PIM parallel to self-approval.
 - **Approval thresholds and mandatory reason/justification** map to PIM's approver list and justification requirements; multi-approver = the two-person rule.
 - Elevation is **time-boxed and audited** — approval doesn't grant standing access, it grants a bounded, recorded window; "permanent admin after one approval" is wrong by design.
+- **Break-glass still needs a path**: a role that can approve requests but is itself gated behind approval can deadlock in an incident. Keep an audited emergency account/role excluded from the approval requirement — the same break-glass exclusion as a blocking CA policy, and PIM's emergency-access accounts.
+- **Requestable ≠ granted**: `allow.request.roles` only lets a subject *ask*; a reviewer with `review_requests.roles` must approve before the elevated cert is issued. A design that skips review (auto-approve) collapses the control back to standing access.
 
 **Resources:**
 - [Teleport — Access Requests (just-in-time approvals)](https://goteleport.com/docs/admin-guides/access-controls/access-requests/) (~25 min)
 - [Teleport — Access Request plugins (Slack/PagerDuty/Jira)](https://goteleport.com/docs/admin-guides/access-controls/access-request-plugins/) (~15 min)
+- [Microsoft Learn — Approve/deny requests for roles in PIM](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-resource-roles-approval-workflow) (~15 min)
+- [NIST SP 800-207 — Zero Trust Architecture (JIT/least-privilege access)](https://csrc.nist.gov/pubs/sp/800/207/final) (~30 min)
 
 ## Summary
 

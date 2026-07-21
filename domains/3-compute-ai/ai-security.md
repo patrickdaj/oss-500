@@ -26,14 +26,20 @@ Client ──OIDC token──> AI gateway (authn/authz + rate limit) ──> Oll
 
 This is precisely **Azure OpenAI access control**: Azure OpenAI is fronted by Entra ID (managed identity / OAuth, keyless), and Microsoft's guidance is to place **API Management's AI gateway** in front for per-consumer subscription keys, `llm-token-limit` token quotas, and JWT validation — the exact three controls above. Ollama-behind-a-gateway + Keycloak is the open-source rendering.
 
+The abuse this defends against is **LLM10: Unbounded Consumption** in the OWASP LLM Top 10 — "denial of wallet," model-extraction by high-volume querying, and resource exhaustion. Token budgets, per-identity quotas and request caps are the named mitigations. On the threat-modeling side, MITRE ATLAS catalogs the adversary techniques (e.g. *ML Model Access*, *Cost Harvesting*) that an unauthenticated inference endpoint invites.
+
 Exam gotchas:
 - The model port must not be publicly reachable. Ollama has no built-in auth — exposing `:11434` directly is the mistake the scenario is testing. Front it with authn.
 - **Token**-based rate limiting, not just request-rate limiting, is the LLM control. A request-count limit doesn't bound cost/abuse when request sizes vary by orders of magnitude.
 - Authenticate *and* authorize: a valid token isn't enough; the gateway decides which identity may reach which model (least privilege on inference).
+- This is **LLM10 Unbounded Consumption** (denial-of-wallet / model extraction). Azure's answer is APIM's `llm-token-limit` + Entra ID + private networking; the OSS answer is gateway + Keycloak + token quotas.
 
 **Resources:**
-- [Ollama — API & security considerations](https://github.com/ollama/ollama/blob/main/docs/faq.md) (~15 min)
-- [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm-top-10/) (~30 min)
+- [Ollama — API & security considerations (FAQ)](https://github.com/ollama/ollama/blob/main/docs/faq.md) (~15 min)
+- [OWASP Top 10 for LLM Applications (2025)](https://genai.owasp.org/llm-top-10/) (~30 min)
+- [OWASP LLM10: Unbounded Consumption](https://genai.owasp.org/llmrisk/llm10-unbounded-consumption/) (~15 min)
+- [Azure API Management — `llm-token-limit` policy](https://learn.microsoft.com/azure/api-management/llm-token-limit-policy) (~15 min)
+- [MITRE ATLAS — adversarial ML threat matrix](https://atlas.mitre.org/) (~20 min)
 
 ## Mitigate prompt-injection and jailbreak attempts
 
@@ -77,10 +83,14 @@ Exam gotchas:
 - **Direct vs indirect** injection: direct = the user's own prompt overriding instructions; indirect = malicious instructions embedded in *retrieved/ingested content*. Indirect-injection defense belongs on the *data/tool input*, not only the user prompt — the classic RAG failure.
 - You cannot "escape" or sanitize natural language the way you escape SQL. Defense is detection + least-agency (don't let output act with privilege), not input escaping.
 - Prompt injection is **LLM01**, the top OWASP LLM risk — know the number.
+- In MITRE ATLAS this is the *LLM Prompt Injection* technique; direct (jailbreak) and indirect variants map to distinct ATLAS techniques — useful vocabulary if a question frames the attack in ATLAS terms.
 
 **Resources:**
 - [NeMo Guardrails — Input/output rails & self-check](https://docs.nvidia.com/nemo/guardrails/latest/user-guides/guardrails-library.html) (~30 min)
+- [NeMo Guardrails — project & jailbreak-detection heuristics (GitHub)](https://github.com/NVIDIA/NeMo-Guardrails) (~20 min)
 - [OWASP LLM01: Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) (~15 min)
+- [Azure AI Content Safety — Prompt Shields (jailbreak detection)](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) (~15 min)
+- [MITRE ATLAS — LLM Prompt Injection technique](https://atlas.mitre.org/techniques/AML.T0051) (~15 min)
 
 ## Filter unsafe input and output with content-safety guardrails
 
@@ -109,10 +119,14 @@ Exam gotchas:
 - **Input** rails screen the request; **output** rails screen the response. Data-leakage / sensitive-info-disclosure (LLM02) defense is an *output* control — input filtering alone won't stop the model leaking context data.
 - Guardrails are *preventive content controls* (block/refuse by policy); they're distinct from *detective* runtime alerting (Defender-for-AI style). A scenario asking to "prevent the model returning toxic content" is guardrails; "alert the SOC that a jailbreak was attempted" is detection.
 - Guardrails don't make the model trustworthy — they wrap it. Combine with least-agency and RAG data isolation; a guardrail is not a substitute for not putting secrets in the context.
+- The deterministic PII check is typically a **Presidio**-style detector (regex + NER); the LLM-based check is a classifier prompt. Know that "guardrail" spans both mechanisms — a scenario may hinge on which one is appropriate (deterministic for known secret patterns, LLM-based for fuzzy toxicity).
 
 **Resources:**
 - [NeMo Guardrails — Guardrails library (content safety, PII)](https://docs.nvidia.com/nemo/guardrails/latest/user-guides/guardrails-library.html) (~25 min)
 - [OWASP LLM02: Sensitive Information Disclosure](https://genai.owasp.org/llmrisk/llm02-sensitive-information-disclosure/) (~15 min)
+- [Azure AI Content Safety — overview (categories, blocklists)](https://learn.microsoft.com/azure/ai-services/content-safety/overview) (~15 min)
+- [Microsoft Presidio — PII detection & anonymization](https://microsoft.github.io/presidio/) (~15 min)
+- [OWASP Machine Learning Security Top 10](https://owasp.org/www-project-machine-learning-security-top-10/) (~20 min)
 
 ## Design a secure RAG architecture with data isolation and least privilege
 
@@ -139,10 +153,13 @@ Exam gotchas:
 - The #1 secure-RAG rule: **retrieval must honor the requesting user's permissions.** If the vector store returns chunks the user couldn't otherwise read, you've built a data-leak engine — the model launders the access.
 - RAG is the primary **indirect prompt-injection** vector — ingested documents are untrusted input. Screen them; don't grant the RAG agent broad tool privileges.
 - Data *isolation* (per-tenant collections) + *least privilege at retrieval* + *secrets in Vault* is the triad. Guardrails/output filtering is the backstop, not the primary control.
+- Over-privileged RAG *tools* are **LLM06 Excessive Agency** — a poisoned document that can trigger an email/SQL/shell action is the compounding risk. Scope tools tightly and require human/deterministic approval for consequential actions.
 
 **Resources:**
 - [Open WebUI — RAG & document handling](https://docs.openwebui.com/features/rag) (~20 min)
 - [OWASP LLM08: Vector and Embedding Weaknesses](https://genai.owasp.org/llmrisk/llm08-vector-and-embedding-weaknesses/) (~15 min)
+- [OWASP LLM06: Excessive Agency](https://genai.owasp.org/llmrisk/llm06-excessive-agency/) (~15 min)
+- [Azure AI Search — security trimming / document-level access](https://learn.microsoft.com/azure/search/search-security-trimming-for-azure-search) (~15 min)
 
 ## Instrument LLM calls for observability and auditing
 
@@ -172,10 +189,13 @@ Exam gotchas:
 - **Token metrics per identity** are the key security/cost signal — they catch abuse and denial-of-wallet that request counts miss, and they attribute cost per consumer.
 - OpenTelemetry **GenAI semantic conventions** give standardized attribute names (`gen_ai.*`) so LLM telemetry is portable across backends — the vendor-neutral answer.
 - Observability is where AI security meets the SIEM (Domain 4): export traces/metrics/logs so guardrail-block spikes and anomalous usage become detections. But **redact secrets/PII** before logging.
+- Logging raw prompts/responses can itself *create* an LLM02 sensitive-information-disclosure surface — the telemetry store becomes a new place secrets leak. Hash/redact at the span, and apply the same access controls to the trace backend as to the data.
 
 **Resources:**
 - [OpenTelemetry — GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) (~25 min)
-- [OpenTelemetry — Traces & metrics concepts](https://opentelemetry.io/docs/concepts/signals/) (~15 min)
+- [OpenTelemetry — Traces & metrics concepts (signals)](https://opentelemetry.io/docs/concepts/signals/) (~15 min)
+- [OpenLLMetry — OTel-based LLM instrumentation (GitHub)](https://github.com/traceloop/openllmetry) (~15 min)
+- [Azure OpenAI — monitoring & diagnostics](https://learn.microsoft.com/azure/ai-services/openai/how-to/monitor-openai) (~15 min)
 
 ## Govern AI usage with policy at the gateway
 
@@ -223,10 +243,14 @@ Exam gotchas:
 - Governance is about a **single, central, audited policy point** all AI traffic passes through — not per-app guardrails duplicated everywhere. The gateway + OPA is that point.
 - Routing *all* AI usage through the sanctioned gateway is how you handle **shadow AI** — you can't govern (or even see) usage that bypasses the control plane. Discovery/inventory precedes enforcement.
 - Governance overlaps but differs from guardrails: guardrails = per-request content/injection safety; governance = org policy (allowed models, data-handling, quotas, audit) enforced centrally.
+- The governance frameworks to name-drop: **NIST AI RMF** (Govern/Map/Measure/Manage functions), **ISO/IEC 42001** (AI management system, certifiable), and the **EU AI Act** (risk-tiered legal obligations). They set the *why*; OPA-at-the-gateway is one *how*.
 
 **Resources:**
 - [Open Policy Agent — Documentation](https://www.openpolicyagent.org/docs/latest/) (~25 min)
-- [NIST AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework) (~20 min)
+- [NIST AI Risk Management Framework (AI RMF 1.0)](https://www.nist.gov/itl/ai-risk-management-framework) (~20 min)
+- [NIST Trustworthy & Responsible AI Resource Center](https://airc.nist.gov/) (~15 min)
+- [ISO/IEC 42001 — AI management system standard](https://www.iso.org/standard/81230.html) (~15 min)
+- [Microsoft Purview — DSPM for AI](https://learn.microsoft.com/purview/ai-microsoft-purview) (~15 min)
 
 ## Summary
 | Objective | Takeaway |

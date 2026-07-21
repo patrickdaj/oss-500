@@ -41,10 +41,15 @@ Exam gotchas:
 - **`enforcementAction: deny` = Deny effect; `dryrun`/`warn` = Audit effect.** "Roll out a policy without breaking existing deployments" → dryrun/warn first, then deny.
 - **Audit finds existing violations but never deletes** them — same as Azure Policy: pre-existing non-compliant resources are reported, not removed; remediation is separate.
 - Policy logic is **Rego** — powerful but the learning cost is real; the exam contrast with Kyverno is "Rego expressiveness vs Kyverno YAML simplicity."
+- **Webhook `failurePolicy` (fail-open vs fail-closed)**: if Gatekeeper's admission webhook is down, `Ignore` lets non-compliant resources through (fail-open) while `Fail` blocks all admissions (fail-closed, but can wedge the cluster). Getting this wrong is either a silent policy bypass or a self-inflicted outage — the availability/security trade-off the exam probes.
+- **Namespace/label `match` scoping and exemptions**: Gatekeeper exempts `kube-system` and control-plane namespaces by default; a constraint that forgets to scope its `match` either misses workloads or breaks system pods.
 
 **Resources:**
 - [OPA Gatekeeper — How to use (ConstraintTemplates, Constraints)](https://open-policy-agent.github.io/gatekeeper/website/docs/howto/) (~25 min)
 - [OPA Gatekeeper — Audit and enforcement actions](https://open-policy-agent.github.io/gatekeeper/website/docs/audit/) (~15 min)
+- [OPA — Rego policy language](https://www.openpolicyagent.org/docs/latest/policy-language/) (~30 min)
+- [Gatekeeper policy library (ready-made ConstraintTemplates)](https://open-policy-agent.github.io/gatekeeper-library/website/) (~15 min)
+- [Microsoft Learn — Use Azure Policy to secure AKS (built on Gatekeeper)](https://learn.microsoft.com/en-us/azure/aks/use-azure-policy) (~20 min)
 
 ## Enforce and mutate resources with Kyverno policies
 
@@ -79,10 +84,15 @@ Exam gotchas:
 - **`Enforce` blocks, `Audit` reports** — identical semantics to Gatekeeper's deny/dryrun and Azure Policy's Deny/Audit. Roll out with Audit, then Enforce.
 - **mutate/generate = remediation**: injecting a secure default (mutate) or provisioning a missing control like a default-deny NetworkPolicy (generate) is the Modify/DeployIfNotExists analogue — validation alone can't do this.
 - **`verifyImages`** ties governance to supply-chain signing (cosign) — a Kyverno policy can require signed images at admission, previewing Domain 3's `sc-admission`.
+- **`background: true` can't evaluate request-time context**: background/existing-resource scanning has no `AdmissionRequest`, so rules referencing the requesting user, operation, or admission-only data are skipped on background scans and only fire at admission. "Policy passes background scan but blocks on create" traces to this.
+- **PolicyExceptions are the escape hatch**: legitimate exemptions are modeled as `PolicyException` objects (auditable, in git), not by loosening the policy — the governance-friendly way to grant an exception, analogous to an Azure Policy exemption.
 
 **Resources:**
 - [Kyverno — Writing policies (validate/mutate/generate)](https://kyverno.io/docs/writing-policies/) (~25 min)
 - [Kyverno — Policy reports and background scanning](https://kyverno.io/docs/policy-reports/) (~15 min)
+- [Kyverno — Introduction & how it compares to Gatekeeper](https://kyverno.io/docs/introduction/) (~15 min)
+- [Kyverno — Mutate rules (Modify/DINE analogue)](https://kyverno.io/docs/writing-policies/mutate/) (~15 min)
+- [Kyverno — Sample policy library](https://kyverno.io/policies/) (~15 min)
 
 ## Evaluate compliance against frameworks and baselines
 
@@ -105,10 +115,15 @@ Exam gotchas:
 - **Framework names matter**: NSA-CISA and CIS Kubernetes Benchmark are the headline Kubernetes hardening baselines — the analogue of MCSB/CIS/regulatory standards in Defender regulatory compliance.
 - **Score is severity-weighted**: remediating high-severity controls moves the compliance percentage most — same prioritization logic as Defender secure score recommendations.
 - A **passing compliance score is not a certification** — it's technical-control coverage, exactly the caveat Defender's regulatory-compliance dashboard carries.
+- **Overlapping tools have different lenses**: Kubescape (framework/posture), `kube-bench` (CIS *node* checks against the kubelet/API-server config), and Trivy (image CVEs) all touch "security scanning" — the exam wants you to map the tool to the *question* (framework compliance vs node hardening vs vulnerabilities).
+- **Scope matters**: some controls only evaluate against a *live cluster* (host/API-server config), others against *manifests* — a manifest-only scan can't report node-level findings, so a clean IaC scan is not a clean cluster.
 
 **Resources:**
 - [Kubescape — Frameworks and controls](https://kubescape.io/docs/frameworks-and-controls/) (~20 min)
 - [Kubescape — Scanning and compliance score](https://kubescape.io/docs/scanning/) (~15 min)
+- [CIS Kubernetes Benchmark (the headline hardening baseline)](https://www.cisecurity.org/benchmark/kubernetes) (~20 min)
+- [MITRE ATT&CK — Containers matrix](https://attack.mitre.org/matrices/enterprise/containers/) (~15 min)
+- [Microsoft Learn — Defender for Cloud secure score (the SC-500 mapping)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/secure-score-security-controls) (~20 min)
 
 ## Implement and configure security controls by using infrastructure as code
 
@@ -130,10 +145,15 @@ Exam gotchas:
 - **Policy-as-code**: Gatekeeper/Kyverno policies are IaC too — guardrails in git, PR-reviewed, rolled out with Audit-then-Enforce. Governance and IaC reinforce each other.
 - **Shift-left**: scanning manifests/Helm in CI (Kubescape/Trivy) catches misconfigurations *before* deploy — the open-source analogue of IaC/DevOps security scanning; "prevent the drift from ever landing."
 - Declarative apply is **idempotent** — re-applying converges to desired state, the property that makes drift correction and reproducibility possible (vs imperative one-off commands).
+- **IaC scanning ≠ secret scanning ≠ drift detection** — shift-left covers misconfiguration (Kubescape/Trivy config), hard-coded secrets (gitleaks/Trivy secret), and post-deploy drift separately; a CI gate that only checks one leaves the others open.
+- **A gate is only as good as its enforcement**: a `--compliance-threshold` or Trivy exit code must actually *fail the pipeline* (block merge) to matter — a scan whose findings are ignored is theatre, the same "policy in Audit forever" trap as governance.
 
 **Resources:**
 - [Helm — Chart templates and `helm template`](https://helm.sh/docs/chart_template_guide/) (~20 min)
-- [Kubescape — Scanning manifests and Helm charts (IaC/CI)](https://kubescape.io/docs/scanning/scan-yaml/) (~10 min)
+- [Kubescape — Scanning your environment (CLI/CI/operator)](https://kubescape.io/docs/scanning/) (~15 min)
+- [Trivy — Misconfiguration scanning (IaC/Helm/K8s manifests)](https://trivy.dev/latest/docs/scanner/misconfiguration/) (~15 min)
+- [OWASP — Infrastructure as Code Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.html) (~15 min)
+- [Microsoft Learn — Azure Policy overview (controls-as-code / IaC governance)](https://learn.microsoft.com/en-us/azure/governance/policy/overview) (~15 min)
 
 ## Summary
 

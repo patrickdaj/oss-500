@@ -31,6 +31,8 @@ Exam gotchas:
 - [Vault seal/unseal concepts](https://developer.hashicorp.com/vault/docs/concepts/seal) (~15 min)
 - [Integrated storage (Raft) backend](https://developer.hashicorp.com/vault/docs/configuration/storage/raft) (~15 min)
 - [Auto-unseal with Transit](https://developer.hashicorp.com/vault/tutorials/auto-unseal/autounseal-transit) (~20 min)
+- [`vault operator init` / Shamir key shares](https://developer.hashicorp.com/vault/docs/commands/operator/init) (~10 min)
+- [Vault production hardening guide](https://developer.hashicorp.com/vault/tutorials/operations/production-hardening) (~25 min)
 
 ## Configure access with auth methods and policies
 
@@ -71,8 +73,11 @@ Exam gotchas:
 - The root token bypasses all policy — treat it like Key Vault's owner; revoke it after bootstrap and use scoped tokens.
 
 **Resources:**
-- [Vault policies](https://developer.hashicorp.com/vault/docs/concepts/policies) (~20 min)
+- [Vault policies concept](https://developer.hashicorp.com/vault/docs/concepts/policies) (~20 min)
 - [Kubernetes auth method](https://developer.hashicorp.com/vault/docs/auth/kubernetes) (~15 min)
+- [AppRole auth method (machine auth)](https://developer.hashicorp.com/vault/docs/auth/approle) (~15 min)
+- [Vault tokens & the token concept](https://developer.hashicorp.com/vault/docs/concepts/tokens) (~15 min)
+- [Policies tutorial (capabilities & least privilege)](https://developer.hashicorp.com/vault/tutorials/policies/policies) (~20 min)
 
 ## Issue dynamic, short-lived secrets with leases and revocation
 
@@ -107,8 +112,10 @@ Exam gotchas:
 - The database secrets engine needs an admin connection Vault manages — protect *that* root credential (see `vault-rotation`).
 
 **Resources:**
-- [Vault dynamic secrets & leases](https://developer.hashicorp.com/vault/docs/concepts/lease) (~15 min)
+- [Vault leases, renewal & revocation](https://developer.hashicorp.com/vault/docs/concepts/lease) (~15 min)
 - [Database secrets engine](https://developer.hashicorp.com/vault/docs/secrets/databases) (~20 min)
+- [Dynamic secrets tutorial (PostgreSQL)](https://developer.hashicorp.com/vault/tutorials/db-credentials/database-secrets) (~20 min)
+- [Your first dynamic secret (intro)](https://developer.hashicorp.com/vault/tutorials/get-started/understand-dynamic-secrets) (~10 min)
 
 ## Configure secret rotation for static and dynamic credentials
 
@@ -142,6 +149,8 @@ Exam gotchas:
 **Resources:**
 - [Database root credential rotation](https://developer.hashicorp.com/vault/docs/secrets/databases#rotate-credentials) (~10 min)
 - [KV v2 versioned secrets](https://developer.hashicorp.com/vault/docs/secrets/kv/kv-v2) (~15 min)
+- [Database static roles & scheduled rotation](https://developer.hashicorp.com/vault/tutorials/db-credentials/database-creds-rotation) (~20 min)
+- [KV v2 API — versioning & rollback](https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2) (~10 min)
 
 ## Deliver secrets to workloads via the Vault agent injector or Secrets Store CSI
 
@@ -176,7 +185,10 @@ Exam gotchas:
 
 **Resources:**
 - [Vault Agent Injector](https://developer.hashicorp.com/vault/docs/platform/k8s/injector) (~20 min)
+- [Injector annotations reference](https://developer.hashicorp.com/vault/docs/platform/k8s/injector/annotations) (~10 min)
 - [Secrets Store CSI provider for Vault](https://developer.hashicorp.com/vault/docs/platform/k8s/csi) (~15 min)
+- [Kubernetes Secrets Store CSI Driver (upstream)](https://secrets-store-csi-driver.sigs.k8s.io/) (~15 min)
+- [Vault Secrets Operator (native CRD sync)](https://developer.hashicorp.com/vault/docs/platform/k8s/vso) (~15 min)
 
 ## Enable audit devices and monitor secret access
 
@@ -204,6 +216,9 @@ Exam gotchas:
 **Resources:**
 - [Vault audit devices](https://developer.hashicorp.com/vault/docs/audit) (~15 min)
 - [File audit device](https://developer.hashicorp.com/vault/docs/audit/file) (~10 min)
+- [Syslog audit device](https://developer.hashicorp.com/vault/docs/audit/syslog) (~10 min)
+- [Blocked audit devices & fail-closed behavior](https://developer.hashicorp.com/vault/docs/concepts/audit) (~15 min)
+- [Vault monitoring & telemetry](https://developer.hashicorp.com/vault/tutorials/monitoring/monitor-telemetry-audit-splunk) (~20 min)
 
 ## Summary
 
