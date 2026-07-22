@@ -20,6 +20,7 @@ Domain 6 built a tool-using agent under zero trust: scoped delegated identity ([
 | **Memory poisoning** (persist an instruction that re-fires next session) | agentic memory/persistence abuse | scoped context + gating on the re-fired action |
 
 ## Method (the four steps, agent flavor)
+The four steps are defined canonically in [`purple-team.md`](../5-offensive-validation/purple-team.md) (with the diagram and the "document the gap" loop); here in agent flavor:
 1. **Build** — the agent + controls are up from `d6` (`lab-infra/agentic`).
 2. **Name** — pick the attack + its OWASP-Agentic / ATLAS technique (table above).
 3. **Fire** — run the probe / craft the poisoned input **against the local agent** (`http://localhost:<agent-port>` / in-cluster) — never a hosted agent or model API.

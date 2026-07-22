@@ -11,6 +11,7 @@ Domain 1 built five zero-trust access models (`d1-ztna`: Boundary+Vault, OpenZit
 | **NetBird** (`ztna-netbird`) | from a peer in **no** group, reach a server; from `servers`, initiate **back** to `admins`; hit a non-allowed port | all **blocked** — mesh membership ≠ access; `bidirectional=false` holds |
 
 ## Method (the four steps, ZTNA flavor)
+The four steps are defined canonically in [`purple-team.md`](purple-team.md); here in ZTNA flavor:
 1. **Build** — the broker is up from its D1 lab.
 2. **Name** — the property under test: *authentication ≠ authorization*, *no standing network position*, *default-deny*. (800-207 §2 tenets; the negative test is the validation ATT&CK **T1078 / T1021** would exploit if it failed.)
 3. **Fire** — run the unauthorized attempt from the table **against your local broker only**.

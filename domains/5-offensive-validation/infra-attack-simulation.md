@@ -19,6 +19,7 @@ Domains 3–4 built the detection stack: **Falco** + **Tetragon** (runtime), **S
 | **T1078** Valid Accounts | reuse creds against a service | `D3-UAC` | **Wazuh** auth-failure/-success correlation |
 
 ## Method (the four steps, infra flavor)
+The four steps are defined canonically in [`purple-team.md`](purple-team.md); here in infra flavor:
 1. **Build** — the detection stack is up from D3/D4 (`d3-runtime-detection`, `d4-network-detection`, `d4-siem-wazuh`).
 2. **Name** — pick the ATT&CK technique + its D3FEND countermeasure (table).
 3. **Fire** — run the atomic / Caldera ability / Stratus detonation **inside the local cluster or a throwaway VM only**. The offensive lab-infra pins targets to the local stack.

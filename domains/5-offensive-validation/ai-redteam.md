@@ -20,6 +20,7 @@ This track attacks the **chat/RAG guardrail** (does the model *say* something un
 | **LLM09** Misinformation | toxicity / hallucination probes | `AML.T0048` External Harms | content-safety output rail |
 
 ## Method (the four steps, AI flavor)
+The four steps are defined canonically in [`purple-team.md`](purple-team.md); here in AI flavor:
 1. **Build** — the gateway is already up from `d3-ai`.
 2. **Name** — pick the OWASP-LLM risk + ATLAS technique (table above).
 3. **Fire** — run garak's matching probe / a PyRIT orchestrator **against `http://localhost:<gateway>`** — never a hosted model API.
