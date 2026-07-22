@@ -24,6 +24,6 @@ The sibling `add-plan-tracks-5-6` was already updated during this proposal so ph
 
 ## 5. Verify
 
-- [ ] 5.1 study-hub `lint:content` passes: every `objectiveIds` resolves to a tracker id and every `answer` index is in range for the new banks.
+- [x] 5.1 study-hub `lint:content` passes: every `objectiveIds` resolves to a tracker id and every `answer` index is in range for the new banks.
 - [x] 5.2 `npm run lint:links` passes for edited `assessment/readiness.md`.
-- [ ] 5.3 Commit in oss-500. Advance the study-hub `content/oss-500` submodule to the new commit, `git add content/oss-500`, commit, run the app, and confirm six banks on the Tests page/Dashboard and both new checkpoints reachable from the readiness gate.
+- [x] 5.3 Commit in oss-500. Advance the study-hub `content/oss-500` submodule to the new commit, `git add content/oss-500`, commit, run the app, and confirm six banks on the Tests page/Dashboard and both new checkpoints reachable from the readiness gate.

@@ -27,4 +27,4 @@
 
 - [x] 4.1 Run `npm run lint:links` — all links in the new/edited plan files resolve.
 - [x] 4.2 Confirm every tracker domain `dN` now has a `plan/phaseN-*.md` (0–6 + review present).
-- [ ] 4.3 Commit in oss-500. Then in study-hub advance the `content/oss-500` submodule to the new commit, `git add content/oss-500`, commit, run the app, and confirm the Plan view lists phases 5 and 6 with checkable blocks.
+- [x] 4.3 Commit in oss-500. Then in study-hub advance the `content/oss-500` submodule to the new commit, `git add content/oss-500`, commit, run the app, and confirm the Plan view lists phases 5 and 6 with checkable blocks.

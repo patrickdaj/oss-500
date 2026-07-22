@@ -55,4 +55,4 @@ Already partly guided (they name techniques and ask the learner to fire/record);
 - [x] 7.2 Invariants hold: no objective id, Objectives table, SC-500/Standards line, observable, or `tracker.yaml` entry changed (diff-check).
 - [x] 7.3 `npm run lint:links` passes; no dead or newly-generic links introduced by relocation.
 - [x] 7.4 `openspec validate reframe-labs-guided-build` passes.
-- [ ] 7.5 study-hub: bump the `content/oss-500` submodule, run `npm run lint:content` + `npm test` green, confirm the restructured labs render.
+- [x] 7.5 study-hub: bump the `content/oss-500` submodule, run `npm run lint:content` + `npm test` green, confirm the restructured labs render.
