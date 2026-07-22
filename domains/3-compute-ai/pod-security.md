@@ -84,52 +84,19 @@ Exam gotchas:
 
 *Objective: `pod-admission` · OSS: Kyverno / Gatekeeper ≈ SC-500: Azure Policy for AKS · Lab: [d3-pod-security](../../labs/d3-pod-security.md)*
 
-PSA gives you three fixed profiles at namespace granularity. Real policy needs more: "images must come from `harbor.oss500.local`", "every pod must set resource limits", "this one namespace may add `NET_ADMIN` but nothing else", "mutate every pod to add a default seccomp profile". That's the job of a **validating/mutating admission webhook** policy engine, and the two OSS choices are **Kyverno** and **OPA Gatekeeper**.
+PSA gives you three fixed profiles at namespace granularity. Real policy needs more: "images must come from `harbor.oss500.local`", "every pod must set resource limits", "this one namespace may add `NET_ADMIN` but nothing else", "mutate every pod to add a default seccomp profile". That's the job of a **validating/mutating admission webhook** policy engine — the two OSS choices are **Kyverno** (Kubernetes-native YAML) and **OPA Gatekeeper** (Rego). Their internals are a cross-cutting governance concern taught canonically in Domain 1 — authoring models, `Enforce` vs `Audit`, webhook `failurePolicy` fail-open/closed, system-namespace exemptions, and the "Azure Policy for AKS *is* Gatekeeper" anchor all live in [`gov-gatekeeper`](../1-identity-governance/governance.md#enforce-organizational-policy-with-opa-gatekeeper-constraints) and [`gov-kyverno`](../1-identity-governance/governance.md#enforce-and-mutate-resources-with-kyverno-policies). What follows is only the pod-specific delta: *why* you reach for an engine beyond PSA, and *how* mutation lets it auto-harden pods.
 
-**Kyverno** writes policies as Kubernetes YAML (no new language) — this rejects any privileged pod cluster-wide:
+**PSA vs. policy engine — layer, don't choose.** PSA applies one of three *fixed* profiles at *namespace* scope; it can't express a custom rule ("images from `harbor.oss500.local` only"), grant a per-workload exception (one Deployment that legitimately needs `NET_ADMIN`), or gate images and signatures. Kyverno/Gatekeeper do exactly those things — custom rules, per-workload exceptions, image/signature policy — and run *alongside* PSA rather than replacing it. Use PSA for the broad namespace baseline and the engine wherever the requirement is narrower or broader than a whole-namespace profile.
 
-```yaml
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
-metadata:
-  name: disallow-privileged
-spec:
-  validationFailureAction: Enforce   # Enforce = block; Audit = report only
-  background: true
-  rules:
-    - name: no-privileged-containers
-      match:
-        any:
-          - resources: { kinds: ["Pod"] }
-      validate:
-        message: "Privileged containers are not allowed."
-        pattern:
-          spec:
-            =(securityContext):
-              =(privileged): "false"
-            containers:
-              - =(securityContext):
-                  =(privileged): "false"
-```
-
-Kyverno also **mutates** (inject a default `securityContext`, add labels), **generates** (create a default NetworkPolicy per new namespace), and **verifies image signatures** (used in supply chain, `sc-admission`). **Gatekeeper** is the OPA-based engine: policy logic is Rego inside a `ConstraintTemplate`, instantiated by `Constraint` objects, and the community **Gatekeeper policy library** ships templates like `K8sPSPPrivilegedContainer` and `K8sRequiredLabels`. Gatekeeper is validate/audit-only (no mutation historically, though a mutation feature exists); Kyverno does the full validate+mutate+generate set in YAML. Both run as webhooks, so **`failurePolicy`** matters: `Fail` (default, closed) rejects requests if the webhook is down — safer but can wedge the cluster; `Ignore` (open) admits them.
-
-A mechanism detail worth knowing: both engines register as `ValidatingWebhookConfiguration` (and Kyverno also a `MutatingWebhookConfiguration`) objects, and mutation always runs before validation in the admission chain — so a Kyverno mutate rule that injects a default `securityContext` can bring a pod into compliance *before* PSA or a validate rule judges it. That ordering is how you "auto-remediate" bare pods that PSA would otherwise reject. Kyverno also ships a curated **Pod Security policy set** that reproduces the `restricted` profile as individual policies, giving you per-rule `Audit`/`Enforce` granularity that namespace-level PSA can't. The failure mode to watch: a webhook with `failurePolicy: Fail` and no healthy replicas wedges *all* admission (including the pods that would restore the webhook) — always exclude `kube-system`/the policy engine's own namespace via `namespaceSelector`, and run the webhook with multiple replicas and a `timeoutSeconds` you understand.
-
-Both correspond to **Azure Policy for AKS**, which *is* Gatekeeper: Azure Policy syncs constraint templates/constraints into the cluster's Gatekeeper install and reports compliance back to Defender for Cloud. When a question says "enforce that AKS pods can't run privileged via Azure Policy," the OSS-500 equivalent is precisely a Kyverno `ClusterPolicy` or a Gatekeeper `Constraint`.
+**Mutation runs before validation.** In the admission chain a mutating webhook fires before any validating webhook (and before PSA's own check), so a Kyverno **mutate** rule that injects a default `securityContext` or seccomp profile can bring a *bare* pod into compliance *before* PSA or a validate rule judges it. That ordering is how you auto-harden pods PSA would otherwise reject — you remediate them at admission instead of failing them. Kyverno also ships a curated **Pod Security policy set** that reproduces the `restricted` profile as individual policies, giving per-rule granularity that namespace-level PSA can't.
 
 Exam gotchas:
 - PSA vs admission engine: PSA for the three standard profiles at namespace scope; Kyverno/Gatekeeper for custom rules, mutation, per-workload exceptions, and image/signature policy. They coexist — layer, don't choose.
-- `Enforce`/`Fail` (Kyverno `validationFailureAction`, webhook `failurePolicy`) block; `Audit`/`Ignore` only report or fail open. Know which is fail-closed.
-- Gatekeeper = Rego in ConstraintTemplates + Constraints, validate/audit-focused. Kyverno = Kubernetes-native YAML, also mutates/generates/verifies signatures. Azure Policy for AKS is Gatekeeper underneath.
 - Mutation runs before validation — use a Kyverno mutate rule to inject hardening defaults so pods pass PSA instead of failing it.
-- A `failurePolicy: Fail` webhook with no healthy pods can lock the whole cluster out of admission. Exempt system namespaces and run redundant replicas — a common self-inflicted outage.
+- For engine internals (authoring models, `Enforce`/`Audit`, `failurePolicy`, system-namespace exemptions, Azure Policy for AKS), see `gov-gatekeeper`/`gov-kyverno` in [governance.md](../1-identity-governance/governance.md) — they're single-sourced there, not re-derived here.
 
 **Resources:**
-- [Kyverno — Writing Policies](https://kyverno.io/docs/writing-policies/) (~30 min)
 - [Kyverno — Pod Security policy set](https://kyverno.io/policies/pod-security/) (~15 min)
-- [OPA Gatekeeper — How to use Gatekeeper](https://open-policy-agent.github.io/gatekeeper/website/docs/howto/) (~25 min)
-- [Gatekeeper policy library](https://open-policy-agent.github.io/gatekeeper-library/website/) (~15 min)
 - [AKS deployment safeguards](https://learn.microsoft.com/azure/aks/deployment-safeguards) (~15 min)
 
 ## Summary
