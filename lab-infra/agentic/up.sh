@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Bring up the Agentic Zero Trust stack: MCP server + OPA (tool + action policy) + LangGraph agent.
-# Reuses Keycloak/SPIRE (lab-infra/identity) and Ollama (lab-infra/ai) — does NOT redeploy them.
+# Reuses Keycloak (lab-infra/identity) and Ollama (lab-infra/ai) — does NOT redeploy them.
+# SPIRE is not deployed by any component; its registration steps are directions (see spire/registration.md).
 # Objectives: agent-deleg, agent-workload, mcp-authn, mcp-authz, action-gate, agent-mtls, agent-cascade.
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,12 +10,12 @@ NS=oss500-apps
 echo "==> Ensuring namespaces exist"
 kubectl apply -f "$here/../shared/namespaces.yaml"
 
-echo "==> Checking reused components are up (Keycloak/SPIRE from d1, Ollama from d3-ai)"
+echo "==> Checking reused components are up (Keycloak from d1, Ollama from d3-ai)"
 kubectl -n "$NS" get deploy/ollama >/dev/null 2>&1 || {
   echo "!! Ollama not found. Bring up lab-infra/ai first (./up.sh)." >&2; exit 1; }
 kubectl -n oss500-identity get deploy/keycloak >/dev/null 2>&1 || \
   kubectl -n "$NS" get deploy/keycloak >/dev/null 2>&1 || {
-  echo "!! Keycloak not found. Bring up lab-infra/identity first (Keycloak + SPIRE)." >&2; exit 1; }
+  echo "!! Keycloak not found. Bring up lab-infra/identity first (Keycloak)." >&2; exit 1; }
 
 echo "==> Loading OPA policies  [mcp-authz / action-gate]"
 kubectl -n "$NS" create configmap agentic-opa-policy \

@@ -5,6 +5,6 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$here"
 
 echo "==> Stopping and removing Suricata + Zeek + volumes"
-docker compose -p oss500 down -v
+docker compose -p oss500-netdet down -v
 
-echo "==> Done. Confirm:  docker compose -p oss500 ps"
+echo "==> Done. Confirm:  docker compose -p oss500-netdet ps"

@@ -39,8 +39,8 @@ No finished decoder mapping, Sigma→DSL conversion, hunt query, or active-respo
 ## Build it (guided)
 
 ### Part A — Deploy the SIEM (`siem-deploy`)
-1. `cd lab-infra/siem && ./up.sh`. It runs `docker compose -p oss500 up -d` for `wazuh.manager`, `wazuh.indexer`, `wazuh.dashboard` and generates the internal TLS certs on first run.
-2. Wait for health: `docker compose -p oss500 ps` all `healthy`; the indexer takes the longest.
+1. `cd lab-infra/siem && ./up.sh`. It runs `docker compose -p oss500-siem up -d` for `wazuh.manager`, `wazuh.indexer`, `wazuh.dashboard` and generates the internal TLS certs on first run.
+2. Wait for health: `docker compose -p oss500-siem ps` all `healthy`; the indexer takes the longest.
 3. Open the dashboard at `https://localhost:5601` (self-signed cert warning is expected). Log in with the admin user and the password you set in `.env`. Your turn: make sure that's a strong `INDEXER_PASSWORD`/`API_PASSWORD` — **not** a default. That choice *is* the "change default creds" hardening this objective tests.
 4. Note the two tiers: the **manager** (detection engine, `:55000` API, agent ports `1514`/`1515`) and the **indexer** (search/storage, the OpenSearch fork). Confirm you can reach the manager API:
    ```bash
@@ -49,7 +49,7 @@ No finished decoder mapping, Sigma→DSL conversion, hunt query, or active-respo
    (swap in the password you set in step 3).
 
 ### Part B — Collect & normalize telemetry (`siem-collect`)
-5. Onboard an agent. Simplest path: run the Wazuh agent as a container against the manager, or install it on the host — `docker compose -p oss500 -f agent-compose.yml up -d` (points `MANAGER_IP` at the manager). Confirm enrollment in the dashboard **Agents** view (status *active*).
+5. Onboard an agent. Simplest path: run the Wazuh agent as a container against the manager, or install it on the host — `docker compose -p oss500-siem -f agent-compose.yml up -d` (points `MANAGER_IP` at the manager). Confirm enrollment in the dashboard **Agents** view (status *active*).
 6. Generate raw telemetry: on the agent, simulate SSH brute force —
    ```bash
    for i in $(seq 1 8); do ssh -o BatchMode=yes baduser@localhost true 2>/dev/null; done
@@ -91,8 +91,8 @@ No finished decoder mapping, Sigma→DSL conversion, hunt query, or active-respo
 Build it yourself first; check after.
 
 ### Part A — Deploy the SIEM (`siem-deploy`)
-1. `cd lab-infra/siem && ./up.sh` runs `docker compose -p oss500 up -d` for `wazuh.manager`, `wazuh.indexer`, `wazuh.dashboard` and generates the internal TLS certs on first run.
-2. `docker compose -p oss500 ps` — wait until all three show `healthy` (the indexer takes the longest).
+1. `cd lab-infra/siem && ./up.sh` runs `docker compose -p oss500-siem up -d` for `wazuh.manager`, `wazuh.indexer`, `wazuh.dashboard` and generates the internal TLS certs on first run.
+2. `docker compose -p oss500-siem ps` — wait until all three show `healthy` (the indexer takes the longest).
 3. Dashboard at `https://localhost:5601` (self-signed cert warning is expected); log in with the admin user and the password set in `.env` — **not** a default (proving the "change default creds" hardening).
 4. The **manager** (detection engine, `:55000` API, agent ports `1514`/`1515`) vs. the **indexer** (search/storage, the OpenSearch fork). Confirm you can reach the manager API:
    ```bash
@@ -100,7 +100,7 @@ Build it yourself first; check after.
    ```
 
 ### Part B — Collect & normalize telemetry (`siem-collect`)
-5. `docker compose -p oss500 -f agent-compose.yml up -d` (`MANAGER_IP` pointed at the manager). Confirm enrollment in the dashboard **Agents** view (status *active*).
+5. `docker compose -p oss500-siem -f agent-compose.yml up -d` (`MANAGER_IP` pointed at the manager). Confirm enrollment in the dashboard **Agents** view (status *active*).
 6. ```bash
    for i in $(seq 1 8); do ssh -o BatchMode=yes baduser@localhost true 2>/dev/null; done
    ```
@@ -143,7 +143,7 @@ Build it yourself first; check after.
 If your Sigma conversion picked a Windows pipeline for a Linux/sshd logsource, the emitted fields won't line up with what the decoder actually parsed — the pipeline has to match the `logsource`, not just the target backend.
 
 ## Teardown
-- `docker compose -p oss500 -f agent-compose.yml down` (agent), then `cd lab-infra/siem && ./down.sh` (`docker compose -p oss500 down -v` — the `-v` removes the heavy indexer volumes).
+- `docker compose -p oss500-siem -f agent-compose.yml down` (agent), then `cd lab-infra/siem && ./down.sh` (`docker compose -p oss500-siem down -v` — the `-v` removes the heavy indexer volumes).
 
 > **Validate it *(purple team)*.** Run a Caldera adversary chain in [`d5-infra-attack-simulation`](d5-infra-attack-simulation.md) and confirm Wazuh **correlates** the multi-step operation (not just single events) — the SIEM's job is the chain. Also wire a ZTNA denial (from [`d5-ztna-authz`](d5-ztna-authz.md)) into Wazuh to prove attack → deny → alert.
 

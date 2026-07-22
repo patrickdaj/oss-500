@@ -19,6 +19,8 @@ Fire **real MITRE ATT&CK techniques** at the detection stack you built in Domain
 
 > **Local, disposable only.** Privileged techniques run in a throwaway pod/VM you destroy after — never your daily driver, never an external host.
 
+> **Resource budget — this is the one lab that runs several stacks at once.** By design it fires at multiple detectors together: Falco/Tetragon in-cluster, Suricata/Zeek via Compose (`-p oss500-netdet`), and Wazuh via Compose (`-p oss500-siem`). Unlike [`d4-siem-wazuh`](d4-siem-wazuh.md) — which you run completely alone — expect all of these up simultaneously to want a realistic **~12–16 GB of RAM**. If your host is constrained, you don't need everything up at once: validate detectors **one at a time** — fire the technique, then bring up and check a single detector before moving to the next.
+
 ## Challenge
 
 Two threat-response pairs to prove, both fired at the stack you built in Domains 3–4. No solution here — the observable is what you're aiming at, not how to get there.
@@ -56,6 +58,9 @@ Tooling commands — from [`../lab-infra/offense/`](../lab-infra/offense/) (`up.
 ```bash
 # Atomic Red Team — clone, run atomics INSIDE a disposable pod/VM only
 git clone https://github.com/redcanaryco/atomic-red-team
+
+# Create the disposable target pod first (torn down in Teardown below)
+kubectl run throwaway --image=alpine --restart=Never -- sleep 3600
 
 # T1059 — shell in a container (should trip Falco "Terminal shell in container")
 kubectl exec -it throwaway -- /bin/sh -c 'echo T1059'

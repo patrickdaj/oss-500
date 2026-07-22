@@ -15,6 +15,7 @@ Trip a Falco rule by opening a shell in a container, watch the alert fan out thr
 **Prerequisites**
 - kind cluster + [`lab-infra/shared`](../lab-infra/shared/) up.
 - [`lab-infra/runtime`](../lab-infra/runtime/) up (`./up.sh`) — Falco + Tetragon + Falcosidekick in the privileged `oss500-security` namespace (they need host mounts and eBPF).
+- **Host caveat**: on Docker Desktop / macOS the kernel is a LinuxKit VM, so eBPF-based detection (Falco/Tetragon) may behave differently or in-kernel enforcement may not land as described — use a real Linux kernel (Lima/Colima/UTM) for faithful results.
 - Notes read: [runtime-security.md](../domains/3-compute-ai/runtime-security.md)
 
 **Estimated time**: 2–2.5 h · $0 (local)

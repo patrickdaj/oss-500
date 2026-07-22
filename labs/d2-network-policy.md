@@ -14,17 +14,19 @@ Watch one pod reach another, cut it off with a default-deny NetworkPolicy, then 
 
 **Prerequisites**
 
-- [`lab-infra/network`](../lab-infra/network/) up (`./up.sh`) — installs **Calico** as the CNI (kind's default `kindnet` does *not* enforce NetworkPolicy) and, for Part B, Istio.
+- The shared **Phase 0 kind cluster** is up (reused by every lab) — check with `kind get clusters` (you should see `oss500`). If it isn't, create it once: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh`.
+- [`lab-infra/network`](../lab-infra/network/) up (`./up.sh`) for **Part A** — deploys the demo app (`web` + a `client` pod) and the baseline NetworkPolicies (`default-deny-all` + `allow-dns` + `allow-client-to-web`). It does **not** install a new CNI: kind's built-in `kindnet` already enforces the basic NetworkPolicy this part uses. (Calico is only needed for advanced egress/`namespaceSelector` behaviour and is an *optional* manual step — `kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/calico.yaml`.)
+- For **Part B** (the service mesh), run `./up-mesh.sh` — Istio is a separate, heavier install and is **not** part of `up.sh`.
 - Notes read: [network-security.md](../domains/2-secrets-data-networking/network-security.md).
 
 **Estimated time**: 2–3 h · $0 (local)
 
-> **CNI note:** NetworkPolicy is only *enforced* if the CNI implements it. kind's built-in `kindnet` ignores policies (they apply but nothing blocks). The `network` component installs **Calico** so default-deny actually denies — the single most common "my NetworkPolicy did nothing" gotcha.
+> **CNI note:** NetworkPolicy is only *enforced* if the CNI implements it. kind's built-in `kindnet` **does** enforce the basic ingress/egress policies Part A uses — so default-deny actually denies out of the box, no extra CNI required. Where `kindnet` stops short is advanced behaviour (some `namespaceSelector`/egress edge cases); for that you can *optionally* install **Calico** by hand (`kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/calico.yaml`). The classic "my NetworkPolicy did nothing" gotcha is a CNI that ignores policy entirely — kindnet isn't one.
 
 ## Challenge
 
-**Part A — segmentation (`net-policy`).** `oss500-apps` starts allow-all: any pod can reach any pod. Cut that off with a namespace-wide default-deny NetworkPolicy, then reopen exactly one path so only the intended client reaches `web` — every other client stays denied.
-- Observable: `wget http://web` from `client-allowed` succeeds with no policy in place, **times out** once a default-deny ingress policy exists, then **succeeds again** once you add a targeted allow — while `client-denied` keeps timing out throughout.
+**Part A — segmentation (`net-policy`).** `up.sh` already brings `oss500-apps` up as a **default-deny** namespace with exactly one east-west path opened — `client → web`, via the shipped `allow-client-to-web` policy. Prove the default-deny is doing the real work by *deleting* that one allow and watching the path go dark, then restore it — and understand how you'd author the same least-privilege segmentation from scratch, so every other client stays denied.
+- Observable: `curl http://web:8080` from `client` **succeeds** while `allow-client-to-web` is in place, **times out** the moment you delete it (it falls back to the namespace-wide `default-deny-all`), then **succeeds again** once the targeted allow is re-applied.
 
 **Part B — identity-aware mesh (`net-mesh`).** Layer a service mesh over the segmented namespace so authorization is based on cryptographic workload identity, not IP/label, and every hop is encrypted.
 - Observable: a call carrying the allowed SPIFFE principal returns **200**; a call from any other identity gets Envoy's **"RBAC: access denied"**; `istioctl x describe` reports **`mTLS: STRICT`** for the workload.
@@ -37,35 +39,28 @@ No solutions below — design and write the policies yourself, prove each observ
 
 ### Part A — Default-deny then targeted allow (`net-policy`)
 
-1. Deploy a server and two clients in `oss500-apps`:
+1. **See what `up.sh` already shipped.** The `network` component does *not* leave `oss500-apps` wide open — it deploys the `web` app plus a `client` pod and *three* NetworkPolicies: `default-deny-all` (ingress **and** egress), `allow-dns`, and `allow-client-to-web`. So the namespace already starts as a default-deny zone with exactly one east-west path opened. Inspect them before you touch anything:
    ```bash
-   kubectl -n oss500-apps run web --image=nginx:1.27 --labels="app=web,app.kubernetes.io/part-of=oss500" --port=80
-   kubectl -n oss500-apps expose pod web --port=80
-   kubectl -n oss500-apps run client-allowed --image=busybox:1.36 --labels="role=frontend,app.kubernetes.io/part-of=oss500" --command -- sleep 3600
-   kubectl -n oss500-apps run client-denied  --image=busybox:1.36 --labels="role=other,app.kubernetes.io/part-of=oss500" --command -- sleep 3600
+   kubectl -n oss500-apps get networkpolicy
+   kubectl -n oss500-apps get pods -l app.kubernetes.io/part-of=oss500
    ```
-2. **Baseline — everything talks** (Kubernetes is allow-all by default; no segmentation until you add policy):
+2. **Baseline — one *allowed* path, not "everything talks."** Because `default-deny-all` is already enforced, the only reason `client` can reach `web` is the shipped `allow-client-to-web` policy. Confirm that single path works:
    ```bash
-   kubectl -n oss500-apps exec client-allowed -- wget -qO- --timeout=3 http://web    # -> nginx welcome HTML
-   kubectl -n oss500-apps exec client-denied  -- wget -qO- --timeout=3 http://web    # -> also works (!)
+   kubectl -n oss500-apps exec client -- curl -s --max-time 4 http://web:8080    # -> nginx welcome HTML (allowed)
    ```
-3. **Write a default-deny ingress policy — your turn.** Goal: block all inbound east-west traffic to every pod in the namespace, the zero-trust starting point where nothing talks until you explicitly allow it.
-   - Hint: an empty `podSelector: {}` selects *every* pod; declaring `policyTypes: ["Ingress"]` with **no** `ingress` rules underneath denies all inbound.
-   - Your turn: write a `NetworkPolicy` named `default-deny-ingress` in `oss500-apps` (label it `app.kubernetes.io/part-of: oss500`) and `kubectl apply -f` it.
-4. **Prove it's cut off** — the request now hangs and **times out** (dropped, not refused):
+3. **Prove the default-deny is really doing the work.** Delete the one targeted allow and predict what happens to the call above — with `allow-client-to-web` gone, `client` falls back to the namespace-wide `default-deny-all`:
    ```bash
-   kubectl -n oss500-apps exec client-allowed -- wget -qO- --timeout=3 http://web
-   # wget: download timed out        <- the control is working
+   kubectl delete -f lab-infra/network/policies/allow-client-to-web.yaml
+   kubectl -n oss500-apps exec client -- curl -s --max-time 4 http://web:8080
+   # curl: (28) Operation timed out        <- dropped, not refused: the control is working
    ```
-5. **Reopen exactly one path — your turn.** Goal: allow ingress to `app=web` only from pods labelled `role=frontend`; every other client stays denied.
-   - Hint: the policy's `podSelector` targets `app: web`; the allowed source goes in an `ingress[].from[].podSelector` matching `role: frontend`; scope `ports` to TCP 80.
-   - Your turn: write a second `NetworkPolicy` named `allow-frontend-to-web` and apply it.
-6. **Prove least-privilege segmentation** — only the intended client gets through; the other is still denied:
+4. **Restore the path — your turn.** Re-open exactly the `client → web` path and nothing else. You *can* just re-apply the shipped policy, but the real exercise is to **author it yourself**: write a `NetworkPolicy` that allows ingress to `app=web` only from pods labelled `app=client` on TCP 8080, apply it, and confirm the call succeeds again.
+   - Hint: the ingress policy's `podSelector` targets `app: web`; the allowed source goes in an `ingress[].from[].podSelector` matching `app: client`; scope `ports` to TCP 8080. Because `default-deny-all` also denies *egress*, the `client` pod additionally needs a matching egress allow toward `app: web` (this is what the shipped `allow-client-to-web.yaml` bundles as a companion policy).
    ```bash
-   kubectl -n oss500-apps exec client-allowed -- wget -qO- --timeout=3 http://web   # -> nginx HTML  (allowed)
-   kubectl -n oss500-apps exec client-denied  -- wget -qO- --timeout=3 http://web   # -> times out   (denied)
+   kubectl -n oss500-apps exec client -- curl -s --max-time 4 http://web:8080    # -> nginx HTML again (allowed)
    ```
-   NetworkPolicies are **additive** — the deny-all sets the baseline, the allow rule punches one hole. (Cross-namespace scenarios use `namespaceSelector`; egress control uses `policyTypes: ["Egress"]` with an `egress` block — try locking egress to DNS + the DB only.)
+5. **Prove least-privilege — your turn.** A path is only least-privilege if the *wrong* identity stays out. Run the same `curl` from a pod that is **not** labelled `app=client` (relabel a throwaway pod, or stand up a second client with a different label) and confirm it still **times out** — your allow rule keys on the pod label, so only `client` gets through.
+6. **The additive model.** NetworkPolicies are **additive** — `default-deny-all` sets the baseline, each allow rule punches one scoped hole. (Cross-namespace scenarios use `namespaceSelector`; the shipped `allow-dns` is itself an egress exception — study it, then try locking egress down to DNS + the DB only.)
 
 ### Part B — Identity-aware east-west with a service mesh (`net-mesh`)
 
@@ -116,7 +111,7 @@ NetworkPolicy filters by label/IP; a **service mesh** adds cryptographic **workl
 
 ## Verification
 
-- **Before/after segmentation**: `wget http://web` from `client-allowed` **succeeds** with no policy, **times out** after `default-deny-ingress`, then **succeeds again** once `allow-frontend-to-web` is applied — while `client-denied` still times out. The observable is a request that goes from working → dropped → selectively re-allowed.
+- **Before/after segmentation**: with the shipped `allow-client-to-web` in place, `curl http://web:8080` from `client` **succeeds**; delete that one policy and the same call **times out** (it falls back to `default-deny-all`); re-apply it and the call **succeeds again**. The observable is a single request that goes from allowed → dropped → re-allowed by toggling exactly one policy — while a pod without the `app: client` label stays denied throughout.
 - **Mesh**: a call carrying the allowed SPIFFE principal returns 200; a call from any other identity returns Envoy's "RBAC: access denied"; `istioctl x describe` reports `mTLS: STRICT` — proving identity- and encryption-based east-west control beyond IP filtering.
 
 ## Reference solution
@@ -125,38 +120,48 @@ Build it yourself first; check after.
 
 ### Part A — NetworkPolicy (`net-policy`)
 
-Apply a **default-deny ingress** policy for the namespace — an empty `podSelector` selects every pod, and with no `ingress` rules, all inbound east-west traffic is dropped:
+The `network` component ships these already (`up.sh` applies them); the point of the exercise is to be able to author them yourself. A **default-deny** policy for the namespace — an empty `podSelector` selects every pod, and with no `ingress`/`egress` rules, all east-west traffic is dropped in both directions:
 ```yaml
-# deny-all.yaml
+# default-deny-all.yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
-metadata: { name: default-deny-ingress, namespace: oss500-apps, labels: { app.kubernetes.io/part-of: oss500 } }
+metadata: { name: default-deny-all, namespace: oss500-apps, labels: { app.kubernetes.io/part-of: oss500 } }
 spec:
-  podSelector: {}                 # net-policy: selects ALL pods in the namespace
-  policyTypes: ["Ingress"]        # no ingress rules below => deny all inbound
-```
-```bash
-kubectl apply -f deny-all.yaml
+  podSelector: {}                        # net-policy: selects ALL pods in the namespace
+  policyTypes: ["Ingress", "Egress"]     # no rules below => deny all inbound AND outbound
 ```
 
-Re-open **exactly one path**: allow ingress to `app=web` only from pods labelled `role=frontend`:
+Re-open **exactly one path**: allow ingress to `app=web` only from pods labelled `app=client`, plus the companion egress the client needs under default-deny egress:
 ```yaml
-# allow-frontend.yaml
+# allow-client-to-web.yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
-metadata: { name: allow-frontend-to-web, namespace: oss500-apps, labels: { app.kubernetes.io/part-of: oss500 } }
+metadata: { name: allow-client-to-web, namespace: oss500-apps, labels: { app.kubernetes.io/part-of: oss500 } }
 spec:
-  podSelector: { matchLabels: { app: web } }        # target: the web pod
+  podSelector: { matchLabels: { app: web } }        # target: the web pods
   policyTypes: ["Ingress"]
   ingress:
     - from:
-        - podSelector: { matchLabels: { role: frontend } }   # net-policy: only frontend may reach it
+        - podSelector: { matchLabels: { app: client } }   # net-policy: only client may reach it
       ports:
-        - { protocol: TCP, port: 80 }
+        - { protocol: TCP, port: 8080 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-client-egress-to-web, namespace: oss500-apps, labels: { app.kubernetes.io/part-of: oss500 } }
+spec:
+  podSelector: { matchLabels: { app: client } }     # the client's egress side
+  policyTypes: ["Egress"]
+  egress:
+    - to:
+        - podSelector: { matchLabels: { app: web } }
+      ports:
+        - { protocol: TCP, port: 8080 }
 ```
 ```bash
-kubectl apply -f allow-frontend.yaml
+kubectl apply -f lab-infra/network/policies/allow-client-to-web.yaml   # or your own equivalent
 ```
+(Because `default-deny-all` also denies egress, the shipped `allow-dns` policy — egress to `k8s-app: kube-dns` on 53 — is what still lets pods resolve the `web` Service name; the component ships it alongside the two above.)
 
 ### Part B — service mesh mTLS + authorization (`net-mesh`)
 
@@ -206,7 +211,7 @@ If your "default-deny" NetworkPolicy leaves an `ingress` key present (even empty
 
 ## What the exam asks
 
-- Kubernetes is **allow-all by default** — there is *no* segmentation until a NetworkPolicy exists, and policies are **enforced only by a CNI that supports them** (Calico/Cilium, not vanilla kindnet). "My policy didn't block anything" → check the CNI.
+- Kubernetes is **allow-all by default** — there is *no* segmentation until a NetworkPolicy exists, and policies are **enforced only by a CNI that supports them**. kind's built-in `kindnet` covers the basic ingress/egress case; Calico/Cilium add advanced selectors. "My policy didn't block anything" → check the CNI (a CNI that ignores policy outright is the classic culprit).
 - **Default-deny + explicit allow** is the pattern (empty `podSelector`, no rules = deny; then additive allow rules). Denied traffic **times out** (silently dropped), it isn't refused — a diagnostic tell.
 - `podSelector` vs `namespaceSelector` vs `ipBlock`, and `Ingress` vs `Egress` `policyTypes` — know which selects the *target* pods vs the *allowed sources*.
 - **NetworkPolicy filters by label/IP; a service mesh authorizes by cryptographic workload identity and encrypts with mTLS.** Zero-trust "authenticate and authorize every service-to-service call regardless of network position" = mesh, the OSS mirror of Private Link + identity-based access.

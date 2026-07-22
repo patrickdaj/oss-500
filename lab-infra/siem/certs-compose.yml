@@ -1,7 +1,7 @@
 # One-shot TLS cert generation for the OSS-500 Wazuh single-node deployment.
 # siem-deploy: all inter-component traffic (manager<->indexer<->dashboard) and the
 # indexer are TLS-secured. Run once via up.sh before the main stack starts:
-#   docker compose -p oss500 -f certs-compose.yml run --rm generator
+#   docker compose -p oss500-siem -f certs-compose.yml run --rm generator
 # Certs land in ./config/wazuh_indexer_ssl_certs/ (gitignored).
 name: oss500
 

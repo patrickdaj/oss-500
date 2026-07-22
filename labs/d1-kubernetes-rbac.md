@@ -13,7 +13,7 @@ Prove least privilege the way the exam frames it — a subject that provably *ca
 **SC-500 correspondence**: Azure RBAC (role definitions + assignments at scope); least-privilege / RBAC; access reviews / entitlement management.
 
 **Prerequisites**
-- Base kind cluster up: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml && lab-infra/shared/up.sh` (no dedicated `lab-infra/` component — RBAC ships with Kubernetes).
+- The shared **Phase 0 kind cluster** is up (reused by every lab) — check with `kind get clusters` (you should see `oss500`). If it isn't, create it once: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh`. (No dedicated `lab-infra/` component — RBAC ships with Kubernetes.)
 - Audit tooling (via [krew](https://krew.sigs.k8s.io/) (reference)): `kubectl krew install who-can` and [`rbac-tool`](https://github.com/alcideio/rbac-tool) (`kubectl krew install rbac-tool` or the standalone binary).
 - Notes read: [kubernetes-rbac.md](../domains/1-identity-governance/kubernetes-rbac.md).
 

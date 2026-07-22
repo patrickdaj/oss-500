@@ -11,8 +11,8 @@ Put an internal web app behind a proxy that re-authorizes **every request** agai
 **SC-500 correspondence**: Microsoft Entra **Private Access / Application Proxy** — publish an internal app to authenticated users without exposing the network. **Standards**: NIST SP 800-207 (the proxy is the PEP; the IdP is the PDP input); per-request authorization is the ZTMM "never trust, continually verify" pillar. Bypassing it maps to ATT&CK **T1133 (External Remote Services)** — the control removes the standing remote-access surface.
 
 **Prerequisites**
-- Terraform ≥1.6; the kind cluster up (`../lab-infra/kind/`); Keycloak reachable as the OIDC IdP (Domain 1 lab); an `internal-app` Service in `default` (any small HTTP app).
-- A Pomerium OIDC client registered in Keycloak (client id + secret).
+- Terraform ≥1.6; the kind cluster up (`../lab-infra/kind/`); Keycloak reachable as the OIDC IdP (Domain 1 lab); an `internal-app` Service in `default` (any small HTTP app) — create one with `kubectl create deployment internal-app --image=nginx && kubectl expose deployment internal-app --port=80`.
+- (The Pomerium OIDC client in Keycloak is **created in Part A** of this lab — you don't need it beforehand.)
 - Notes read: [`../domains/1-identity-governance/ztna-access-models.md`](../domains/1-identity-governance/ztna-access-models.md).
 
 **Estimated time**: 2 h · $0 (local)

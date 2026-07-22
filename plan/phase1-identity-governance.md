@@ -1,8 +1,8 @@
 # Phase 1 — Identity, access, governance
 
-Domain 1 is **20–25%** of SC-500 — the largest single share after secrets/data — and it is the foundation every later domain leans on (workloads need identities, monitoring needs subjects to attribute events to). This phase teaches the whole domain on open source: Keycloak as the identity provider, Kubernetes ServiceAccounts + SPIFFE for workload identity, Teleport for privileged access, Kubernetes RBAC, and Kyverno/Gatekeeper/Kubescape for governance. **Milestone (end of phase):** every Domain 1 objective green in the tracker, its lab performed (or walkthrough studied), and **Checkpoint 1 ≥ 80%**.
+Domain 1 is **20–25%** of SC-500 — the largest single share after secrets/data — and it is the foundation every later domain leans on (workloads need identities, monitoring needs subjects to attribute events to). This phase teaches the whole domain on open source: Keycloak as the identity provider, Kubernetes ServiceAccounts + SPIFFE for workload identity, Teleport for privileged access, Kubernetes RBAC, and Kyverno/Gatekeeper/Kubescape for governance. It also builds the four **beyond-blueprint** ZTNA access brokers (Boundary, OpenZiti, Pomerium, NetBird) — identity-gated access is Domain 1 material, and these are the exact brokers Phase 5 later red-teams. **Milestone (end of phase):** every Domain 1 objective green in the tracker, its lab performed (or walkthrough studied), and **Checkpoint 1 ≥ 80%**.
 
-Bring up only the component the current day needs (`lab-infra/identity`, `lab-infra/pam`, `lab-infra/governance`); the RBAC and workload-identity labs run on the bare kind cluster. Tear each component down at the end of its block — Keycloak and Teleport don't need to survive past their labs. Reference host: ~4 CPU / 16 GB / 40 GB (see [lab-infra/README](../lab-infra/README.md)).
+Bring up only the component the current day needs (`lab-infra/identity`, `lab-infra/pam`, `lab-infra/governance`, and the `lab-infra/ztna-*` brokers); the RBAC and workload-identity labs run on the bare kind cluster. Tear each component down at the end of its block — Keycloak and Teleport don't need to survive past their labs. Reference host: ~4 CPU / 16 GB / 40 GB (see [lab-infra/README](../lab-infra/README.md)).
 
 ## Day 1 — Identity provider: deploy, clients, MFA
 
@@ -39,11 +39,18 @@ Bring up only the component the current day needs (`lab-infra/identity`, `lab-in
 - [ ] **[2h] Lab — Governance & policy-as-code** — [labs/d1-governance-policy.md](../labs/d1-governance-policy.md): `cd lab-infra/governance && ./up.sh`, watch Kyverno and Gatekeeper **reject** a privileged/unlabelled pod at admission (then Audit/dryrun let it through), and score the cluster with `kubescape scan framework nsa`. `./down.sh` after. *(output)*
 - [ ] **[1h] Prove the controls** — a denied `kubectl auth can-i`, a webhook admission rejection, a Kubescape compliance score you improve by remediating one control. Confirm the base cluster is clean.
 
-## Day 6 — Flex and checkpoint
+## Day 6 — ZTNA access brokers (beyond-blueprint)
+
+- [ ] **[2h] Read — the five ZTNA models** — [ztna-access-models.md](../domains/1-identity-governance/ztna-access-models.md) (`ztna-taxonomy`): frame ZTNA as five models sharing one principle — a PDP/PEP split, per-session identity, and no standing inbound exposure. Map each to its Entra analog (Private Access / Application Proxy) and to NIST SP 800-207. This is the phase's fullest day; if a broker slips, the Day 7 flex absorbs it. *(input)*
+- [ ] **[2h] Lab — broker & overlay** — build [labs/d1-ztna-boundary.md](../labs/d1-ztna-boundary.md) (`ztna-boundary`: HashiCorp Boundary brokering per-session access with a Vault-injected ephemeral SSH credential, in Terraform) and [labs/d1-ztna-openziti.md](../labs/d1-ztna-openziti.md) (`ztna-openziti`: an app-embedded overlay reached by name over mTLS with zero listening ports on the underlay). *(output)*
+- [ ] **[2h] Lab — proxy & mesh** — build [labs/d1-ztna-pomerium.md](../labs/d1-ztna-pomerium.md) (`ztna-pomerium`: an identity-aware reverse proxy re-authorizing every request, reusing the Day 1 Keycloak IdP) and [labs/d1-ztna-netbird.md](../labs/d1-ztna-netbird.md) (`ztna-netbird`: a WireGuard mesh gated by identity-group ACLs behind a self-hosted control plane). *(output)*
+- [ ] **[1h] Prove the control + teardown** — for each broker you built: an authorized identity reaches exactly **one** resource and nothing else, with no standing route to bypass it (no listening underlay port, no direct IP path, or a request that 302→IdP then 403). These are the exact denials [Phase 5 Day 4](phase5-offensive-validation.md) fires at — `d5-ztna-authz` re-stands-up these brokers to attack them, so tear yours down now: `./down.sh` each `lab-infra/ztna-*` you brought up and confirm no Boundary/NetBird/Compose stacks linger. *(output)*
+
+## Day 7 — Flex and checkpoint
 
 - [ ] **[1.5h] Weak-spot review** — revisit any objective whose quiz questions you missed (the tracker shows which); re-read that note section and re-run the relevant lab step. Slippage from earlier days lands here, never in Phase 2.
 - [ ] **[1h] Walkthrough consolidation** — re-study the two walkthrough sections at full depth: SPIFFE/SPIRE attestation (`wi-spiffe`) and the Teleport access-request approval flow (`pam-approval`); confirm you can explain each without notes.
-- [ ] **[1h] Catch-up / rest** — finish any leftover lab teardown; make sure `lab-infra/identity`, `pam`, and `governance` are all down and the cluster is clean before Phase 2.
+- [ ] **[1h] Catch-up / rest** — finish any leftover lab teardown; make sure `lab-infra/identity`, `pam`, `governance`, and any `ztna-*` brokers are all down and the cluster is clean before Phase 2.
 
 ## Checkpoint
 

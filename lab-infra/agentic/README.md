@@ -1,6 +1,6 @@
 # lab-infra/agentic — LangGraph agent + MCP + zero-trust controls
 
-The Agentic Zero Trust stack (Domain 6, `d6` → `agent-deleg`, `agent-workload`, `mcp-authz`, `mcp-authn`, `action-gate`, `agent-mtls`, `agent-cascade`, `av-agent-actions`). This domain is **beyond-blueprint** — it builds and red-teams an autonomous, tool-using agent under zero-trust principles. It **reuses** infra already deployed by other domains rather than standing up new copies: Keycloak (`d1-idp`), SPIFFE/SPIRE (`d1-workload-identity`), OPA (`d1-governance`/`d3-ai`), Vault (`d2-secrets`), and the Ollama model server (`d3-ai`).
+The Agentic Zero Trust stack (Domain 6, `d6` → `agent-deleg`, `agent-workload`, `mcp-authz`, `mcp-authn`, `action-gate`, `agent-mtls`, `agent-cascade`, `av-agent-actions`). This domain is **beyond-blueprint** — it builds and red-teams an autonomous, tool-using agent under zero-trust principles. It **reuses** infra already deployed by other domains rather than standing up new copies: Keycloak (`d1-idp`), OPA (`d1-governance`/`d3-ai`), Vault (`d2-secrets`), and the Ollama model server (`d3-ai`). SPIFFE/SPIRE is **not** deployed anywhere — `d1-workload-identity` covers it as a walkthrough — so the agent's workload-identity steps here are **directions** (`spire/registration.md`) that assume a SPIRE server you stand up yourself.
 
 ## What this brings up
 
@@ -10,10 +10,10 @@ The Agentic Zero Trust stack (Domain 6, `d6` → `agent-deleg`, `agent-workload`
 | MCP server | Python Deployment | exposes tools to the agent (a safe read tool + a consequential write/exec tool) | `mcp-authn`, `mcp-authz` |
 | OPA (tool + action policy) | Deployment/sidecar + ConfigMaps | PDP for every tool call and action-consequentiality decision | `mcp-authz`, `action-gate` |
 | Keycloak token-exchange | realm/client config (reuses `d1` Keycloak) | mints scoped, short-lived on-behalf-of tokens (RFC 8693) | `agent-deleg` |
-| SPIRE registration | registration entries (reuses `d1` SPIRE) | issues the agent workload SVID; peer mTLS for multi-agent | `agent-workload`, `agent-mtls` |
+| SPIRE registration | registration entries — **directions** (`d1` covers SPIRE as a walkthrough; no server is deployed) | issues the agent workload SVID; peer mTLS for multi-agent | `agent-workload`, `agent-mtls` |
 | Ollama | reused from `d3-ai` (`ClusterIP`) | local model powering the agent (`llama3.2:1b`) | — |
 
-All in **`oss500-apps`**. The model is deliberately tiny (`llama3.2:1b`) so the agent, MCP server, OPA, Keycloak, and SPIRE fit the ~16 GB reference host together.
+All in **`oss500-apps`**. The model is deliberately tiny (`llama3.2:1b`) so the agent, MCP server, OPA, and Keycloak fit the ~16 GB reference host together.
 
 ## Layout
 
@@ -45,7 +45,7 @@ cd lab-infra/agentic
 ./down.sh
 ```
 
-**Prerequisites (reused components must already be up):** `lab-infra/identity` (Keycloak + SPIRE) and `lab-infra/ai` (Ollama). `up.sh` checks for them and fails early with a pointer if they're missing.
+**Prerequisites (reused components must already be up):** `lab-infra/identity` (Keycloak) and `lab-infra/ai` (Ollama). `up.sh` checks for them and fails early with a pointer if they're missing. SPIRE is **not** deployed — its registration steps are directions (see the SPIRE row above and `spire/registration.md`).
 
 ## Security model (what each control proves)
 

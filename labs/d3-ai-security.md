@@ -18,6 +18,7 @@ Stand up a local LLM (Ollama + Open WebUI), lock the model behind an authenticat
 **Prerequisites**
 - kind cluster + [`lab-infra/shared`](../lab-infra/shared/) up.
 - [`lab-infra/ai`](../lab-infra/ai/) up (`./up.sh`) — Ollama (model `llama3.2:1b`), Open WebUI, a NeMo Guardrails config, and the OPA gateway policy. Copy `open-webui.secret.example` → `open-webui.secret` first.
+- Domain 1 [`lab-infra/identity`](../lab-infra/identity/) (Keycloak) is up — the AI gateway validates its OIDC tokens (needed for the authenticated path in Part A; the unauthenticated-401 test works without it).
 - (Optional) [`lab-infra/secrets`](../lab-infra/secrets/) (Vault) for the RAG secrets step.
 - Notes read: [ai-security.md](../domains/3-compute-ai/ai-security.md)
 

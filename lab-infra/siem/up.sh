@@ -24,13 +24,13 @@ fi
 if [ ! -f config/wazuh_indexer_ssl_certs/root-ca.pem ]; then
   echo "==> Generating TLS certificates"
   mkdir -p config/wazuh_indexer_ssl_certs
-  docker compose -p oss500 -f certs-compose.yml run --rm generator
+  docker compose -p oss500-siem -f certs-compose.yml run --rm generator
 fi
 
-echo "==> Starting Wazuh manager + indexer + dashboard (docker compose -p oss500)"
-docker compose -p oss500 up -d
+echo "==> Starting Wazuh manager + indexer + dashboard (docker compose -p oss500-siem)"
+docker compose -p oss500-siem up -d
 
 echo "==> Waiting for the stack to become healthy (indexer takes longest)..."
-echo "    Watch:  docker compose -p oss500 ps"
+echo "    Watch:  docker compose -p oss500-siem ps"
 echo "==> Done. Dashboard: https://localhost:5601  (self-signed; log in with .env creds)"
-echo "    Onboard an agent:  docker compose -p oss500 -f agent-compose.yml up -d"
+echo "    Onboard an agent:  docker compose -p oss500-siem -f agent-compose.yml up -d"

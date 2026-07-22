@@ -13,7 +13,7 @@ Watch a privileged pod get rejected three different ways — by Pod Security Adm
 **SC-500 correspondence**: Azure Policy for AKS (baseline/restricted built-in initiatives), AKS deployment safeguards, and the Defender for Cloud container-hardening recommendations ("run as non-root", "read-only root filesystem", "least-privileged capabilities").
 
 **Prerequisites**
-- kind cluster up (`kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml`) and [`lab-infra/shared`](../lab-infra/shared/) applied (`./up.sh`) — this creates the namespaces with the Pod Security labels.
+- The shared **Phase 0 kind cluster** is up (`kind get clusters` shows `oss500`; if not: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml`) with [`lab-infra/shared`](../lab-infra/shared/) applied (`./up.sh`) — this creates the namespaces with the Pod Security labels.
 - [`lab-infra/governance`](../lab-infra/governance/) up (`./up.sh`) for Kyverno (Part C).
 - Notes read: [pod-security.md](../domains/3-compute-ai/pod-security.md)
 

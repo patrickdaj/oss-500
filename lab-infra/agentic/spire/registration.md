@@ -1,13 +1,13 @@
 # agent-workload / agent-mtls — SPIRE registration for the agent SVID(s)
 
-Reuses the SPIRE server/agent from `lab-infra/identity` (`d1-workload-identity`). The agent process
+**SPIRE is not deployed by any lab-infra component** — `d1-workload-identity` covers SPIFFE/SPIRE as a walkthrough. The steps below are **directions**: stand up a SPIRE server/agent yourself (e.g. the SPIRE Helm chart, into `oss500-identity`) before running them. Once it is running, the agent process
 gets a **SPIFFE SVID** as its *workload* identity — separate from the user-delegated token
 (`../keycloak/token-exchange.md`). For multi-agent, peers authenticate each other with **SPIFFE mTLS**.
 
 ## Register the agent workload (directions)
 
 ```bash
-# On the SPIRE server (reused from lab-infra/identity):
+# On the SPIRE server (one you deployed — not shipped by lab-infra/identity):
 kubectl -n oss500-identity exec deploy/spire-server -- \
   /opt/spire/bin/spire-server entry create \
     -spiffeID  spiffe://oss500.local/ns/oss500-apps/sa/agent-a \

@@ -18,8 +18,9 @@ Build step-up MFA for privileged users, broker to an external IdP, and gate OAut
 
 **Estimated time**: 2–3 h · $0 (local)
 
-Reuse the authenticated `kcadm` alias from the SSO lab:
+Reuse the authenticated `kcadm` alias from the SSO lab. If this is a fresh shell, `KEYCLOAK_ADMIN_PASSWORD` won't have carried over — `./up.sh` only sources it in its own subshell — so re-source it before authenticating:
 ```bash
+source lab-infra/identity/admin-password.env       # exports KEYCLOAK_ADMIN_PASSWORD into this shell
 KC="kubectl -n oss500-identity exec -i deploy/keycloak -- /opt/bitnami/keycloak/bin/kcadm.sh"
 $KC config credentials --server http://localhost:8080 --realm master --user admin --password "$KEYCLOAK_ADMIN_PASSWORD"
 ```
