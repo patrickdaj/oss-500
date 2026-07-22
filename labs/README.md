@@ -58,6 +58,20 @@ Red-team the controls built in Domains 1–4 to prove they work: build → name 
 
 Attack tooling lives in [`../lab-infra/offense/`](../lab-infra/offense/) and is wired to local targets only.
 
+## Domain 6 — Agentic Zero Trust (beyond-blueprint)
+
+Build and red-team an autonomous, tool-using agent under zero-trust principles — the frontier that follows Domains 1–4. Each lab is a **guided build** (you write the policy / wire the hook / craft the attack, then check against the reference solution in [`../lab-infra/agentic/`](../lab-infra/agentic/)), not a hand-out. **Local, disposable targets only.**
+
+| Subsection (tracker id) | Lab | Type | OSS components |
+|---|---|---|---|
+| Agent delegated identity (`d6-identity`) | [d6-identity](d6-identity.md) | hands-on (SPIRE federation: walkthrough) | Keycloak Token Exchange (RFC 8693), SPIFFE/SPIRE |
+| Tool / MCP trust boundaries (`d6-tools-mcp`) | [d6-tools-mcp](d6-tools-mcp.md) | hands-on (OAuth transport: walkthrough) | MCP, OPA, LangGraph |
+| Autonomous-action gating (`d6-action-gating`) | [d6-action-gating](d6-action-gating.md) | hands-on | LangGraph `interrupt()`, OPA |
+| Multi-agent trust (`d6-multi-agent`) | [d6-multi-agent](d6-multi-agent.md) | hands-on (federation: walkthrough) | SPIFFE/SPIRE mTLS, LangGraph |
+| Red-team the agent (`d6-validate`) | [d6-validate](d6-validate.md) | hands-on (local target) | garak, PyRIT vs the d6 agent |
+
+Agent/MCP scaffolding + the reference solution live in [`../lab-infra/agentic/`](../lab-infra/agentic/) (reuses Keycloak/SPIRE/OPA/Ollama).
+
 ## Ground rules
 
 1. **Deploy → verify → destroy**: bring up the lab's `lab-infra/` component, perform the steps, prove the control, then `down.sh`. The loop is itself practice for the IaC objective (`gov-iac`).

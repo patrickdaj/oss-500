@@ -266,4 +266,49 @@ Notes: `domains/5-offensive-validation/ztna-authz.md`
 |---|---|---|---|---|---|---|---|---|
 | `av-ztna-authz` | Attempt unauthorized access against each ZTNA broker (Boundary/OpenZiti/Pomerium/NetBird) and confirm it is denied and logged | authz-bypass attempts (local) | — (beyond SC-500) | NIST 800-207 PEP · CISA ZTMM · ATT&CK T1078/T1021 | hands-on |  |  |  |
 
-**Total objectives: 86**
+## Agentic Zero Trust (beyond-blueprint)
+
+### Agent delegated identity — workload SVID vs. scoped on-behalf-of token
+
+Notes: `domains/6-agentic-zero-trust/d6-identity.md`
+
+| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| `agent-workload` | Give the agent process a SPIFFE SVID as its workload identity, distinct from any user token | SPIFFE/SPIRE SVID | — (beyond SC-500) | SPIFFE · NIST 800-207 | hands-on |  |  |  |
+| `agent-deleg` | Act for a user only via a scoped, short-lived RFC 8693 on-behalf-of token; prove an over-broad/expired token is refused | Keycloak Token Exchange (RFC 8693) | — (beyond SC-500) | RFC 8693 · NIST 800-207 · OWASP Agentic AI | hands-on |  |  |  |
+
+### Tool / MCP trust boundaries — authorize every call, authenticate every caller
+
+Notes: `domains/6-agentic-zero-trust/d6-tools-mcp.md`
+
+| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| `mcp-authz` | Default-deny OPA decision on identity × tool × arguments for every MCP tool call, incl. argument guardrails | OPA on the MCP call path | — (beyond SC-500) | OWASP Agentic AI · OWASP LLM06 · NIST 800-207 | hands-on |  |  |  |
+| `mcp-authn` | Reject an unauthenticated / wrong-audience MCP client before any tool runs (OAuth 2.1 resource server) | MCP authorization spec (RFC 8707 audience) | — (beyond SC-500) | MCP authorization spec · RFC 8707 | hands-on |  |  |  |
+
+### Autonomous-action gating — pause consequence for approval
+
+Notes: `domains/6-agentic-zero-trust/d6-action-gating.md`
+
+| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| `action-gate` | Classify consequential actions and halt them at LangGraph interrupt() for out-of-band approval; an injection cannot auto-fire one | OPA action-class + LangGraph interrupt() | — (beyond SC-500) | NIST 800-207 PEP/PDP · OWASP LLM06 · OWASP Agentic AI | hands-on |  |  |  |
+
+### Multi-agent trust — SPIFFE mTLS, no privilege laundering
+
+Notes: `domains/6-agentic-zero-trust/d6-multi-agent.md`
+
+| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| `agent-mtls` | Agent-to-agent calls authenticate by SPIFFE SVID over mTLS, not by network position | SPIFFE/SPIRE mTLS between agents | — (beyond SC-500) | SPIFFE · MAESTRO · NIST 800-207 | hands-on |  |  |  |
+| `agent-cascade` | Prove a poisoned/authenticated peer cannot induce another agent to exceed its own authorization | SPIFFE mTLS + per-caller OPA authz | — (beyond SC-500) | MAESTRO · OWASP Agentic AI · OWASP LLM01 | hands-on |  |  |  |
+
+### Red-team the agent — attack the action/identity surface
+
+Notes: `domains/6-agentic-zero-trust/d6-validate.md`
+
+| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| `av-agent-actions` | Fire injection→action, token-bypass, confused-deputy and memory-poisoning at the D6 controls; each is blocked or documented as a gap | garak, PyRIT vs the local agent | — (beyond SC-500) | ATLAS AML.T0051/T0053 · OWASP Agentic AI · AI RMF Measure/Manage | hands-on |  |  |  |
+
+**Total objectives: 94**

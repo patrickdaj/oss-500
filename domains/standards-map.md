@@ -11,6 +11,7 @@ Every link in this table is a **canonical reference** — the framework's home c
 | **Infra / cloud-native** | [MITRE ATT&CK](https://attack.mitre.org/) (reference — techniques) | [MITRE D3FEND](https://d3fend.mitre.org/) (reference — countermeasures) + [CIS Benchmarks](https://www.cisecurity.org/cis-benchmarks) (reference — hardening) | [NIST CSF 2.0](https://www.nist.gov/cyberframework) (reference) |
 | **AI** | [MITRE ATLAS](https://atlas.mitre.org/) (reference — techniques) + [OWASP LLM Top 10 (2025)](https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/) (reference — risks) | content-safety / guardrails (the D3 defenses) | [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework) (reference — Govern/Map/Measure/Manage) |
 | **Zero trust** | authz bypass attempts (the ZTNA validation labs) | [NIST SP 800-207](https://csrc.nist.gov/pubs/sp/800/207/final) (reference) / [800-207A](https://csrc.nist.gov/pubs/sp/800/207/a/final) (reference) | [CISA ZTMM v2.0](https://www.cisa.gov/zero-trust-maturity-model) (reference — maturity) |
+| **Agentic** *(beyond-blueprint, D6)* | [MITRE ATLAS](https://atlas.mitre.org/) `AML.T0053` (reference — AI Agent Tool Invocation) + [OWASP Agentic AI](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) (reference — agent threats) | scoped delegated identity ([RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693) (reference)) + OPA tool authz + `interrupt()` gate + [SPIFFE](https://spiffe.io/) (reference) mTLS | [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework) (reference) + [MAESTRO](https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro) (reference — multi-agent) |
 | **Exam anchor** | — | **SC-500** objective mapping (the `sc500` field per objective) | — |
 
 ## How it's carried
@@ -19,7 +20,7 @@ Every link in this table is a **canonical reference** — the framework's home c
 - **Convention:** cite the specific technique/control where it's meaningful (e.g. `ATT&CK T1611` ↔ `D3FEND D3-CI`, `OWASP LLM01` ↔ `ATLAS AML.T0051`), not just the framework name. Real, verified IDs only — never invented.
 
 ## The through-line
-ATT&CK/ATLAS name *how an adversary acts*; D3FEND/CIS/guardrails name *what you build*; NIST CSF/AI RMF/CISA ZTMM name *how you govern and mature it*; SC-500 keeps the exam honest. A learner should be able to point at any lab and say which standard it implements and which technique proves it.
+ATT&CK/ATLAS name *how an adversary acts*; D3FEND/CIS/guardrails name *what you build*; NIST CSF/AI RMF/CISA ZTMM name *how you govern and mature it*; SC-500 keeps the exam honest. A learner should be able to point at any lab and say which standard it implements and which technique proves it. **Domain 6 (Agentic Zero Trust, beyond-blueprint)** extends the spine to autonomous agents: the same PEP/PDP (800-207) posture and the same offense↔defense pairing (ATLAS agentic techniques ↔ scoped delegated identity + tool authz + action gating + SPIFFE mTLS), MAESTRO for the multi-agent threat model.
 
 ## How resources are cited
 This curriculum's job is to say **exactly** what to read or watch — and no more. Every external link a note or lab points you at is a claim on your time; a link to a whole doc site wastes it. So resources follow one convention.

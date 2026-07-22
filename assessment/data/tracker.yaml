@@ -572,3 +572,75 @@ domains:
             sc500: "— (beyond SC-500)"
             standards: "NIST 800-207 PEP · CISA ZTMM · ATT&CK T1078/T1021"
             lab: hands-on
+  - id: d6
+    name: "Agentic Zero Trust"
+    weight: beyond-blueprint
+    subsections:
+      - id: d6-identity
+        name: "Agent delegated identity — workload SVID vs. scoped on-behalf-of token"
+        notes: domains/6-agentic-zero-trust/d6-identity.md
+        objectives:
+          - id: agent-workload
+            text: "Give the agent process a SPIFFE SVID as its workload identity, distinct from any user token"
+            oss: SPIFFE/SPIRE SVID
+            sc500: "— (beyond SC-500)"
+            standards: "SPIFFE · NIST 800-207"
+            lab: hands-on
+          - id: agent-deleg
+            text: "Act for a user only via a scoped, short-lived RFC 8693 on-behalf-of token; prove an over-broad/expired token is refused"
+            oss: Keycloak Token Exchange (RFC 8693)
+            sc500: "— (beyond SC-500)"
+            standards: "RFC 8693 · NIST 800-207 · OWASP Agentic AI"
+            lab: hands-on
+      - id: d6-tools-mcp
+        name: "Tool / MCP trust boundaries — authorize every call, authenticate every caller"
+        notes: domains/6-agentic-zero-trust/d6-tools-mcp.md
+        objectives:
+          - id: mcp-authz
+            text: "Default-deny OPA decision on identity × tool × arguments for every MCP tool call, incl. argument guardrails"
+            oss: OPA on the MCP call path
+            sc500: "— (beyond SC-500)"
+            standards: "OWASP Agentic AI · OWASP LLM06 · NIST 800-207"
+            lab: hands-on
+          - id: mcp-authn
+            text: "Reject an unauthenticated / wrong-audience MCP client before any tool runs (OAuth 2.1 resource server)"
+            oss: MCP authorization spec (RFC 8707 audience)
+            sc500: "— (beyond SC-500)"
+            standards: "MCP authorization spec · RFC 8707"
+            lab: hands-on
+      - id: d6-action-gating
+        name: "Autonomous-action gating — pause consequence for approval"
+        notes: domains/6-agentic-zero-trust/d6-action-gating.md
+        objectives:
+          - id: action-gate
+            text: "Classify consequential actions and halt them at LangGraph interrupt() for out-of-band approval; an injection cannot auto-fire one"
+            oss: OPA action-class + LangGraph interrupt()
+            sc500: "— (beyond SC-500)"
+            standards: "NIST 800-207 PEP/PDP · OWASP LLM06 · OWASP Agentic AI"
+            lab: hands-on
+      - id: d6-multi-agent
+        name: "Multi-agent trust — SPIFFE mTLS, no privilege laundering"
+        notes: domains/6-agentic-zero-trust/d6-multi-agent.md
+        objectives:
+          - id: agent-mtls
+            text: "Agent-to-agent calls authenticate by SPIFFE SVID over mTLS, not by network position"
+            oss: SPIFFE/SPIRE mTLS between agents
+            sc500: "— (beyond SC-500)"
+            standards: "SPIFFE · MAESTRO · NIST 800-207"
+            lab: hands-on
+          - id: agent-cascade
+            text: "Prove a poisoned/authenticated peer cannot induce another agent to exceed its own authorization"
+            oss: SPIFFE mTLS + per-caller OPA authz
+            sc500: "— (beyond SC-500)"
+            standards: "MAESTRO · OWASP Agentic AI · OWASP LLM01"
+            lab: hands-on
+      - id: d6-validate
+        name: "Red-team the agent — attack the action/identity surface"
+        notes: domains/6-agentic-zero-trust/d6-validate.md
+        objectives:
+          - id: av-agent-actions
+            text: "Fire injection→action, token-bypass, confused-deputy and memory-poisoning at the D6 controls; each is blocked or documented as a gap"
+            oss: garak, PyRIT vs the local agent
+            sc500: "— (beyond SC-500)"
+            standards: "ATLAS AML.T0051/T0053 · OWASP Agentic AI · AI RMF Measure/Manage"
+            lab: hands-on

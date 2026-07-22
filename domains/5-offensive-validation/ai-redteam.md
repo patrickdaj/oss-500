@@ -2,6 +2,8 @@
 
 Domain 3 built an LLM gateway: Ollama behind **NeMo Guardrails** + an OPA policy layer (`d3-ai`). This track red-teams *that exact gateway* and maps every finding to the **[OWASP LLM Top 10 (2025)](https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/)** risk and its **[MITRE ATLAS](https://atlas.mitre.org/)** (reference) technique — so a jailbreak isn't just "it said a bad thing," it's `LLM01 Prompt Injection` ↔ `AML.T0051`, reproducible and reportable.
 
+This track attacks the **chat/RAG guardrail** (does the model *say* something unsafe); its agentic counterpart [`d6-validate`](../6-agentic-zero-trust/d6-validate.md) attacks the **agent's tools, identity, and actions** (does the agent *do* something unsafe — fire a consequential tool, use a token beyond scope). Run both.
+
 ## Tools
 | Tool | What it does | Runs |
 |---|---|---|
