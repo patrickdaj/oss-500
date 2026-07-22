@@ -1,0 +1,20 @@
+title: OSS-500 — Open-Source Cloud & AI Security Engineering
+description: A $0, 100% open-source Cloud & AI Security curriculum. Build each control, then prove it by attacking it.
+theme: jekyll-theme-cayman
+
+# Pages serves the index.md landing page only. The curriculum itself is
+# interlinked markdown best read in the GitHub repo (working .md links, file
+# tree navigation), so the content dirs are excluded from the Jekyll build.
+exclude:
+  - README.md
+  - domains/
+  - plan/
+  - labs/
+  - lab-infra/
+  - assessment/
+  - openspec/
+  - scripts/
+  - node_modules/
+  - package.json
+  - package-lock.json
+  - .github/
