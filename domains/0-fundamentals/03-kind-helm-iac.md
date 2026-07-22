@@ -1,6 +1,6 @@
 # Fundamentals: kind, Helm, and the IaC loop
 
-Ramp notes — no exam objective maps here. This is the toolchain every lab uses.
+Ramp notes — no exam objective maps here. This is the toolchain every lab uses. Its git and Terraform underpinning lives in [`05-git-iac-foundation.md`](05-git-iac-foundation.md) — read that first if the IaC loop below feels unfamiliar.
 
 ## kind — Kubernetes in Docker
 
