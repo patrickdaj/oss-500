@@ -218,4 +218,40 @@ Notes: `domains/4-posture-monitoring/vulnerability-posture.md`
 | `vuln-compliance` | Produce compliance and secure-score style reports | Kubescape frameworks | Secure score / regulatory compliance |  | hands-on |  |  |  |
 | `vuln-remediate` | Prioritize and remediate findings across images and infrastructure | Trivy + Kubescape | Defender recommendations |  | hands-on |  |  |  |
 
-**Total objectives: 75**
+## Prove it: offensive validation (beyond-blueprint)
+
+### Purple-team method — build, name the technique, fire it, confirm detection
+
+Notes: `domains/5-offensive-validation/purple-team.md`
+
+| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| `pt-method` | Validate a control by naming and firing the ATT&CK/ATLAS technique it stops, then confirming detection (or documenting the gap) | purple-team method (local-only) | — (beyond SC-500) | ATT&CK · ATLAS · NIST CSF Detect/Respond | hands-on |  |  |  |
+
+### AI red-teaming — attack the LLM guardrail
+
+Notes: `domains/5-offensive-validation/ai-redteam.md`
+
+| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| `av-ai-garak` | Scan the NeMo-Guardrails gateway with garak; map each finding to OWASP LLM Top 10 + ATLAS | garak vs the d3-ai gateway | — (beyond SC-500) | OWASP LLM01/02 · ATLAS AML.T0051 · AI RMF Measure | hands-on |  |  |  |
+| `av-ai-pyrit` | Orchestrate multi-turn attacks and web-surface tests (PyRIT / Burp) against the gateway | PyRIT, PortSwigger | — (beyond SC-500) | OWASP LLM06 · ATLAS AML.T0053 | hands-on |  |  |  |
+
+### Infra attack simulation — fire ATT&CK at the detection stack
+
+Notes: `domains/5-offensive-validation/infra-attack-simulation.md`
+
+| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| `av-atomic` | Fire Atomic Red Team techniques (e.g. T1611, T1059) at Falco/Tetragon and confirm the rule fires | Atomic Red Team vs Falco/Tetragon | — (beyond SC-500) | ATT&CK T1611/T1059 ↔ D3FEND D3-CI/PSA | hands-on |  |  |  |
+| `av-caldera-stratus` | Run adversary-emulation chains (Caldera) and cloud-native detonations (Stratus) against Suricata/Wazuh; confirm alerts or document gaps | Caldera, Stratus Red Team | — (beyond SC-500) | ATT&CK T1046/T1071 ↔ D3FEND D3-NTA · CSF Detect | hands-on |  |  |  |
+
+### ZTNA authorization testing — prove least privilege holds
+
+Notes: `domains/5-offensive-validation/ztna-authz.md`
+
+| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| `av-ztna-authz` | Attempt unauthorized access against each ZTNA broker (Boundary/OpenZiti/Pomerium/NetBird) and confirm it is denied and logged | authz-bypass attempts (local) | — (beyond SC-500) | NIST 800-207 PEP · CISA ZTMM · ATT&CK T1078/T1021 | hands-on |  |  |  |
+
+**Total objectives: 81**

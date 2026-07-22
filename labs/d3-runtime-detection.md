@@ -59,6 +59,8 @@ Trip a Falco rule by opening a shell in a container, watch the alert fan out thr
 - `kubectl -n oss500-apps delete pod victim --ignore-not-found; kubectl delete tracingpolicy block-sensitive-read --ignore-not-found`
 - `cd lab-infra/runtime && ./down.sh`
 
+> **Validate it *(purple team)*.** Fire the real techniques at these rules in [`d5-infra-attack-simulation`](d5-infra-attack-simulation.md): **ATT&CK T1059** (shell in container) and **T1611** (escape to host) ↔ **D3FEND D3-PSA/D3-CI** — confirm Falco/Tetragon actually alert, or document the gap and add the rule.
+
 ## What the exam asks
 - Falco = detect/alert on syscalls (eBPF), like Defender for Containers detections; it does not block by itself. Tuning is done in `local` rule overrides, not by editing the shipped rules.
 - Tetragon = observe *and enforce in-kernel* (`Sigkill`/`Override`); if the scenario must *stop* the action synchronously, that's Tetragon, not Falco.

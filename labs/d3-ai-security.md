@@ -80,6 +80,8 @@ Stand up a local LLM (Ollama + Open WebUI), lock the model behind an authenticat
 ## Teardown
 - `cd lab-infra/ai && ./down.sh` (stops Ollama, Open WebUI, guardrails, gateway; removes the pulled model volume if you pass `--purge`).
 
+> **Validate it *(purple team)*.** Prove the guardrail actually blocks: red-team this exact gateway with garak/PyRIT in [`d5-ai-redteam`](d5-ai-redteam.md) and map each finding to **OWASP LLM01** ↔ **ATLAS AML.T0051**. A rail you haven't attacked is a hypothesis.
+
 ## What the exam asks
 - Never expose the model port; front it with authn + **token-based** rate limiting (the LLM twist on rate limiting). Ollama has no built-in auth — that's the point of the gateway.
 - Prompt injection is **LLM01**. Direct (jailbreak, in the user prompt) vs indirect (embedded in retrieved/ingested content) — indirect defense belongs on the *data* input. You can't sanitize natural language; defend with detection + least agency.

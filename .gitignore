@@ -33,6 +33,15 @@ terraform.tfvars
 # Lab-generated etcd encryption key (KEK) — seed from the .example, never commit
 lab-infra/encryption/encryption-config.yaml
 
+# Domain 5 offense tooling — venv, reports, and locally cloned attack repos
+lab-infra/offense/.venv-offense/
+lab-infra/offense/garak_runs/
+lab-infra/offense/reports/
+lab-infra/offense/*.report.*
+lab-infra/offense/atomic-red-team/
+lab-infra/offense/caldera/
+*.jwt
+
 # Terraform (ZTNA as-code labs)
 **/.terraform/*
 *.tfstate

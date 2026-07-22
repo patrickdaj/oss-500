@@ -1,0 +1,10 @@
+# Copy to terraform.tfvars (gitignored). Never commit real values.
+kubeconfig_path = "~/.kube/config"
+kube_context    = "kind-oss500"
+namespace       = "ztna-pomerium"
+
+idp_provider_url  = "https://keycloak.localtest.me/realms/oss500" # Keycloak from Domain 1
+idp_client_id     = "pomerium"
+idp_client_secret = "REDACTED"
+
+allowed_domain = "oss500.local" # only this email domain may reach the internal app

@@ -482,3 +482,59 @@ domains:
             oss: Trivy + Kubescape
             sc500: Defender recommendations
             lab: hands-on
+  - id: d5
+    name: "Prove it: offensive validation"
+    weight: beyond-blueprint
+    subsections:
+      - id: d5-purple
+        name: "Purple-team method — build, name the technique, fire it, confirm detection"
+        notes: domains/5-offensive-validation/purple-team.md
+        objectives:
+          - id: pt-method
+            text: "Validate a control by naming and firing the ATT&CK/ATLAS technique it stops, then confirming detection (or documenting the gap)"
+            oss: purple-team method (local-only)
+            sc500: "— (beyond SC-500)"
+            standards: "ATT&CK · ATLAS · NIST CSF Detect/Respond"
+            lab: hands-on
+      - id: d5-ai-redteam
+        name: "AI red-teaming — attack the LLM guardrail"
+        notes: domains/5-offensive-validation/ai-redteam.md
+        objectives:
+          - id: av-ai-garak
+            text: "Scan the NeMo-Guardrails gateway with garak; map each finding to OWASP LLM Top 10 + ATLAS"
+            oss: garak vs the d3-ai gateway
+            sc500: "— (beyond SC-500)"
+            standards: "OWASP LLM01/02 · ATLAS AML.T0051 · AI RMF Measure"
+            lab: hands-on
+          - id: av-ai-pyrit
+            text: "Orchestrate multi-turn attacks and web-surface tests (PyRIT / Burp) against the gateway"
+            oss: PyRIT, PortSwigger
+            sc500: "— (beyond SC-500)"
+            standards: "OWASP LLM06 · ATLAS AML.T0053"
+            lab: hands-on
+      - id: d5-infra-attack
+        name: "Infra attack simulation — fire ATT&CK at the detection stack"
+        notes: domains/5-offensive-validation/infra-attack-simulation.md
+        objectives:
+          - id: av-atomic
+            text: "Fire Atomic Red Team techniques (e.g. T1611, T1059) at Falco/Tetragon and confirm the rule fires"
+            oss: Atomic Red Team vs Falco/Tetragon
+            sc500: "— (beyond SC-500)"
+            standards: "ATT&CK T1611/T1059 ↔ D3FEND D3-CI/PSA"
+            lab: hands-on
+          - id: av-caldera-stratus
+            text: "Run adversary-emulation chains (Caldera) and cloud-native detonations (Stratus) against Suricata/Wazuh; confirm alerts or document gaps"
+            oss: Caldera, Stratus Red Team
+            sc500: "— (beyond SC-500)"
+            standards: "ATT&CK T1046/T1071 ↔ D3FEND D3-NTA · CSF Detect"
+            lab: hands-on
+      - id: d5-ztna-authz
+        name: "ZTNA authorization testing — prove least privilege holds"
+        notes: domains/5-offensive-validation/ztna-authz.md
+        objectives:
+          - id: av-ztna-authz
+            text: "Attempt unauthorized access against each ZTNA broker (Boundary/OpenZiti/Pomerium/NetBird) and confirm it is denied and logged"
+            oss: authz-bypass attempts (local)
+            sc500: "— (beyond SC-500)"
+            standards: "NIST 800-207 PEP · CISA ZTMM · ATT&CK T1078/T1021"
+            lab: hands-on

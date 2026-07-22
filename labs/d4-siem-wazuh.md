@@ -72,6 +72,8 @@ Deploy a full SIEM, onboard an endpoint, engineer a detection (Sigma → OpenSea
 ## Teardown
 - `docker compose -p oss500 -f agent-compose.yml down` (agent), then `cd lab-infra/siem && ./down.sh` (`docker compose -p oss500 down -v` — the `-v` removes the heavy indexer volumes).
 
+> **Validate it *(purple team)*.** Run a Caldera adversary chain in [`d5-infra-attack-simulation`](d5-infra-attack-simulation.md) and confirm Wazuh **correlates** the multi-step operation (not just single events) — the SIEM's job is the chain. Also wire a ZTNA denial (from [`d5-ztna-authz`](d5-ztna-authz.md)) into Wazuh to prove attack → deny → alert.
+
 ## What the exam asks
 - A SIEM has a **detection engine** (Wazuh manager / Sentinel analytics) and a **search store** (OpenSearch indexer / Log Analytics). "Can't search old events" = store; "no alert" = detection engine.
 - **Normalization precedes detection** — decoders/ASIM parse raw logs into fields before any rule can match. Un-parsed logs are why a rule "doesn't fire."

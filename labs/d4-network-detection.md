@@ -53,6 +53,8 @@ Run a signature IDS and a network-analysis framework on the same traffic: make S
 ## Teardown
 - `cd lab-infra/network-detection && ./down.sh` (`docker compose -p oss500 down -v`).
 
+> **Validate it *(purple team)*.** Generate the traffic these signatures should catch in [`d5-infra-attack-simulation`](d5-infra-attack-simulation.md): **ATT&CK T1046** (service discovery / scan) and **T1071** (app-layer C2 beacon) ↔ **D3FEND D3-NTA** — confirm Suricata `fast.log` fires.
+
 ## What the exam asks
 - **IDS vs IPS** is the core distinction: IDS = passive, out-of-band (mirror/tap), *alerts only*; IPS = inline, in the data path, can `drop`/`reject` — prevention at the cost of being a failure point. A mirror can never block.
 - Suricata is **signature/known-threat** driven — the **ruleset is the detection content** (ET Open + `suricata-update`); stale rules detect nothing. EVE JSON feeds the SIEM.

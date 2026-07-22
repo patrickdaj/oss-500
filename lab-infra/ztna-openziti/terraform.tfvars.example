@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars (gitignored). Never commit real values.
+ziti_mgmt_host = "https://127.0.0.1:1280/edge/management/v1" # `ziti edge quickstart`
+ziti_username  = "admin"
+ziti_password  = "REDACTED"
+
+backend_address   = "127.0.0.1" # the private app the host tunneler forwards to
+backend_port      = 8080
+intercept_address = "private-app.ziti" # overlay-only name the client dials

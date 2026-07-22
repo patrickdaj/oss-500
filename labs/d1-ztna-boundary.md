@@ -49,5 +49,7 @@ terraform destroy     # or ../lab-infra/ztna-boundary/down.sh
 # stop the `boundary dev` / `vault server -dev` processes
 ```
 
+> **Validate it *(purple team)*.** Prove the broker *denies*: in [`d5-ztna-authz`](d5-ztna-authz.md), authenticate as `appuser`, try `authorize-session` on a target you have no role for, and try to reach the host IP directly — both must fail (**NIST 800-207** PEP; the negative test that would expose **ATT&CK T1078** over-grant).
+
 ## What the exam asks
 SC-500 frames this as **Entra Private Access / Global Secure Access** (ZTNA to private apps) plus **PIM** (just-in-time, no standing access). The transferable concept: a **PDP** decides, a **PEP** brokers one session by identity, and privileged credentials are short-lived and never held by the user — the same principle whether the tool is Boundary or Entra.

@@ -164,6 +164,8 @@ NetworkPolicy filters by label/IP; a **service mesh** adds cryptographic **workl
 
 - `cd lab-infra/network && ./down.sh`
 
+> **Validate it *(purple team)*.** Prove the default-deny actually segments: run an in-cluster scan (**ATT&CK T1046**) from a pod that shouldn't reach the DB in [`d5-infra-attack-simulation`](d5-infra-attack-simulation.md) and confirm it times out — then confirm the ZTNA brokers deny lateral reach in [`d5-ztna-authz`](d5-ztna-authz.md).
+
 ## What the exam asks
 
 - Kubernetes is **allow-all by default** — there is *no* segmentation until a NetworkPolicy exists, and policies are **enforced only by a CNI that supports them** (Calico/Cilium, not vanilla kindnet). "My policy didn't block anything" → check the CNI.

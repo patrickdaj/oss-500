@@ -15,6 +15,7 @@ Lab environments live in [`lab-infra/`](../lab-infra/); each has an `up.sh`/`dow
 | Privileged access (`d1-pam`) | [d1-privileged-access](d1-privileged-access.md) | hands-on (approval flow: walkthrough) | Teleport / Boundary |
 | Cluster RBAC (`d1-k8s-rbac`) | [d1-kubernetes-rbac](d1-kubernetes-rbac.md) | hands-on | Kubernetes RBAC, rbac-tool |
 | Governance (`d1-governance`) | [d1-governance-policy](d1-governance-policy.md) | hands-on | Kyverno, OPA Gatekeeper, Kubescape |
+| Zero-trust access — five models (`d1-ztna`) *(beyond-blueprint)* | [d1-ztna-boundary](d1-ztna-boundary.md) · [d1-ztna-openziti](d1-ztna-openziti.md) · [d1-ztna-pomerium](d1-ztna-pomerium.md) · [d1-ztna-netbird](d1-ztna-netbird.md) | hands-on (all Terraform-automated) | Boundary+Vault, OpenZiti, Pomerium, NetBird (SPIFFE/Teleport ✅ in `d1-workload-identity`/`d1-pam`) |
 
 ## Domain 2 — Secrets, data, networking (25–30%)
 
@@ -43,6 +44,18 @@ Lab environments live in [`lab-infra/`](../lab-infra/); each has an `up.sh`/`dow
 | SIEM & IR (`d4-siem`) | [d4-siem-wazuh](d4-siem-wazuh.md) | hands-on | Wazuh, OpenSearch, Sigma |
 | Network detection (`d4-network-detection`) | [d4-network-detection](d4-network-detection.md) | hands-on | Suricata, Zeek |
 | Vulnerability & posture (`d4-vuln`) | [d4-vuln-posture](d4-vuln-posture.md) | hands-on | Kubescape, kube-bench, Trivy |
+
+## Domain 5 — Prove it: offensive validation (beyond-blueprint)
+
+Red-team the controls built in Domains 1–4 to prove they work: build → name the ATT&CK/ATLAS technique → fire it locally → confirm detection (or document the gap). **Local, disposable targets only.**
+
+| Subsection (tracker id) | Lab | Type | OSS components |
+|---|---|---|---|
+| AI red-teaming (`d5-ai-redteam`) | [d5-ai-redteam](d5-ai-redteam.md) | hands-on (local target) | garak, PyRIT, Burp/PortSwigger vs the d3-ai gateway |
+| Infra attack simulation (`d5-infra-attack`) | [d5-infra-attack-simulation](d5-infra-attack-simulation.md) | hands-on (disposable targets) | Atomic Red Team, Caldera, Stratus vs Falco/Tetragon/Suricata/Wazuh |
+| ZTNA authz testing (`d5-ztna-authz`) | [d5-ztna-authz](d5-ztna-authz.md) | hands-on | curl/ssh/nmap bypass attempts vs the D1 brokers |
+
+Attack tooling lives in [`../lab-infra/offense/`](../lab-infra/offense/) and is wired to local targets only.
 
 ## Ground rules
 
