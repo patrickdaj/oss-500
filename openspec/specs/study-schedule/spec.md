@@ -17,6 +17,10 @@ The plan SHALL define a phased schedule under `plan/`: a Phase 0 fundamentals ra
 - **WHEN** a reader opens the Phase-0 plan
 - **THEN** it covers Linux/CLI, Docker/OCI images, Kubernetes primitives (pods, services, deployments, RBAC), Helm, and a k3s + IaC primer sufficient to stand up the lab cluster, and states it is a ramp — not the security curriculum
 
+#### Scenario: IaC primer links the git and Terraform foundation note
+- **WHEN** a reader reaches the Phase-0 day that introduces the IaC loop
+- **THEN** that day links `domains/0-fundamentals/05-git-iac-foundation.md` (the git model and Terraform write→plan→apply foundation) as reading to precede the applied kind/Helm work, and the phase self-check exercises the git working-tree/index/repo model and Terraform state/locking
+
 #### Scenario: Heaviest domain gets the most time
 - **WHEN** comparing planned hours across domains
 - **THEN** the secrets/data/networking domain (SC-500 weight 25–30%) receives more planned hours than any other domain

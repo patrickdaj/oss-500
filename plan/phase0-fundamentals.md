@@ -20,6 +20,7 @@ Set up the reference host and the cluster once here; every later phase reuses it
 
 ## Day 3 — kind cluster, Helm, and the IaC loop
 
+- [ ] **[0.5h] git + Terraform foundation** — read [domains/0-fundamentals/05-git-iac-foundation.md](../domains/0-fundamentals/05-git-iac-foundation.md) *first*: the git snapshot model (working tree/index/repo, branches, remotes, GitOps) and Terraform's write→plan→apply loop with state + locking. It's the foundation under today's applied kind/Helm work, and every later lab is Terraform-automated — get the plumbing straight before it's in your way.
 - [ ] **[2h] Stand up the lab cluster** — follow [lab-infra/README.md](../lab-infra/README.md): create the kind cluster, install the ingress controller, apply the shared namespaces/labels. This cluster is your lab environment for the whole course. Today's note — [domains/0-fundamentals/03-kind-helm-iac.md](../domains/0-fundamentals/03-kind-helm-iac.md) — backs all of Day 3 (kind, Helm, and the deploy→verify→destroy loop); read it alongside these blocks.
 - [ ] **[2h] Helm** — charts, values, releases, `helm install/upgrade/template`, and why `helm template` makes IaC reviewable. Install one chart (e.g. a demo app) and read its rendered manifests.
 - [ ] **[1.5h] The deploy → verify → destroy loop** — practice the discipline every lab uses: `up.sh` a component, check it's healthy, `down.sh` it, confirm no leftovers (`kubectl get all -A`, `docker ps`).
@@ -37,3 +38,4 @@ Set up the reference host and the cluster once here; every later phase reuses it
 2. Explain why a Kubernetes `Secret` is only base64-encoded and what would make it encrypted at rest.
 3. Install and uninstall a Helm chart and prove nothing is left behind.
 4. Use `kubectl auth can-i` to check whether a ServiceAccount can list secrets in a namespace.
+5. Explain the difference between the git working tree, staging area (index), and repository — and describe what Terraform **state** records and why a shared backend must **lock** it during an apply.
