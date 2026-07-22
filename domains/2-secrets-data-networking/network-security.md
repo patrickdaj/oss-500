@@ -107,7 +107,7 @@ spec:
 
 Now identity is cryptographic (the SPIFFE principal `…/sa/web`), not positional — the zero-trust ideal of "never trust the network, always verify identity." Combine with NetworkPolicy (defense in depth: L3/4 segmentation + L7 identity). Against SC-500 this covers **zero-trust networking / Private Link**: Azure Private Link keeps traffic off the public internet on a trusted backbone; a mesh goes further, making even *internal* east-west traffic authenticated and encrypted so location grants no trust.
 
-Under the hood the mesh runs its own **certificate authority** (Istiod's `istio-ca` or Linkerd's `identity` component) that mints short-lived (hours) SVID certs to each proxy and rotates them automatically — the workload never handles key material, and a stolen cert expires fast. This is the SPIFFE/SPIRE identity model in practice. Istio's newer **ambient mode** (ztunnel + waypoint) delivers the same mTLS without a per-pod sidecar, trading some L7 features for lower overhead.
+Under the hood the mesh runs its own **certificate authority** (Istiod's `istio-ca` or Linkerd's `identity` component) that mints short-lived (hours) SVID certs to each proxy and rotates them automatically — the workload never handles key material, and a stolen cert expires fast. This is the SPIFFE/SPIRE identity model in practice. Istio's newer **ambient mode** (ztunnel + waypoint) delivers the same mTLS without a per-pod sidecar, trading some L7 features for lower overhead. This mesh CA is one of four in the course; for which CA owns which job, see the *which CA when* box in [`keys-and-certificates.md`](keys-and-certificates.md).
 
 Exam gotchas:
 

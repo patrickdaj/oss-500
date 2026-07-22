@@ -75,6 +75,12 @@ Exam gotchas:
 - [NIST FIPS 140-3 — cryptographic module validation](https://csrc.nist.gov/pubs/fips/140-3/final) (~20 min, reference)
 - [Azure Managed HSM vs Key Vault Premium (concept parallel)](https://learn.microsoft.com/azure/key-vault/managed-hsm/overview) (~10 min)
 
+> **Which CA when.** This course runs **four certificate authorities**, each minting short-lived certs for a different job — reach for the one that owns your use case, not the one you met first:
+> - **cert-manager** Issuer/ClusterIssuer → **edge/ingress and app TLS** certificate lifecycle (issue/renew/rotate into a TLS Secret) — `cert-issuer`/`cert-lifecycle`, below.
+> - **Vault PKI** (the `vault` issuer / PKI engine as a CA) → **app/internal PKI**, and the CA that can *back* cert-manager's `vault` issuer — this note (`cert-issuer`, plus the `vault-*`/`key-transit` key story).
+> - **Istio/Linkerd mesh CA** (`istio-ca` / Linkerd `identity`) → **east-west mesh mTLS** SVIDs minted to sidecars — `net-mesh` ([network-security.md](network-security.md)).
+> - **SPIRE trust-domain CA** → **platform-agnostic SPIFFE SVIDs** for service-to-service mTLS *beyond a single mesh* (across clusters/VMs/clouds) — `wi-spiffe` ([workload-identity.md](../1-identity-governance/workload-identity.md)).
+
 ## Automate certificate issuance with cluster issuers and ACME
 
 *Objective: `cert-issuer` · OSS: cert-manager ≈ SC-500: Key Vault certificates · Lab: [d2-cert-manager](../../labs/d2-cert-manager.md)*
