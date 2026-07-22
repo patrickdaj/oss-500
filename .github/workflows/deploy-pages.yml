@@ -1,0 +1,65 @@
+name: Deploy study UI to Pages
+
+# Builds the study-hub app scoped to the oss-500 course and deploys it to this
+# repo's GitHub Pages site (https://patrickdaj.github.io/oss-500/).
+#
+# Scoping needs no app code change: only oss-500 content is checked out, and
+# study-hub's loader renders the single course present in a partial checkout.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [study-hub-updated]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two deploys at once; let the newest win.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Check out study-hub (the app)
+        uses: actions/checkout@v4
+        with:
+          repository: patrickdaj/study-hub
+          ref: main
+
+      - name: Check out oss-500 content only
+        uses: actions/checkout@v4
+        with:
+          path: content/oss-500
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (oss-500 only, Pages base path)
+        run: npm run build
+        env:
+          BASE_PATH: /oss-500/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
