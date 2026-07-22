@@ -48,7 +48,7 @@ Bring up **only what the current lab needs**; the labs and `lab-infra/` READMEs 
 
 - **Notes** per objective subsection: [`domains/`](../domains/) (files named in each phase plan)
 - **Labs**: [`labs/README.md`](../labs/README.md) is the catalog; lab environments are in [`lab-infra/`](../lab-infra/)
-- **Progress**: [`assessment/data/tracker.yaml`](../assessment/data/tracker.yaml) (70 objectives) — tracked interactively in study-hub
+- **Progress**: [`assessment/data/tracker.yaml`](../assessment/data/tracker.yaml) (94 objectives) — tracked interactively in study-hub
 - **Checkpoints**: quiz banks in `assessment/data/`, one per domain, taken on each phase's flex day
 - **Readiness**: [`assessment/readiness.md`](../assessment/readiness.md) — the checkpoint target, capstone, and remediation loop
 
