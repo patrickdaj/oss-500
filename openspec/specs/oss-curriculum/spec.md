@@ -1,0 +1,43 @@
+# oss-curriculum Specification
+
+## Purpose
+
+OSS-500 mirrors the SC-500 skills outline but teaches every objective through its open-source equivalent. This capability defines the study-notes curriculum under `domains/`: concept-parity coverage of every outline bullet organized by SC-500 domain and weight, an explicit SC-500-to-OSS concept mapping per objective joined by stable ids, curated per-objective resources, and deep-dive coverage of the newest AI-security material.
+
+## Requirements
+
+### Requirement: Concept-parity coverage of the SC-500 skills outline
+The curriculum SHALL contain study notes under `domains/` organized as one directory per SC-500 exam domain and one markdown file per skills-outline subsection, where every objective bullet of the official SC-500 study guide appears as a heading with substantive study content beneath it, taught through its open-source equivalent. The four domain directories SHALL preserve the SC-500 domains and their exam weights as the organizing spine: identity/access/governance, secrets/data/networking, compute-and-AI, and posture/monitoring.
+
+#### Scenario: Every objective bullet is present
+- **WHEN** any bullet from the official SC-500 "Skills measured" outline is searched for in `domains/`
+- **THEN** a matching heading exists with explanatory content (the transferable concept, the OSS tool that implements it, key configuration steps, and gotchas) beneath it
+
+#### Scenario: Domain directories mirror the outline and weights
+- **WHEN** a reader lists `domains/`
+- **THEN** they see four directories matching the four SC-500 domains (plus an optional `0-` fundamentals ramp), each containing one file per official subsection
+
+### Requirement: Each objective maps SC-500 concept to OSS equivalent
+Each objective's notes SHALL carry a metadata line linking its stable objective `id`, its lab, and the transferable concept, and SHALL explicitly name both the SC-500 technology and its open-source equivalent (e.g., Entra ID PIM → Teleport/Boundary just-in-time access; Azure Key Vault → HashiCorp Vault; Defender for Containers → Falco/Tetragon).
+
+#### Scenario: Concept mapping is explicit
+- **WHEN** a reader opens the notes for any objective
+- **THEN** the notes state the SC-500 technology, its OSS equivalent, and the underlying concept that transfers across clouds, with a metadata line linking the objective id and its lab
+
+#### Scenario: Objective ids join across artifacts
+- **WHEN** an objective's id is read from a domain file's metadata line
+- **THEN** the same id resolves in `assessment/data/tracker.yaml` and is referenceable from labs and quizzes
+
+### Requirement: Curated OSS resources mapped per objective
+Each subsection SHALL list curated study resources per objective — official project documentation, upstream tutorials/guides, and reputable video or conference talks — each annotated with an estimated time, prioritizing free and authoritative sources.
+
+#### Scenario: Resources accompany each objective
+- **WHEN** a reader finishes the notes for an objective
+- **THEN** they find a resource list with at least one official documentation link, annotated with an estimated completion time
+
+### Requirement: AI-security topics receive deep-dive coverage
+AI-security objectives (prompt-injection mitigation, model access control, LLM observability, secure RAG, AI governance, data protection) SHALL be flagged as concept-new and receive dedicated deep-dive content built on the OSS AI stack (Ollama, Open WebUI, NeMo Guardrails / guardrails, OPA), since these map to the newest SC-500 material.
+
+#### Scenario: AI depth
+- **WHEN** a reader opens the AI-security file in the compute-and-AI domain
+- **THEN** every AI objective bullet has dedicated content plus doc links, a runnable OSS lab reference, and the file is flagged as concept-new

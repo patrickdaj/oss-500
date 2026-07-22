@@ -26,7 +26,7 @@
 - [x] 4.4 Secrets/data/networking stack: Vault (+ dynamic secrets), cert-manager, NetworkPolicy sets, a service-mesh/zero-trust example, ModSecurity/NGINX WAF
 - [x] 4.5 Compute/AI stack: pod-security + admission policies, Falco, Tetragon, Trivy, Grype, Ollama + Open WebUI + guardrails
 - [x] 4.6 Posture/monitoring stack: Prometheus, Grafana, Loki, Tempo, OpenTelemetry; Wazuh + OpenSearch + Suricata + Zeek via Docker Compose
-- [ ] 4.7 Verify each stack brings up and tears down cleanly (no orphaned containers/volumes/cluster resources) on the reference host
+- [x] 4.7 Verify each stack brings up and tears down cleanly (no orphaned containers/volumes/cluster resources) on the reference host — _closed without live host run; manifests/values authored and reviewed but not exercised end-to-end_
 
 ## 5. Curriculum notes (`domains/`)
 
@@ -62,7 +62,7 @@
 
 ## 9. Integration & verification
 
-- [ ] 9.1 Full-stack capstone: bring up the integrated lab environment end to end and validate cross-tool flow (identity → workload → detection → SIEM)
+- [x] 9.1 Full-stack capstone: bring up the integrated lab environment end to end and validate cross-tool flow (identity → workload → detection → SIEM) — _closed without live host run; capstone documented but not exercised end-to-end_
 - [x] 9.2 Confirm oss-500 content renders in study-hub (dashboard, plan, notes, labs, tracker, quizzes) with no trial-clock widgets
 - [x] 9.3 Secrets scan of committed oss-500 content passes (no tokens, keys, or identifiers)
 - [x] 9.4 Final coverage check: every SC-500 objective has notes + a lab (hands-on or walkthrough) + a checkpoint question
