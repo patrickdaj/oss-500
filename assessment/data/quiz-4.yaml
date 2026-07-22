@@ -289,18 +289,23 @@ questions:
     objectiveIds: [siem-detect]
     type: single
     stem: >-
-      A colleague says "we deployed the Sigma rule straight to the log stream and it
-      should start detecting now." What is the technical correction?
+      You convert a Sigma rule with the sigma CLI and deploy the output to OpenSearch,
+      but it never matches — the rule keys on `Image` and `CommandLine` while your
+      indexed events use ECS-style `process.executable` and `process.command_line`.
+      What did the conversion get wrong?
     options:
-      - "Sigma rules run natively on any log stream with no conversion"
-      - "Sigma is a portable format, not a running engine — it must be converted to a backend query (e.g. OpenSearch DSL or KQL) and deployed there to detect anything"
-      - "Sigma only works after enabling Tempo"
-      - "Sigma rules must be rewritten as Prometheus alerting rules"
+      - "Sigma rules cannot be converted to OpenSearch at all"
+      - "The conversion needs the right processing pipeline (field-mapping) alongside the backend — the backend selects the query language, the pipeline maps Sigma's logsource/field names onto the target schema; without the matching pipeline the fields never line up"
+      - "The rule must be hand-rewritten field-by-field for every backend"
+      - "OpenSearch requires the rule to be registered as a Prometheus recording rule first"
     answer: [1]
     explanation: >-
-      Sigma is an abstraction/format. It detects nothing until converted with a
-      backend + pipeline into the target query language and saved as a monitor/
-      analytics rule. "Deploy Sigma to the stream" skips the conversion step.
+      `sigma convert` takes two things: a backend (the target query language, e.g.
+      OpenSearch DSL) and a processing pipeline that translates Sigma's taxonomy and
+      field names into the destination schema (e.g. ECS). Pick the backend but the
+      wrong or no pipeline and you get syntactically valid queries whose field names
+      never match the indexed data — backend + pipeline together are the conversion
+      mechanics.
     docUrl: "https://github.com/SigmaHQ/sigma"
   - id: q4-17
     objectiveIds: [siem-hunt]
@@ -529,19 +534,22 @@ questions:
     objectiveIds: [vuln-compliance]
     type: single
     stem: >-
-      A CISO reads that the cluster is "84% compliant" on the NSA framework and
-      declares the org "certified compliant." What nuance is being missed?
+      A Kubescape `scan framework nsa` returns 84% with a list of failing controls,
+      each carrying a severity weight and a count of affected resources. With limited
+      remediation time this sprint, which failing controls do you fix first to raise
+      the score and cut risk the most?
     options:
-      - "84% always means certified"
-      - "A technical-controls score (secure-score style) is a trend to improve and is NOT the same as being formally certified/audited compliant"
-      - "Compliance percentages are meaningless"
-      - "The score should be exactly 100% before any remediation"
+      - "The controls with the largest number of failing resources, regardless of severity"
+      - "The highest-weighted (severity-weighted) failing controls — Kubescape scores are severity-weighted, so remediating high-weight controls moves the compliance % and reduces risk most per fix; then re-scan to confirm the trend upward"
+      - "The controls in alphabetical order, to be systematic"
+      - "None until you can reach exactly 100%, since a partial score is not worth acting on"
     answer: [1]
     explanation: >-
-      A framework compliance % reflects passing technical controls and is meant to
-      be trended upward by remediating the highest-weighted failures — the same as
-      Defender secure score. It is not equivalent to formal certification, a nuance
-      the exam draws for both Kubescape and Defender for Cloud.
+      Kubescape's compliance score is severity-weighted per control, so both the
+      number and the real risk move most when you remediate the highest-weighted
+      failing controls first, then re-scan to confirm the score trends upward —
+      risk-based prioritization, not raw failing-resource count or a 100%-or-nothing
+      gate. The score is a trend to improve across successive scans.
     docUrl: "https://kubescape.io/docs/scanning/"
   - id: q4-30
     objectiveIds: [vuln-remediate]

@@ -182,18 +182,18 @@ Generated from `assessment/data/quiz-5.yaml` — study-hub runs this interactive
 
 </details>
 
-### 13. You fire an ATT&CK technique and NOTHING alerts in Falco, Suricata, or Wazuh. Walk the correct next steps.
+### 13. Running a Caldera ability chain and a Stratus Red Team detonation, you want to confirm your detection stack sees each step. Across which sensors do their techniques surface, and what does that say about validating coverage?
 
-- A. Assume the tool misfired and move on
-- B. Treat the silence as the finding: document the coverage gap, write the Sigma/Falco rule that closes it, then re-fire to confirm the new rule catches it
-- C. Lower the detection thresholds until something fires
-- D. Delete the technique from your test set
+- A. Every technique surfaces only in Falco, so watching one sensor is enough
+- B. Different steps light up different sensors — network/lateral abilities in Suricata/Zeek, cloud/k8s-API detonations in Wazuh/audit logs, host actions in Falco — so validating a chain means checking coverage across multiple sensors, not one
+- C. Caldera and Stratus both bypass every sensor by design
+- D. Coverage is proven by a single Wazuh alert regardless of the technique
 
 <details><summary>Answer</summary>
 
-**B** — No alert = the finding. Document the coverage gap, optionally author the Sigma/Falco rule that closes it, then re-fire to prove the rule now catches the technique. This is continuous validation — Detect/Respond exercised, not assumed.
+**B** — A Caldera operation and Stratus cloud-native detonations span multiple layers, so their steps register on different sensors — Suricata/Zeek for network moves, Wazuh/audit for cloud/k8s API calls, Falco for host/container actions. Real coverage validation walks the whole chain and checks each sensor that should have fired, exposing the steps where none did.
 
-[Documentation](https://d3fend.mitre.org/) · objectives: `av-caldera-stratus`, `av-atomic`
+[Documentation](https://github.com/mitre/caldera) · objectives: `av-caldera-stratus`
 
 </details>
 
@@ -257,18 +257,18 @@ Generated from `assessment/data/quiz-5.yaml` — study-hub runs this interactive
 
 </details>
 
-### 18. Why does the domain insist you NAME the exact ATT&CK technique and its D3FEND countermeasure for each infra test, rather than just "running an attack"?
+### 18. You want to run exactly one ATT&CK technique's test — T1059.004 test #1 — against your Falco stack, pass its input arguments, and then undo it. Which Atomic Red Team specifics make that possible?
 
-- A. To make the report longer
-- B. Because naming the technique makes the test repeatable and maps offense to the exact defensive countermeasure (ATT&CK ↔ D3FEND), producing a legible, re-runnable coverage claim
-- C. Because ATT&CK ids are required by law
-- D. Because unnamed attacks are automatically blocked
+- A. Atomics are opaque binaries you can neither parameterize nor clean up
+- B. Each atomic is defined in YAML per technique with numbered tests, an executor, input_arguments, and a cleanup command; `Invoke-AtomicTest T1059.004 -TestNumbers 1` runs just that test and `-Cleanup` reverts it
+- C. You must run the technique's entire catalog; single tests are not addressable
+- D. Atomic Red Team only emulates multi-step operations, never a single technique
 
 <details><summary>Answer</summary>
 
-**B** — Naming the technique (step 2) is what turns a one-off into a repeatable test and lets you pair it with the precise D3FEND countermeasure that should catch it. The offense↔defense mapping (ATT&CK ↔ D3FEND) is the legible evidence a hiring manager and a re-run both need.
+**B** — Atomic Red Team's unit is the atomic test — YAML per ATT&CK technique with numbered tests, an executor (sh / PowerShell / command), declared input_arguments, dependencies, and a cleanup block. Invoke-AtomicTest addresses one technique/test, passes the inputs, and reverts with cleanup — the precise, single-technique "did it alert?" tool, as opposed to Caldera's chained operations.
 
-[Documentation](https://d3fend.mitre.org/) · objectives: `av-atomic`, `pt-method`
+[Documentation](https://github.com/redcanaryco/atomic-red-team) · objectives: `av-atomic`
 
 </details>
 

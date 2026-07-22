@@ -3,9 +3,7 @@
 ## Purpose
 
 OSS-500 has to make exam readiness verifiable, not merely aspirational. This capability defines how readiness is tracked objective-by-objective: a coverage tracker generated from a machine-readable source, per-domain checkpoint quizzes authored to the OSS stack, and a self-readiness gate with a remediation loop that maps every missed question back to a tracker row.
-
 ## Requirements
-
 ### Requirement: Objective coverage tracker
 The repo SHALL contain a tracker at `assessment/tracker.md` (generated from `assessment/data/tracker.yaml`) listing every SC-500 objective bullet with columns for: notes done, resources done, lab done (hands-on vs walkthrough), checkpoint passed, and confidence (1–3) — so readiness is verifiable objective-by-objective.
 
@@ -32,6 +30,10 @@ Every domain in the tracker SHALL have an authored checkpoint quiz under `assess
 - **WHEN** a domain phase ends
 - **THEN** the plan directs taking that domain's checkpoint, and scores below the pass bar route the flex/synthesis day to remediation
 
+#### Scenario: No two questions test the same intent
+- **WHEN** the questions across all `quiz-<n>.yaml` banks are compared by intent (the idea a stem tests and its correct-answer takeaway), not merely by keyword
+- **THEN** no two questions test the same intent — any duplicate is removed or repurposed to test the domain-specific delta assuming the fundamental, each reclaimed slot maps to an under-covered objective, and no domain drops below its question floor or loses coverage of an `objectiveIds` value it previously carried
+
 ### Requirement: Readiness gate
 The assessment section SHALL define a self-readiness rule under `assessment/readiness.md` — a target checkpoint score across all six checkpoint banks plus completion of the full-stack capstone — with a remediation loop where every missed question maps back to a tracker row.
 
@@ -42,3 +44,4 @@ The assessment section SHALL define a self-readiness rule under `assessment/read
 #### Scenario: Gate spans all domains
 - **WHEN** a reader opens `assessment/readiness.md`
 - **THEN** the checkpoint condition lists all six banks (checkpoint-1 through checkpoint-6), including the beyond-blueprint domains
+

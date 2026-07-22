@@ -2,16 +2,16 @@
 
 Generated from `assessment/data/quiz-6.yaml` — study-hub runs this interactively (Tests page). Pass bar: 80%. 19 questions.
 
-### 1. An agent pod presents a valid SPIFFE SVID (`spiffe://oss500.local/ns/oss500-apps/sa/agent-a`) when it connects to the MCP server. What does that SVID actually entitle the agent to do?
+### 1. An agent holds two credentials at once: an X.509 SVID and, per task, a scoped OAuth 2.0 Token Exchange (RFC 8693) on-behalf-of token. When it calls a tool that touches one specific user's data, which credential decides whether the call is allowed, and what is the other one for?
 
-- A. Act on any user's data, because a valid SVID is full authority
-- B. Nothing on its own regarding user data — the SVID authenticates which process this is; authority to act for a user comes from a separate delegated token evaluated at the resource
-- C. Call any tool, since the SVID is the agent's authorization
-- D. Impersonate other agents that share its namespace
+- A. The SVID decides — a valid workload identity is the agent's authority to act for any user
+- B. The on-behalf-of token decides (user authority; scope/audience validated at the resource); the SVID only authenticates which process this is and secures the mTLS transport
+- C. Either one is sufficient — they are interchangeable proofs of the same thing
+- D. The SVID authorizes reads and the on-behalf-of token authorizes writes
 
 <details><summary>Answer</summary>
 
-**B** — The SVID answers exactly one question — which process is this — and secures mTLS. It is deliberately NOT authority to act for a user; conflating workload identity with delegated authority is the core mistake the subsection exists to prevent. Authorization comes from the scoped on-behalf-of token, checked at the resource.
+**B** — The two identities answer two different questions. The SVID is the workload identity — which process is this — and secures mTLS; it is never authority to act for a user. Authority for this user's data comes from the separate delegated on-behalf-of token, whose scope/audience the resource re-validates on every call. Collapsing the two into one long-lived agent credential is the anti-pattern the subsection exists to prevent.
 
 [Documentation](https://spiffe.io/docs/latest/spiffe-about/spiffe-concepts/) · objectives: `agent-workload`
 

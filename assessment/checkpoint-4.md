@@ -227,16 +227,16 @@ Generated from `assessment/data/quiz-4.yaml` — study-hub runs this interactive
 
 </details>
 
-### 16. A colleague says "we deployed the Sigma rule straight to the log stream and it should start detecting now." What is the technical correction?
+### 16. You convert a Sigma rule with the sigma CLI and deploy the output to OpenSearch, but it never matches — the rule keys on `Image` and `CommandLine` while your indexed events use ECS-style `process.executable` and `process.command_line`. What did the conversion get wrong?
 
-- A. Sigma rules run natively on any log stream with no conversion
-- B. Sigma is a portable format, not a running engine — it must be converted to a backend query (e.g. OpenSearch DSL or KQL) and deployed there to detect anything
-- C. Sigma only works after enabling Tempo
-- D. Sigma rules must be rewritten as Prometheus alerting rules
+- A. Sigma rules cannot be converted to OpenSearch at all
+- B. The conversion needs the right processing pipeline (field-mapping) alongside the backend — the backend selects the query language, the pipeline maps Sigma's logsource/field names onto the target schema; without the matching pipeline the fields never line up
+- C. The rule must be hand-rewritten field-by-field for every backend
+- D. OpenSearch requires the rule to be registered as a Prometheus recording rule first
 
 <details><summary>Answer</summary>
 
-**B** — Sigma is an abstraction/format. It detects nothing until converted with a backend + pipeline into the target query language and saved as a monitor/ analytics rule. "Deploy Sigma to the stream" skips the conversion step.
+**B** — `sigma convert` takes two things: a backend (the target query language, e.g. OpenSearch DSL) and a processing pipeline that translates Sigma's taxonomy and field names into the destination schema (e.g. ECS). Pick the backend but the wrong or no pipeline and you get syntactically valid queries whose field names never match the indexed data — backend + pipeline together are the conversion mechanics.
 
 [Documentation](https://github.com/SigmaHQ/sigma) · objectives: `siem-detect`
 
@@ -422,16 +422,16 @@ Generated from `assessment/data/quiz-4.yaml` — study-hub runs this interactive
 
 </details>
 
-### 29. A CISO reads that the cluster is "84% compliant" on the NSA framework and declares the org "certified compliant." What nuance is being missed?
+### 29. A Kubescape `scan framework nsa` returns 84% with a list of failing controls, each carrying a severity weight and a count of affected resources. With limited remediation time this sprint, which failing controls do you fix first to raise the score and cut risk the most?
 
-- A. 84% always means certified
-- B. A technical-controls score (secure-score style) is a trend to improve and is NOT the same as being formally certified/audited compliant
-- C. Compliance percentages are meaningless
-- D. The score should be exactly 100% before any remediation
+- A. The controls with the largest number of failing resources, regardless of severity
+- B. The highest-weighted (severity-weighted) failing controls — Kubescape scores are severity-weighted, so remediating high-weight controls moves the compliance % and reduces risk most per fix; then re-scan to confirm the trend upward
+- C. The controls in alphabetical order, to be systematic
+- D. None until you can reach exactly 100%, since a partial score is not worth acting on
 
 <details><summary>Answer</summary>
 
-**B** — A framework compliance % reflects passing technical controls and is meant to be trended upward by remediating the highest-weighted failures — the same as Defender secure score. It is not equivalent to formal certification, a nuance the exam draws for both Kubescape and Defender for Cloud.
+**B** — Kubescape's compliance score is severity-weighted per control, so both the number and the real risk move most when you remediate the highest-weighted failing controls first, then re-scan to confirm the score trends upward — risk-based prioritization, not raw failing-resource count or a 100%-or-nothing gate. The score is a trend to improve across successive scans.
 
 [Documentation](https://kubescape.io/docs/scanning/) · objectives: `vuln-compliance`
 
