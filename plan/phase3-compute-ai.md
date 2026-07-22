@@ -16,7 +16,7 @@ Notes: [pod-security](../domains/3-compute-ai/pod-security.md) · [runtime-secur
 ## Day 2 — Runtime threat detection and response
 
 - [ ] **[2h] Falco + Tetragon concepts** — read [runtime-security.md](../domains/3-compute-ai/runtime-security.md). Detect-vs-enforce: Falco alerts on syscalls; Tetragon can `Sigkill` in-kernel. Why security tooling runs in the privileged `oss500-security` namespace.
-- [ ] **[2h] Lab: trigger a Falco alert** — [d3-runtime-detection](../labs/d3-runtime-detection.md) Parts A–B: `lab-infra/runtime` up; `kubectl exec` into a pod and watch **Terminal shell in container** fire within seconds; see it fan out through Falcosidekick to the UI/Loki. This is the "prove the control" moment — a fired alert, not just an installed tool.
+- [ ] **[2h] Lab: trigger a Falco alert** — [d3-runtime-detection](../labs/d3-runtime-detection.md) Parts A–B: `lab-infra/runtime` up; `kubectl exec` into a pod and watch **Terminal shell in container** fire within seconds; see it fan out through Falcosidekick to the UI/Loki. That fired alert is this lab's observable — [prove the control, don't just deploy the tool](overview.md#rules-that-keep-this-on-track) (overview rule 4).
 - [ ] **[1.5h] Enforcement + response** — lab Part C: apply the Tetragon `TracingPolicy` and watch `cat /etc/shadow` get killed in-kernel; review the Falco Talon terminate-on-shell rule (`rt-response`). Map each to Defender for Containers.
 - [ ] **[0.5h] Teardown** — `cd lab-infra/runtime && ./down.sh`; confirm no leftover DaemonSets.
 

@@ -46,4 +46,4 @@ Take **[checkpoint-5](../assessment/checkpoint-5.md)** (bank: [quiz-5](../assess
 - Score **< 80%** → this day's remaining time goes to remediation: each missed question maps to `objectiveIds`; re-read that note section and re-run its attack (fire the technique again — don't just re-read) before moving on.
 - Score **≥ 80%** with every d5 objective at confidence ≥ 2 → Domain 5 is green. Proceed to [Phase 6 — Agentic zero trust](phase6-agentic-zero-trust.md).
 
-> **Beyond-blueprint note.** Checkpoint 5 gates this phase exactly as checkpoints 1–4 gate the exam domains, but Domain 5 carries no SC-500 weight — it is portfolio-grade enrichment. Proof-of-work (the technique fires, the control holds) is the per-lab observable; the checkpoint is the phase gate.
+> **Beyond-blueprint note.** Domain 5 carries no SC-500 weight — it is portfolio-grade enrichment — but [gates on its checkpoint exactly as the SC-500 phases do](overview.md#phase-map). Proof-of-work (the technique fires, the control holds) is the per-lab observable.

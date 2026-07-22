@@ -3,9 +3,7 @@
 ## Purpose
 
 OSS-500 needs a study path calibrated to the SC-500 exam that fits a local, $0 lab stack. This capability defines the phased schedule under `plan/`: a fundamentals ramp followed by domain phases weighted to the SC-500 outline, a daily block structure fitting a defined budget with built-in slack, a local-resource readiness section replacing the source course's cloud-cost timeline, and a review phase that ends in a readiness gate with a full-stack capstone.
-
 ## Requirements
-
 ### Requirement: Phased learning path calibrated to SC-500 domain weights
 The plan SHALL define a phased schedule under `plan/`: a Phase 0 fundamentals ramp (Linux, containers, Kubernetes basics, IaC primer) followed by domain phases sequenced in SC-500 outline order, with total time per domain roughly proportional to its SC-500 exam weight, and a final review phase. Each phase SHALL name its focus, its milestone, and a day-by-day breakdown.
 
@@ -75,3 +73,28 @@ Each beyond-blueprint phase SHALL end on its domain checkpoint exactly as the SC
 #### Scenario: Overview reflects all phases
 - **WHEN** `plan/overview.md` is read
 - **THEN** its phase-map and resource tables list phases 5 and 6 before Review, and no sentence claims the plan has only six phases
+
+### Requirement: Shared explanatory examples are stated once and referenced
+
+A specific teaching example or cross-phase explanatory note used to justify a rule that applies across phases SHALL be stated once in a canonical location under `plan/` and referenced from other phase files, rather than copy-pasted near-verbatim into each. The intentional per-phase template — each phase's own footprint line, flex/last-day line, and end-of-lab teardown reminder (including the shared teardown label-selector command and the "resource killer" teardown phrasing) — is parallel structure by design and SHALL be preserved, not consolidated.
+
+#### Scenario: A teaching example lives in one canonical place
+
+- **WHEN** a reader compares the Falco "prove the control" example in `plan/overview.md` against `plan/phase3-compute-ai.md`
+- **THEN** the example is stated once canonically in the overview's prove-the-control rule, and the phase file references that rule for its lab step rather than restating the Falco example verbatim
+
+#### Scenario: A cross-phase note is not duplicated per phase
+
+- **WHEN** a reader reads the beyond-blueprint checkpoint-gate framing across `plan/overview.md`, `plan/phase5-offensive-validation.md`, and `plan/phase6-agentic-zero-trust.md`
+- **THEN** the shared framing (that a beyond-blueprint phase gates on its checkpoint exactly as the SC-500 phases do, with proof-of-work as the per-lab observable) appears once canonically, and each phase file adds only its phase-specific clause rather than repeating the whole framing near-verbatim
+
+#### Scenario: Intentional per-phase template is preserved
+
+- **WHEN** a reader opens any single phase file after consolidation
+- **THEN** that phase still carries its own footprint line, its own flex/last-day line, and its own teardown reminder (including the `kubectl get all -A -l app.kubernetes.io/part-of=oss500` selector command), so the phase reads standalone and the parallel structure across phases is intact
+
+#### Scenario: A consolidated reference resolves
+
+- **WHEN** `npm run lint:links` runs after a phase file replaces a copied block with a reference to the canonical location
+- **THEN** the reference resolves and the plan files pass link linting
+

@@ -48,4 +48,4 @@ Take **[checkpoint-6](../assessment/checkpoint-6.md)** (bank: [quiz-6](../assess
 - Score **< 80%** → this day's remaining time goes to remediation: each missed question maps to `objectiveIds`; re-read that note section and re-run its lab step (prove the control again) before moving on.
 - Score **≥ 80%** with every d6 objective at confidence ≥ 2 → Domain 6 is green. Proceed to the [Review & capstone](review.md) phase.
 
-> **Beyond-blueprint note.** Checkpoint 6 gates this phase exactly as checkpoints 1–4 gate the exam domains, but Domain 6 carries no SC-500 weight — it is the frontier that follows from Domains 1–4. Proof-of-work (the control refuses or pauses the attack) is the per-lab observable; the checkpoint is the phase gate.
+> **Beyond-blueprint note.** Domain 6 carries no SC-500 weight — it is the frontier that follows from Domains 1–4 — but [gates on its checkpoint exactly as the SC-500 phases do](overview.md#phase-map). Proof-of-work (the control refuses or pauses the attack) is the per-lab observable.
