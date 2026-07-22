@@ -1,6 +1,6 @@
 # AI Red-Teaming — attack the guardrail you built *(beyond-blueprint)*
 
-Domain 3 built an LLM gateway: Ollama behind **NeMo Guardrails** + an OPA policy layer (`d3-ai`). This track red-teams *that exact gateway* and maps every finding to the **[OWASP LLM Top 10 (2025)](https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/)** risk and its **[MITRE ATLAS](https://atlas.mitre.org/)** technique — so a jailbreak isn't just "it said a bad thing," it's `LLM01 Prompt Injection` ↔ `AML.T0051`, reproducible and reportable.
+Domain 3 built an LLM gateway: Ollama behind **NeMo Guardrails** + an OPA policy layer (`d3-ai`). This track red-teams *that exact gateway* and maps every finding to the **[OWASP LLM Top 10 (2025)](https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/)** risk and its **[MITRE ATLAS](https://atlas.mitre.org/)** (reference) technique — so a jailbreak isn't just "it said a bad thing," it's `LLM01 Prompt Injection` ↔ `AML.T0051`, reproducible and reportable.
 
 ## Tools
 | Tool | What it does | Runs |

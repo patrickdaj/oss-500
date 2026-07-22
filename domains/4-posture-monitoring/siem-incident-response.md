@@ -110,10 +110,10 @@ Exam gotchas:
 - Sigma expresses **detection logic**, not response — pair it with active response (`siem-response`) for action. It's the *what to detect*, not the *what to do*.
 
 **Resources:**
-- [Sigma — main site / about](https://sigmahq.io/) (~10 min)
+- [Sigma — main site / about](https://sigmahq.io/) (reference) (~10 min)
 - [SigmaHQ rules repository](https://github.com/SigmaHQ/sigma) (~15 min)
 - [Sigma rule format specification](https://github.com/SigmaHQ/sigma-specification) (~15 min)
-- [MITRE ATT&CK — matrix & techniques](https://attack.mitre.org/) (~25 min)
+- [MITRE ATT&CK — matrix & techniques](https://attack.mitre.org/) (reference) (~25 min)
 - [pySigma / sigma-cli backends](https://github.com/SigmaHQ/pySigma) (~10 min)
 
 ## Hunt threats and correlate events with a query language
@@ -137,7 +137,7 @@ Exam gotchas:
 - [OpenSearch Query DSL](https://opensearch.org/docs/latest/query-dsl/) (~20 min)
 - [OpenSearch aggregations](https://opensearch.org/docs/latest/aggregations/) (~15 min)
 - [Wazuh — threat hunting with the dashboard](https://documentation.wazuh.com/current/user-manual/wazuh-dashboard/threat-hunting.html) (~15 min)
-- [MITRE ATT&CK — using ATT&CK for threat hunting](https://attack.mitre.org/resources/get-started/) (~20 min)
+- [MITRE ATT&CK — Get Started: Detections & Analytics](https://attack.mitre.org/resources/get-started/detections-and-analytics/) (~20 min)
 - [Microsoft Sentinel — threat hunting (KQL) docs](https://learn.microsoft.com/en-us/azure/sentinel/hunting) (~15 min)
 
 ## Automate incident response with active-response actions

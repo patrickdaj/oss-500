@@ -4,7 +4,7 @@ Ramp notes — no exam objective maps here. This is the toolchain every lab uses
 
 ## kind — Kubernetes in Docker
 
-[kind](https://kind.sigs.k8s.io/) runs a Kubernetes cluster inside Docker containers. It's the lab cluster for this course because it's free, ephemeral, and disposable — `kind delete cluster` is the ultimate reset when a lab goes sideways. The cluster definition lives in [lab-infra/](../lab-infra/) so the whole environment is reproducible from a clean clone.
+[kind](https://kind.sigs.k8s.io/) (reference) runs a Kubernetes cluster inside Docker containers. It's the lab cluster for this course because it's free, ephemeral, and disposable — `kind delete cluster` is the ultimate reset when a lab goes sideways. The cluster definition lives in [lab-infra/](../lab-infra/) so the whole environment is reproducible from a clean clone.
 
 ```bash
 kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml
@@ -50,6 +50,6 @@ Provisioning security controls as code (`gov-iac`) is itself an SC-500 objective
 
 ## Primary sources
 - [kind — Quick Start](https://kind.sigs.k8s.io/docs/user/quick-start/)
-- [Helm — documentation](https://helm.sh/docs/)
-- [Terraform — Intro](https://developer.hashicorp.com/terraform/intro) · [install](https://developer.hashicorp.com/terraform/install)
+- [Helm — Using Helm (install, charts, values)](https://helm.sh/docs/intro/using_helm/)
+- [Terraform — The Core Terraform Workflow (write/plan/apply)](https://developer.hashicorp.com/terraform/intro/core-workflow) · [install](https://developer.hashicorp.com/terraform/install)
 - [Kubernetes — Configuration best practices](https://kubernetes.io/docs/concepts/configuration/overview/)

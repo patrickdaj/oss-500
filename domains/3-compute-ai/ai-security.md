@@ -39,7 +39,7 @@ Exam gotchas:
 - [OWASP Top 10 for LLM Applications (2025)](https://genai.owasp.org/llm-top-10/) (~30 min)
 - [OWASP LLM10: Unbounded Consumption](https://genai.owasp.org/llmrisk/llm10-unbounded-consumption/) (~15 min)
 - [Azure API Management — `llm-token-limit` policy](https://learn.microsoft.com/azure/api-management/llm-token-limit-policy) (~15 min)
-- [MITRE ATLAS — adversarial ML threat matrix](https://atlas.mitre.org/) (~20 min)
+- [MITRE ATLAS — adversarial ML threat matrix](https://atlas.mitre.org/) (reference — adversarial ML techniques)
 
 ## Mitigate prompt-injection and jailbreak attempts
 
@@ -246,9 +246,9 @@ Exam gotchas:
 - The governance frameworks to name-drop: **NIST AI RMF** (Govern/Map/Measure/Manage functions), **ISO/IEC 42001** (AI management system, certifiable), and the **EU AI Act** (risk-tiered legal obligations). They set the *why*; OPA-at-the-gateway is one *how*.
 
 **Resources:**
-- [Open Policy Agent — Documentation](https://www.openpolicyagent.org/docs/latest/) (~25 min)
+- [Open Policy Agent — Policy Language (Rego rules & allow/deny decisions)](https://www.openpolicyagent.org/docs/latest/policy-language/) (~25 min)
 - [NIST AI Risk Management Framework (AI RMF 1.0)](https://www.nist.gov/itl/ai-risk-management-framework) (~20 min)
-- [NIST Trustworthy & Responsible AI Resource Center](https://airc.nist.gov/) (~15 min)
+- [NIST Trustworthy & Responsible AI Resource Center](https://airc.nist.gov/) (reference)
 - [ISO/IEC 42001 — AI management system standard](https://www.iso.org/standard/81230.html) (~15 min)
 - [Microsoft Purview — DSPM for AI](https://learn.microsoft.com/purview/ai-microsoft-purview) (~15 min)
 

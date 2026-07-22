@@ -169,7 +169,7 @@ Exam gotchas:
 - [ingress-nginx external OAUTH / auth-url annotations](https://kubernetes.github.io/ingress-nginx/examples/auth/oauth-external-auth/) (~15 min)
 - [cert-manager with ingress-nginx (ACME tutorial)](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/) (~20 min)
 - [oauth2-proxy — configuration overview](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview) (~15 min)
-- [Kubernetes Gateway API (the successor to Ingress)](https://gateway-api.sigs.k8s.io/) (~15 min)
+- [Kubernetes Gateway API — API Overview (GatewayClass/Gateway/Route resource model)](https://gateway-api.sigs.k8s.io/docs/concepts/api-overview/) (~15 min)
 
 ## Apply perimeter firewall and segmentation concepts for the host/edge — walkthrough
 

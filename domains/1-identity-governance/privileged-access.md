@@ -38,7 +38,7 @@ Exam gotchas:
 - [Teleport — Access Controls and roles](https://goteleport.com/docs/admin-guides/access-controls/guides/role-templates/) (~20 min)
 - [Teleport — Architecture and certificate-based access](https://goteleport.com/docs/reference/architecture/) (~20 min)
 - [Teleport — Core concepts (auth/proxy, roles, certs)](https://goteleport.com/docs/core-concepts/) (~15 min)
-- [HashiCorp Boundary — documentation (brokered JIT sessions)](https://developer.hashicorp.com/boundary/docs) (~20 min)
+- [HashiCorp Boundary — Credential management: Credential brokering (brokered JIT sessions)](https://developer.hashicorp.com/boundary/docs/concepts/credential-management#credential-brokering) (~20 min)
 - [Microsoft Learn — Configure Privileged Identity Management (PIM)](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure) (~20 min)
 
 ## Configure session recording and audit for privileged sessions

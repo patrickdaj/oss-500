@@ -39,7 +39,7 @@ Exam gotchas:
 - [Prometheus overview](https://prometheus.io/docs/introduction/overview/) (~15 min)
 - [Querying basics (PromQL)](https://prometheus.io/docs/prometheus/latest/querying/basics/) (~20 min)
 - [PromQL operators & aggregation](https://prometheus.io/docs/prometheus/latest/querying/operators/) (~15 min)
-- [Prometheus Operator ServiceMonitor design](https://prometheus-operator.dev/docs/user-guides/getting-started/) (~15 min)
+- [Prometheus Operator ServiceMonitor design](https://prometheus-operator.dev/docs/getting-started/design/#servicemonitor) (~15 min)
 - [Azure Monitor managed Prometheus overview](https://learn.microsoft.com/en-us/azure/azure-monitor/metrics/prometheus-metrics-overview) (~15 min)
 
 ## Aggregate and query logs
@@ -71,11 +71,11 @@ Exam gotchas:
 - Promtail is being superseded by **Grafana Alloy** (the OTel-collector-based agent); recognize both as the shipper, distinct from Loki the store.
 
 **Resources:**
-- [Loki fundamentals & architecture](https://grafana.com/docs/loki/latest/get-started/) (~15 min)
+- [Loki fundamentals & architecture](https://grafana.com/docs/loki/latest/get-started/architecture/) (~15 min)
 - [LogQL log query language](https://grafana.com/docs/loki/latest/query/) (~20 min)
 - [LogQL metric queries (rate/count_over_time)](https://grafana.com/docs/loki/latest/query/metric_queries/) (~15 min)
 - [Loki labels — best practices & cardinality](https://grafana.com/docs/loki/latest/get-started/labels/) (~15 min)
-- [Grafana Alloy (collector) overview](https://grafana.com/docs/alloy/latest/) (~10 min)
+- [Grafana Alloy (collector) overview](https://grafana.com/docs/alloy/latest/introduction/) (~10 min)
 
 ## Capture distributed traces
 

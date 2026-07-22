@@ -37,7 +37,7 @@ Exam gotchas:
 
 **Resources:**
 - [Cilium — Getting Started on kind](https://docs.cilium.io/en/stable/installation/kind/) (~20 min)
-- [Cilium concepts — eBPF dataplane & identity](https://docs.cilium.io/en/stable/overview/intro/) (~20 min)
+- [Cilium concepts — Component Overview (agent, eBPF datapath)](https://docs.cilium.io/en/stable/overview/component-overview/) (~20 min)
 - [kubeProxyReplacement](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/) (~15 min)
 
 ## Pin a fixed egress IP with the Egress Gateway (NAT gateway)

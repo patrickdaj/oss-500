@@ -17,7 +17,7 @@ Every lab in Domains 1–4 ends at "deployed." This capstone domain asks the har
 ```
 
 1. **Build the control** — it already exists from Domains 1–4 (a Falco rule, a NetworkPolicy, a guardrail, a broker).
-2. **Name the technique** — the specific [ATT&CK](https://attack.mitre.org/) (infra) or [ATLAS](https://atlas.mitre.org/) / [OWASP LLM Top 10](https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/) (AI) technique that attacks it. Naming it is what makes the test repeatable and the report legible.
+2. **Name the technique** — the specific [ATT&CK](https://attack.mitre.org/) (reference) (infra) or [ATLAS](https://atlas.mitre.org/) (reference) / [OWASP LLM Top 10](https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/) (AI) technique that attacks it. Naming it is what makes the test repeatable and the report legible.
 3. **Fire it** — run the technique **against the local lab stack only**. Never an external target. Tear down after.
 4. **Confirm** — the corresponding alert fires / the request is denied. If it doesn't, that's the finding: **document the gap** honestly (a missing rule, a mis-scoped policy) rather than hiding it.
 

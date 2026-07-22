@@ -39,7 +39,7 @@ Exam gotchas:
 
 **Resources:**
 - [Falco — Rules](https://falco.org/docs/concepts/rules/) (~25 min)
-- [Falco — Getting started / Kubernetes](https://falco.org/docs/getting-started/) (~15 min)
+- [Falco — Deploy on Kubernetes with Helm](https://falco.org/docs/setup/kubernetes/) (~15 min)
 - [falcosecurity/rules — the default ruleset repo](https://github.com/falcosecurity/rules) (~15 min)
 - [MITRE ATT&CK — Containers matrix](https://attack.mitre.org/matrices/enterprise/containers/) (~20 min)
 - [Microsoft Defender for Containers — overview](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction) (~20 min)
@@ -87,10 +87,10 @@ Exam gotchas:
 - Enforcement is synchronous/in-kernel, which is exactly why it can *block*; a userspace tool reacting after the event (Falco → Talon) can only remediate *after* the action already happened.
 
 **Resources:**
-- [Tetragon — Documentation](https://tetragon.io/docs/) (~25 min)
+- [Tetragon — Overview (eBPF security observability & runtime enforcement)](https://tetragon.io/docs/overview/) (~25 min)
 - [Tetragon — TracingPolicy & enforcement](https://tetragon.io/docs/concepts/tracing-policy/) (~20 min)
 - [cilium/tetragon — project & examples](https://github.com/cilium/tetragon) (~15 min)
-- [eBPF.io — what eBPF is and why it fits security](https://ebpf.io/) (~15 min)
+- [eBPF.io — What is eBPF? (introduction & deep dive)](https://ebpf.io/what-is-ebpf/) (~15 min)
 
 ## Route runtime alerts and trigger response actions
 
@@ -137,7 +137,7 @@ Exam gotchas:
 
 **Resources:**
 - [Falcosidekick — Outputs](https://github.com/falcosecurity/falcosidekick) (~15 min)
-- [Falco Talon — Response engine](https://docs.falco-talon.org/) (~15 min)
+- [Falco Talon — Overview (What is Falco Talon?)](https://falco-talon.github.io/docs/overview/) (~15 min)
 - [falcosecurity/falco-talon — rules & actionners](https://github.com/falcosecurity/falco-talon) (~15 min)
 - [Defender for Cloud — workflow automation](https://learn.microsoft.com/azure/defender-for-cloud/workflow-automation) (~15 min)
 

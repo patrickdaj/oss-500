@@ -68,7 +68,7 @@ Exam gotchas:
 - [Keycloak — WebAuthn and passwordless](https://www.keycloak.org/docs/latest/server_admin/index.html#_webauthn) (~15 min)
 - [NIST SP 800-63B — Authentication & authenticator assurance levels (AAL)](https://pages.nist.gov/800-63-3/sp800-63b.html) (~30 min)
 - [OWASP — Multifactor Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html) (~15 min)
-- [WebAuthn Guide — how FIDO2/WebAuthn works](https://webauthn.guide/) (~15 min)
+- [WebAuthn Guide — The WebAuthn API (how FIDO2/WebAuthn works)](https://webauthn.guide/#webauthn-api) (~15 min)
 
 ## Implement conditional access via authentication flows and authorization policies
 

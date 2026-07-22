@@ -46,7 +46,7 @@ Every pod runs as a **ServiceAccount** (the `default` SA if none is set). The AP
 3. By default, can a pod in namespace A reach a pod in namespace B? What object changes that?
 
 ## Primary sources
-- [Kubernetes — Concepts](https://kubernetes.io/docs/concepts/)
+- [Kubernetes — Concepts: Overview](https://kubernetes.io/docs/concepts/overview/)
 - [Kubernetes Basics — interactive tutorial](https://kubernetes.io/docs/tutorials/kubernetes-basics/)
 - [kubectl reference](https://kubernetes.io/docs/reference/kubectl/)
 - [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/)

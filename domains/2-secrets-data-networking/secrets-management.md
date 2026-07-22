@@ -187,7 +187,7 @@ Exam gotchas:
 - [Vault Agent Injector](https://developer.hashicorp.com/vault/docs/platform/k8s/injector) (~20 min)
 - [Injector annotations reference](https://developer.hashicorp.com/vault/docs/platform/k8s/injector/annotations) (~10 min)
 - [Secrets Store CSI provider for Vault](https://developer.hashicorp.com/vault/docs/platform/k8s/csi) (~15 min)
-- [Kubernetes Secrets Store CSI Driver (upstream)](https://secrets-store-csi-driver.sigs.k8s.io/) (~15 min)
+- [Kubernetes Secrets Store CSI Driver — Concepts (how it works)](https://secrets-store-csi-driver.sigs.k8s.io/concepts#how-it-works) (~15 min)
 - [Vault Secrets Operator (native CRD sync)](https://developer.hashicorp.com/vault/docs/platform/k8s/vso) (~15 min)
 
 ## Enable audit devices and monitor secret access

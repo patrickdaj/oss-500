@@ -75,5 +75,5 @@ Every cloud-network control in Domain 2 is one of these primitives, managed at s
 - [ip-netns(8) — network namespaces](https://man7.org/linux/man-pages/man8/ip-netns.8.html)
 - [Linux Advanced Routing & Traffic Control (LARTC)](https://lartc.org/howto/)
 - [nftables / iptables NAT (netfilter.org)](https://wiki.nftables.org/wiki-nftables/index.php/Performing_Network_Address_Translation_(NAT))
-- [Julia Evans — Networking zines / how DNS & routing work](https://wizardzines.com/)
+- [Julia Evans — "Networking! ACK!" zine](https://wizardzines.com/zines/networking/)
 - [A Container Networking Overview (from a pod's veth to the bridge)](https://labs.iximiuz.com/tutorials/container-networking-from-scratch)

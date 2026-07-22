@@ -14,7 +14,7 @@ Prove least privilege the way the exam frames it — a subject that provably *ca
 
 **Prerequisites**
 - Base kind cluster up: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml && lab-infra/shared/up.sh` (no dedicated `lab-infra/` component — RBAC ships with Kubernetes).
-- Audit tooling (via [krew](https://krew.sigs.k8s.io/)): `kubectl krew install who-can` and [`rbac-tool`](https://github.com/alcideio/rbac-tool) (`kubectl krew install rbac-tool` or the standalone binary).
+- Audit tooling (via [krew](https://krew.sigs.k8s.io/) (reference)): `kubectl krew install who-can` and [`rbac-tool`](https://github.com/alcideio/rbac-tool) (`kubectl krew install rbac-tool` or the standalone binary).
 - Notes read: [kubernetes-rbac.md](../domains/1-identity-governance/kubernetes-rbac.md).
 
 **Estimated time**: 2 h · $0 (local)

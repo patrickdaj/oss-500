@@ -1,6 +1,6 @@
 # Infra Attack Simulation — fire ATT&CK at your detection stack *(beyond-blueprint)*
 
-Domains 3–4 built the detection stack: **Falco** + **Tetragon** (runtime), **Suricata** (network IDS), **Wazuh** (SIEM). This track fires **real [MITRE ATT&CK](https://attack.mitre.org/) techniques** at that stack and confirms the matching alert fires — the clean offense↔defense pairing **ATT&CK ↔ [D3FEND](https://d3fend.mitre.org/)**.
+Domains 3–4 built the detection stack: **Falco** + **Tetragon** (runtime), **Suricata** (network IDS), **Wazuh** (SIEM). This track fires **real [MITRE ATT&CK](https://attack.mitre.org/) (reference) techniques** at that stack and confirms the matching alert fires — the clean offense↔defense pairing **ATT&CK ↔ [D3FEND](https://d3fend.mitre.org/) (reference)**.
 
 ## Tools
 | Tool | Model | Best for | Runs |

@@ -35,6 +35,6 @@ Every Kubernetes workload is a container. The controls you'll implement — imag
 3. Name two `Dockerfile` changes that reduce what a runtime scanner or attacker can exploit.
 
 ## Primary sources
-- [Docker documentation](https://docs.docker.com/) · [Get Started](https://docs.docker.com/get-started/)
-- [Open Container Initiative (OCI) — image & runtime specs](https://opencontainers.org/)
+- [Docker documentation](https://docs.docker.com/) (reference) · [Get started — Introduction](https://docs.docker.com/get-started/introduction/)
+- [Open Container Initiative (OCI) — image & runtime specs](https://opencontainers.org/) (reference)
 - [Kubernetes — Container images](https://kubernetes.io/docs/concepts/containers/images/)

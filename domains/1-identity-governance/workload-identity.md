@@ -83,7 +83,7 @@ Exam gotchas:
 - [Kubernetes — ServiceAccount issuer discovery (OIDC)](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-issuer-discovery) (~15 min)
 - [HashiCorp Vault — Kubernetes and JWT/OIDC auth methods](https://developer.hashicorp.com/vault/docs/auth/kubernetes) (~20 min)
 - [Microsoft Learn — Workload identity federation (the SC-500 control)](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation) (~20 min)
-- [Azure AD Workload Identity — federating k8s ServiceAccounts to Entra](https://azure.github.io/azure-workload-identity/docs/) (~20 min)
+- [Azure AD Workload Identity — Concepts (federating k8s ServiceAccounts to Entra)](https://azure.github.io/azure-workload-identity/docs/concepts.html) (~20 min)
 - [AWS — IAM roles for service accounts (IRSA), the same OIDC pattern](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) (~20 min)
 
 ## Explain SPIFFE/SPIRE workload identity and mTLS-based service identity

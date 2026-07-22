@@ -90,7 +90,7 @@ Exam gotchas:
 - **Custom rules** (an app-specific `SecRule` you author) evaluate *before/alongside* managed CRS rules — the exam contrasts writing your own rule with tuning the managed set; you reach for a custom rule only when CRS has no coverage.
 
 **Resources:**
-- [OWASP CRS documentation](https://coreruleset.org/docs/) (~20 min)
+- [OWASP CRS docs — Getting Started (install & integrate CRS)](https://coreruleset.org/docs/1-getting-started/) (~20 min)
 - [CRS paranoia levels](https://coreruleset.org/docs/concepts/paranoia_levels/) (~15 min)
 - [CRS anomaly scoring explained](https://coreruleset.org/docs/concepts/anomaly_scoring/) (~15 min)
 - [CRS rules & rule categories overview](https://coreruleset.org/docs/rules/) (~15 min)

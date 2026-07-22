@@ -63,9 +63,9 @@ Exam gotchas:
 - SLSA is a *provenance/build-integrity* framework (levels describe how tamper-resistant the build is); cosign attestations are how you carry SLSA provenance. Don't confuse SLSA (build integrity) with SBOM (inventory) or signing (authenticity) — they compose.
 
 **Resources:**
-- [Harbor — Documentation](https://goharbor.io/docs/) (~25 min)
+- [Harbor — Vulnerability Scanning](https://goharbor.io/docs/2.15.0/administration/vulnerability-scanning/) (~25 min)
 - [cosign — Signing and verifying (Sigstore)](https://docs.sigstore.dev/cosign/signing/signing_with_containers/) (~20 min)
-- [Sigstore — Fulcio & Rekor / keyless overview](https://docs.sigstore.dev/) (~20 min)
+- [Sigstore — Fulcio & Rekor / keyless overview](https://docs.sigstore.dev/about/overview/) (~20 min)
 - [SLSA — supply-chain integrity framework & levels](https://slsa.dev/spec/v1.0/levels) (~20 min)
 - [ACR — content trust / image signing](https://learn.microsoft.com/azure/container-registry/container-registry-content-trust) (~15 min)
 
@@ -97,8 +97,8 @@ Exam gotchas:
 **Resources:**
 - [Syft — Anchore Syft](https://github.com/anchore/syft) (~15 min)
 - [Trivy — SBOM generation](https://trivy.dev/latest/docs/supply-chain/sbom/) (~15 min)
-- [CycloneDX — OWASP SBOM standard](https://cyclonedx.org/) (~15 min)
-- [SPDX — the SBOM specification](https://spdx.dev/) (~15 min)
+- [CycloneDX — OWASP SBOM standard](https://cyclonedx.org/) (reference)
+- [SPDX — the SBOM specification](https://spdx.dev/) (reference)
 - [CISA — Software Bill of Materials (SBOM)](https://www.cisa.gov/sbom) (~15 min)
 
 ## Gate admission on scan results and signature verification

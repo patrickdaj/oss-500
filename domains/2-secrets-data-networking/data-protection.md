@@ -101,7 +101,7 @@ Exam gotchas:
 - [Trivy CI/CD integration & exit codes](https://trivy.dev/latest/docs/configuration/) (~10 min)
 - [git filter-repo — removing sensitive data from history](https://github.com/newren/git-filter-repo) (~15 min)
 - [OWASP Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html) (~20 min)
-- [pre-commit framework](https://pre-commit.com/) (~10 min)
+- [pre-commit framework — Quick start (install & configure hooks)](https://pre-commit.com/#quick-start) (~10 min)
 
 ## Summary
 
