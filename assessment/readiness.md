@@ -5,11 +5,13 @@ OSS-500 has no proctored exam — the gate is your own honest bar for "I can eng
 ## The gate
 
 1. **Coverage** — every objective in [`tracker.yaml`](data/tracker.yaml) has: notes read, its lab performed (or its walkthrough section studied at depth), and self-rated confidence ≥ 2 of 3. Filter the tracker in study-hub for confidence 1 or missing labs; that list is your remaining work.
-2. **Checkpoints** — each of the four checkpoint banks scored **≥ 85% on two consecutive attempts** in test mode. One good score can be luck; two in a row is retention.
+2. **Checkpoints** — each of the six checkpoint banks scored **≥ 85% on two consecutive attempts** in test mode. One good score can be luck; two in a row is retention.
    - [checkpoint-1](checkpoint-1.md) — Identity, access, governance
    - [checkpoint-2](checkpoint-2.md) — Secrets, data, networking
    - [checkpoint-3](checkpoint-3.md) — Compute and AI security
    - [checkpoint-4](checkpoint-4.md) — Manage and monitor posture
+   - [checkpoint-5](checkpoint-5.md) — Prove it: offensive validation *(beyond-blueprint)*
+   - [checkpoint-6](checkpoint-6.md) — Agentic zero trust *(beyond-blueprint)*
 3. **Capstone** — the full-stack capstone in [`plan/review.md`](../plan/review.md) stands up end to end and you can demonstrate the **identity → workload → detection → SIEM** chain (Keycloak OIDC + MFA → Vault dynamic secret via workload identity → Kyverno/Gatekeeper admission block → Falco alert → Wazuh detection + active response) and have written it up.
 
 ## Remediation loop

@@ -1,0 +1,348 @@
+# Checkpoint quiz 5 — authored from domains/5-offensive-validation/ notes.
+# Schema: see openspec study-data-format spec. Answers are ZERO-BASED indexes.
+id: quiz-5
+title: "Checkpoint 5 — Prove it: offensive validation"
+domain: d5
+passPercent: 80
+questions:
+  - id: q5-01
+    objectiveIds: [pt-method]
+    type: single
+    stem: >-
+      You built a Falco rule in Domain 3 and want to treat it the purple-team way.
+      What is the correct four-step method, in order?
+    options:
+      - "Fire a random exploit, see what breaks, then write a rule to match it"
+      - "Build the control, name the specific ATT&CK/ATLAS technique, fire it locally, confirm the defense holds (alert fires / request denied)"
+      - "Scan the internet for the technique, run it against a live target, then report the CVE"
+      - "Deploy the control, mark it done, and move on — deployment is the proof"
+    answer: [1]
+    explanation: >-
+      The method is build → name the technique → fire it (locally) → confirm the
+      defense holds. Naming the exact ATT&CK/ATLAS technique in step 2 is what makes
+      the test repeatable and the report legible; a control you have never attacked
+      is a hypothesis, not a defense.
+    docUrl: "https://attack.mitre.org/"
+  - id: q5-02
+    objectiveIds: [pt-method]
+    type: single
+    stem: >-
+      You fire T1611 (escape to host) at your local cluster and Falco does NOT alert.
+      How should this outcome be treated under the domain's honesty discipline?
+    options:
+      - "As a lab failure to hide or retry until it passes"
+      - "As a successful, publishable finding — document the coverage gap honestly, then optionally write the rule that closes it and re-fire"
+      - "As proof the technique is broken and should be discarded"
+      - "As irrelevant, since the control was already deployed"
+    answer: [1]
+    explanation: >-
+      "The alert did not fire" is a real result, not a failure: it surfaces a
+      genuine gap (a missing rule, a mis-scoped policy) that would otherwise stay
+      hidden. Honesty over spectacle — record executed vs. directions and report the
+      gap rather than fabricating a clean pass.
+    docUrl: "https://d3fend.mitre.org/"
+  - id: q5-03
+    objectiveIds: [pt-method]
+    type: single
+    stem: >-
+      Which single rule of engagement makes this whole domain safe to run on a
+      laptop, and matters legally as well as technically?
+    options:
+      - "Always run attacks with root so they behave realistically"
+      - "Target only the local kind/Compose stack you built — never an external host or shared infrastructure, ever"
+      - "Only fire techniques that you are sure will be blocked"
+      - "Run every attack through a VPN to a cloud target"
+    answer: [1]
+    explanation: >-
+      Local-only is non-negotiable: every attack targets the local stack, wired to
+      127.0.0.1/in-cluster targets by design. Firing techniques at hosts you don't
+      own is both unsafe and unlawful; teardown of the attack tooling is part of the
+      lab.
+    docUrl: "https://attack.mitre.org/"
+  - id: q5-04
+    objectiveIds: [av-ai-garak]
+    type: single
+    stem: >-
+      You run a garak jailbreak probe against the local NeMo-Guardrails gateway and
+      garak reports the probe as "defended." What have you actually proven, and how
+      should it be recorded?
+    options:
+      - "That garak is broken, since a real jailbreak always gets through"
+      - "That the input rail blocked the attack — record it against its OWASP LLM id (LLM01) and ATLAS technique (AML.T0051) so the pass is reproducible and legible"
+      - "That the model has no guardrail and is safe by default"
+      - "Nothing, because only a passing probe is worth recording"
+    answer: [1]
+    explanation: >-
+      A "defended" result means the NeMo input/jailbreak rail caught the probe. The
+      value is mapping it to LLM01 Prompt Injection ↔ AML.T0051 so the test is
+      repeatable and reportable — a jailbreak isn't "it said a bad thing," it's a
+      named technique against a named rail.
+    docUrl: "https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/"
+  - id: q5-05
+    objectiveIds: [av-ai-garak]
+    type: single
+    stem: >-
+      A garak probe PASSES — the jailbreak gets through the gateway. Under the
+      four-step method, what is the correct next action?
+    options:
+      - "Delete the probe so the report stays clean"
+      - "Record it as the finding against its OWASP LLM / ATLAS id and name the specific NeMo rail that should have caught it"
+      - "Conclude the whole gateway is worthless and remove it"
+      - "Re-run until the probe happens to be blocked, then report a pass"
+    answer: [1]
+    explanation: >-
+      Where a probe passes (gets through), that IS the finding: record it against the
+      OWASP/ATLAS id and note the missing rail. Naming the rail that should have
+      caught it turns a vague "it jailbroke" into an actionable, remediable gap.
+    docUrl: "https://atlas.mitre.org/"
+  - id: q5-06
+    objectiveIds: [av-ai-garak]
+    type: single
+    stem: >-
+      When reporting the NeMo guardrail's effectiveness, why is the migrated
+      "garak against undefended Ollama" run kept as a baseline?
+    options:
+      - "Because the undefended run is the only trustworthy result"
+      - "Because it measures the delta the guardrail adds — undefended vs. NeMo-fronted — so the rail's value is quantified, not asserted"
+      - "Because you should always ship models with no guardrail"
+      - "Because garak cannot run against a guarded model"
+    answer: [1]
+    explanation: >-
+      The undefended-Ollama baseline is the control group: comparing it to the
+      NeMo-fronted gateway makes the guardrail's effect measurable rather than a
+      claim. That prior run is executed evidence; anything you haven't run yourself is
+      labeled directions.
+    docUrl: "https://github.com/NVIDIA/garak"
+  - id: q5-07
+    objectiveIds: [av-ai-pyrit]
+    type: single
+    stem: >-
+      garak fires dozens of single-shot probes automatically. What does PyRIT add
+      that garak's probe library does not cover?
+    options:
+      - "It blocks attacks inline like an IPS"
+      - "Multi-turn attack orchestration and scorers — scripted, stateful attacks that build across a conversation"
+      - "It replaces the need for any guardrail"
+      - "It only tests the HTTP surface, not the model"
+    answer: [1]
+    explanation: >-
+      PyRIT is Microsoft's automated risk-identification toolkit: multi-turn
+      orchestration and scorers let you script attacks that develop over several
+      turns — a different class from garak's automated single-probe sweep. Use both.
+    docUrl: "https://github.com/Azure/PyRIT"
+  - id: q5-08
+    objectiveIds: [av-ai-pyrit, av-ai-garak]
+    type: single
+    stem: >-
+      Why red-team the gateway with BOTH Burp/PortSwigger and garak — what does each
+      find that the other misses?
+    options:
+      - "They find the same bugs; running both is redundant"
+      - "Burp tests the HTTP surface (auth, IDOR on the API in front of the model); garak tests the model itself (jailbreak, injection, leakage) — different bug classes"
+      - "Burp tests the model and garak tests the network"
+      - "Only garak matters; the HTTP layer is out of scope"
+    answer: [1]
+    explanation: >-
+      The web layer and the model are distinct attack surfaces. Burp finds
+      auth/IDOR bugs on the API fronting the model; garak finds prompt-injection,
+      jailbreak, and data-leakage bugs in the model's behavior. A bug in one is
+      invisible to the other.
+    docUrl: "https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/"
+  - id: q5-09
+    objectiveIds: [av-atomic]
+    type: single
+    stem: >-
+      You want a precise "did T1611 (escape to host) alert?" check against your
+      runtime detection stack. Which tool fits, and which detector should fire?
+    options:
+      - "Caldera; the Suricata scan signature"
+      - "Atomic Red Team (one technique, one command); Falco's container-drift/breakout rule (D3-CI Container Isolation)"
+      - "Stratus; the Wazuh auth-success correlation"
+      - "garak; the NeMo output rail"
+    answer: [1]
+    explanation: >-
+      Atomic Red Team runs one technique as one command — ideal for a precise
+      "did T1611 alert?" test. The container-breakout attempt should trip Falco's
+      drift/breakout rule (or Tetragon), implementing D3FEND D3-CI Container
+      Isolation. Suricata/Wazuh cover network/auth, not container escape.
+    docUrl: "https://github.com/redcanaryco/atomic-red-team"
+  - id: q5-10
+    objectiveIds: [av-atomic]
+    type: single
+    stem: >-
+      A technique needs root/--privileged to run. Under the domain's honesty & safety
+      rules, where do you fire it?
+    options:
+      - "On your daily-driver host so results are realistic"
+      - "In a disposable pod/VM you destroy afterward — never your daily driver — and record executed vs. directions"
+      - "Against a colleague's cluster for a second opinion"
+      - "Nowhere; privileged techniques can never be tested"
+    answer: [1]
+    explanation: >-
+      Privileged/root techniques run in a throwaway pod or VM that comes down after,
+      keeping the blast radius contained. Record what was executed vs. directions —
+      "T1611 fired, Falco did not alert — rule gap in X" is a good, publishable
+      result.
+    docUrl: "https://github.com/redcanaryco/atomic-red-team"
+  - id: q5-11
+    objectiveIds: [av-caldera-stratus]
+    type: single
+    stem: >-
+      You need to exercise a multi-step adversary operation (a chain of abilities)
+      to test whether your detection covers a whole attack path, not one atom. Which
+      tool is designed for that?
+    options:
+      - "Atomic Red Team, because atoms chain themselves"
+      - "Caldera — autonomous adversary emulation that runs multi-step ability chains"
+      - "garak, via its probe sequencing"
+      - "kube-bench, via its scored checks"
+    answer: [1]
+    explanation: >-
+      Caldera does autonomous adversary emulation: multi-step operations that chain
+      abilities, giving ability-to-alert coverage across a path. Atomic Red Team is
+      the single-technique precision tool; Caldera is the chained-operation tool.
+    docUrl: "https://github.com/mitre/caldera"
+  - id: q5-12
+    objectiveIds: [av-caldera-stratus]
+    type: single
+    stem: >-
+      You want to exercise cloud/k8s-native TTPs against your detection stack, but
+      you have no cloud account and no cloud bill to spend. Which tool solves this?
+    options:
+      - "Caldera, by emulating a cloud provider"
+      - "Stratus Red Team — cloud-native TTPs as local detonations (`stratus detonate`), so cloud techniques run without a cloud account"
+      - "Atomic Red Team, which only covers Windows"
+      - "Suricata in IPS mode"
+    answer: [1]
+    explanation: >-
+      Stratus Red Team detonates cloud-native TTPs locally, specifically so you can
+      exercise cloud/k8s technique coverage without a cloud account or bill. Atomic
+      is per-technique atoms; Caldera is chained emulation; Stratus is the cloud-TTP
+      detonator.
+    docUrl: "https://github.com/DataDog/stratus-red-team"
+  - id: q5-13
+    objectiveIds: [av-caldera-stratus, av-atomic]
+    type: single
+    stem: >-
+      You fire an ATT&CK technique and NOTHING alerts in Falco, Suricata, or Wazuh.
+      Walk the correct next steps.
+    options:
+      - "Assume the tool misfired and move on"
+      - "Treat the silence as the finding: document the coverage gap, write the Sigma/Falco rule that closes it, then re-fire to confirm the new rule catches it"
+      - "Lower the detection thresholds until something fires"
+      - "Delete the technique from your test set"
+    answer: [1]
+    explanation: >-
+      No alert = the finding. Document the coverage gap, optionally author the
+      Sigma/Falco rule that closes it, then re-fire to prove the rule now catches the
+      technique. This is continuous validation — Detect/Respond exercised, not
+      assumed.
+    docUrl: "https://d3fend.mitre.org/"
+  - id: q5-14
+    objectiveIds: [av-ztna-authz]
+    type: single
+    stem: >-
+      ZTNA validation differs from every other domain's testing. What is the property
+      you are actually proving, and why does it need a negative test?
+    options:
+      - "That the broker is fast — measured by a load test"
+      - "That the control REFUSES what it should — an over-granted policy silently over-permits without crashing, so only attempting unauthorized access surfaces it"
+      - "That the broker allows all authenticated users in"
+      - "That the network route to the host is always open"
+    answer: [1]
+    explanation: >-
+      Every other domain proves a control does something; ZTNA proves a control
+      refuses something. The dangerous failure — an over-broad Boundary role, a
+      wrong-domain Pomerium policy, a bidirectional NetBird rule — doesn't crash, it
+      quietly over-grants. Only the negative test (attempt access you shouldn't have)
+      catches it.
+    docUrl: "https://csrc.nist.gov/pubs/sp/800/207/final"
+  - id: q5-15
+    objectiveIds: [av-ztna-authz]
+    type: single
+    stem: >-
+      Testing the OpenZiti model, from an un-enrolled machine you try to dial the
+      service and port-scan the underlay. What result proves the model holds?
+    options:
+      - "The dial succeeds but is logged for review"
+      - "The dial is refused and the underlay shows no listening port — there is nothing to hit without a valid enrolled identity"
+      - "The port scan finds an open port you then authenticate to"
+      - "The service responds with a 200 to prove availability"
+    answer: [1]
+    explanation: >-
+      OpenZiti's proof is a refused dial from an un-enrolled identity AND an underlay
+      with no listening port — the service is dark to anything without a valid
+      `#client` identity. Mesh reachability is never standing network access.
+    docUrl: "https://csrc.nist.gov/pubs/sp/800/207/final"
+  - id: q5-16
+    objectiveIds: [av-ztna-authz]
+    type: single
+    stem: >-
+      Against the Pomerium model you reach the route unauthenticated, then as a valid
+      user OUTSIDE the policy domain, then try to reach `internal-app` directly. What
+      is the expected sequence of results?
+    options:
+      - "200, 200, 200 — Pomerium logs but allows"
+      - "302→IdP (unauthenticated), then 403 (authenticated but out of policy), and no direct ingress to the app at all"
+      - "403, 302, 200"
+      - "The app answers directly because it has its own ingress"
+    answer: [1]
+    explanation: >-
+      Unauthenticated access is redirected to the IdP (302); a valid user outside the
+      policy domain is authenticated but denied (403) — authentication is not
+      authorization; and `internal-app` has no ingress of its own, so the broker is
+      the only path. That's the PEP enforcing per-request.
+    docUrl: "https://csrc.nist.gov/pubs/sp/800/207/final"
+  - id: q5-17
+    objectiveIds: [av-ztna-authz]
+    type: single
+    stem: >-
+      You want a Boundary session-denied event to be observable, closing the
+      attack→deny→alert loop the way NIST 800-207 and CISA ZTMM intend. How?
+    options:
+      - "Nothing — a denial is self-evident and needs no logging"
+      - "Feed the broker's denial log into the Domain 4 Wazuh SIEM so the refusal is detected and alertable"
+      - "Disable logging so denials don't create noise"
+      - "Route the denial to Prometheus as a metric only"
+    answer: [1]
+    explanation: >-
+      Confirming the denial is step 4; making it observable closes the loop —
+      forward the broker's session-denied event to Wazuh (D4) so attack → deny →
+      alert is a detected chain. "Continually verify" (CISA ZTMM) means the refusal
+      is not just enforced but seen.
+    docUrl: "https://www.cisa.gov/zero-trust-maturity-model"
+  - id: q5-18
+    objectiveIds: [av-atomic, pt-method]
+    type: single
+    stem: >-
+      Why does the domain insist you NAME the exact ATT&CK technique and its D3FEND
+      countermeasure for each infra test, rather than just "running an attack"?
+    options:
+      - "To make the report longer"
+      - "Because naming the technique makes the test repeatable and maps offense to the exact defensive countermeasure (ATT&CK ↔ D3FEND), producing a legible, re-runnable coverage claim"
+      - "Because ATT&CK ids are required by law"
+      - "Because unnamed attacks are automatically blocked"
+    answer: [1]
+    explanation: >-
+      Naming the technique (step 2) is what turns a one-off into a repeatable test
+      and lets you pair it with the precise D3FEND countermeasure that should catch
+      it. The offense↔defense mapping (ATT&CK ↔ D3FEND) is the legible evidence a
+      hiring manager and a re-run both need.
+    docUrl: "https://d3fend.mitre.org/"
+  - id: q5-19
+    objectiveIds: [av-ai-pyrit]
+    type: single
+    stem: >-
+      Under the AI RMF governance frame, which two functions does the AI red-teaming
+      track exercise?
+    options:
+      - "Govern and Map only"
+      - "Measure (you are measuring the guardrail's risk) and Manage (you remediate the gaps you find)"
+      - "Detect and Respond"
+      - "Identify and Recover"
+    answer: [1]
+    explanation: >-
+      NIST AI RMF Measure = quantifying the risk (running garak/PyRIT and recording
+      pass/fail against OWASP-LLM/ATLAS ids); Manage = remediating the gaps (adding
+      the missing rail). The track is literally those two functions in practice.
+    docUrl: "https://www.nist.gov/itl/ai-risk-management-framework"
