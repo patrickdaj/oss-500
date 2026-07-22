@@ -19,28 +19,55 @@ Attack the **exact LLM gateway** Domain 3 built (Ollama behind NeMo Guardrails +
 
 > **Local only.** Point every tool at `http://localhost:<gateway-port>` — never a hosted model API.
 
-## Steps
+## Challenge
+Attack the **exact LLM gateway** Domain 3 built — Ollama fronted by NeMo Guardrails + OPA (`d3-ai`) — with garak and PyRIT, then map every finding to **OWASP LLM Top 10 + MITRE ATLAS**.
+
+The **expected control response**: a garak probe (jailbreak/DAN-style, prompt injection, training-data leak) that gets through an **undefended** Ollama should be **blocked or narrowed** once the identical probe hits the **guardrailed** gateway — the rails earn their keep by measurably shrinking the attack surface. A PyRIT multi-turn orchestrator should surface system-prompt disclosure that single-shot garak misses (or confirm the rails hold under escalation). The gateway's **HTTP** surface (auth, IDOR on session/conversation ids) needs its own pass — a perfectly guarded model sitting behind an unguarded API is still broken.
+
+Where a probe **passes** the guardrail, that is the finding: name the OWASP-LLM id and ATLAS technique and write it up honestly instead of papering over the gap. No tooling commands or probe lists here — you pick and fire them yourself in the next section.
+
+## Build it (guided)
 
 ### Part A — baseline the undefended model (`av-ai-garak`)
-Run garak against **Ollama directly** (no guardrail) to establish what an unprotected model leaks — this reuses the real garak-vs-Ollama evidence migrated from `modern-security-lab`:
-```bash
-pipx run garak --model_type rest -G localhost-ollama.json --probes dan,promptinject,leakreplay
-```
-Record which probes **pass** (get through). That's your baseline attack surface.
+Point garak at **Ollama directly** (no guardrail) to establish what an unprotected model leaks. **Your turn**: pick a small set of garak probes that together cover a jailbreak/DAN-style probe, a prompt-injection probe, and a training-data-leak probe — check garak's probe catalog (`garak --list_probes`) rather than guessing names — and fire them at the raw endpoint. Record which probes **pass** (get through). That's your baseline attack surface. (This baseline can reuse the garak-vs-Ollama evidence migrated from `modern-security-lab`; if you run it yourself instead, label it *executed*.)
 
-### Part B — fire the same probes at the guardrailed gateway
-Re-point garak at the **NeMo-fronted** endpoint and re-run the identical probes. For each result:
-1. **Name** the OWASP-LLM id + ATLAS technique (e.g. a DAN pass = `LLM01` ↔ `AML.T0051`).
-2. Compare defended vs. baseline — the delta is what the guardrail bought you.
+### Part B — fire the identical probes at the guardrailed gateway
+Re-point garak at the **NeMo-fronted** gateway and re-run the **same** probe set you chose in Part A — same probes, same order, so the comparison is apples-to-apples. For each result:
+1. **Name** the OWASP-LLM id + ATLAS technique yourself (e.g. a DAN-style pass is a prompt-injection/jailbreak technique — work the exact ids out from the OWASP LLM Top 10 and the ATLAS matrix rather than guessing).
+2. Compare defended vs. baseline — the delta is what the guardrail bought you. Where the delta is zero (a probe still passes), that's a gap to write up, not hide.
 
 ### Part C — multi-turn + web surface (`av-ai-pyrit`)
-- **PyRIT**: script a multi-turn orchestrator that escalates toward system-prompt disclosure (`LLM02` ↔ `AML.T0057`). Multi-turn finds what single-shot garak misses.
-- **Burp/PortSwigger**: test the gateway's **HTTP** surface — auth on the API, IDOR on any conversation/session id. The model can be perfectly guarded while the API in front of it isn't.
+- **PyRIT**: script a multi-turn orchestrator that escalates toward system-prompt disclosure. Multi-turn finds what single-shot garak misses — design your own escalation path (start benign, layer social-engineering/role-play turns across multiple calls, and watch for the rails to hold or slip). Name the OWASP-LLM id + ATLAS technique for whatever you find.
+- **Burp/PortSwigger**: test the gateway's **HTTP** surface yourself — auth on the API, IDOR on any conversation/session id. The model can be perfectly guarded while the API in front of it isn't.
 
 ## Verification
 - Each garak probe that the gateway **defends** is reported as such; each that **passes** is logged against its OWASP/ATLAS id with a reproduction.
 - The defended-vs-baseline table shows the rails measurably reducing successful probes.
 - Any gap (a probe that passes the guardrail) is written up with the missing rail named — **not** hidden.
+
+## Reference solution
+Build it yourself first; check after.
+
+**Tooling.** Install garak + PyRIT from [`../lab-infra/offense/`](../lab-infra/offense/) (`./up.sh` — isolated venv, refuses any non-local `TARGET_HOST`):
+```bash
+# Part A — baseline against raw Ollama (no guardrail)
+pipx run garak --model_type rest -G localhost-ollama.json --probes dan,promptinject,leakreplay
+
+# Part B — identical probes against the NeMo-fronted gateway
+pipx run garak --model_type rest -G <gateway-config>.json --probes dan,promptinject,leakreplay
+```
+The baseline row can reuse the garak-vs-Ollama evidence migrated from `modern-security-lab`; the guardrailed row is what you run yourself against `d3-ai`.
+
+**Attack ↔ technique map** (OWASP LLM Top 10 ↔ MITRE ATLAS), from the Standards line above:
+
+| Probe / attack | OWASP LLM Top 10 | ATLAS technique |
+|---|---|---|
+| garak `dan` (jailbreak pass) | LLM01 — Prompt Injection | AML.T0051 |
+| garak `promptinject` | LLM01 — Prompt Injection | AML.T0051 |
+| garak `leakreplay` (training-data leak) | LLM06 — Sensitive Information Disclosure | AML.T0053 |
+| PyRIT multi-turn → system-prompt disclosure | LLM02 ↔ sensitive/system-prompt disclosure | AML.T0057 |
+
+Defensive counterpart for every row above: the NeMo rails + OPA policy built in `d3-ai`.
 
 ## Teardown
 ```bash

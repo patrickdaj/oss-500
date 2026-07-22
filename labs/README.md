@@ -6,6 +6,17 @@ Types: **hands-on** = you perform it on the local kind cluster / Compose stack �
 
 Lab environments live in [`lab-infra/`](../lab-infra/); each has an `up.sh`/`down.sh` and its own README.
 
+## How labs teach — *challenge → guided build → verify → reference solution*
+
+The learning is in the building, not in reading a finished answer. Every lab follows the same four-part shape so you produce the artifact yourself before you ever see a full solution:
+
+1. **Challenge** — what you must achieve and the **observable to reach** (a denied request, a fired rule, a refused token). No solution here.
+2. **Build it (guided)** — hints, checkpoints, partial scaffolding, and explicit *your turn* prompts that keep the strong "why" explanations but **withhold the finished artifact**. You write the manifest / policy / command / query / attack.
+3. **Verification** — the prove-it observable, unchanged: a lab isn't done until the control provably denies, alerts, blocks, or refuses.
+4. **Reference solution** — the complete, correct solution, marked **"build it first, check after"** — either inline at the end of the lab, or a pointer to the [`lab-infra/`](../lab-infra/) component where the deployable artifact lives. Nothing is ever deleted; the solution is *relocated*, not handed over up front.
+
+The **`d6-*` labs are the exemplar** of this pattern — read [d6-tools-mcp](d6-tools-mcp.md) to see a guided build with its reference solution in [`../lab-infra/agentic/`](../lab-infra/agentic/). New labs inherit this shape.
+
 ## Domain 1 — Identity, access, governance (20–25%)
 
 | Subsection (tracker id) | Lab | Type | OSS components |

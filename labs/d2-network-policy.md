@@ -21,7 +21,19 @@ Watch one pod reach another, cut it off with a default-deny NetworkPolicy, then 
 
 > **CNI note:** NetworkPolicy is only *enforced* if the CNI implements it. kind's built-in `kindnet` ignores policies (they apply but nothing blocks). The `network` component installs **Calico** so default-deny actually denies — the single most common "my NetworkPolicy did nothing" gotcha.
 
-## Steps
+## Challenge
+
+**Part A — segmentation (`net-policy`).** `oss500-apps` starts allow-all: any pod can reach any pod. Cut that off with a namespace-wide default-deny NetworkPolicy, then reopen exactly one path so only the intended client reaches `web` — every other client stays denied.
+- Observable: `wget http://web` from `client-allowed` succeeds with no policy in place, **times out** once a default-deny ingress policy exists, then **succeeds again** once you add a targeted allow — while `client-denied` keeps timing out throughout.
+
+**Part B — identity-aware mesh (`net-mesh`).** Layer a service mesh over the segmented namespace so authorization is based on cryptographic workload identity, not IP/label, and every hop is encrypted.
+- Observable: a call carrying the allowed SPIFFE principal returns **200**; a call from any other identity gets Envoy's **"RBAC: access denied"**; `istioctl x describe` reports **`mTLS: STRICT`** for the workload.
+
+**Part C — perimeter firewall (`net-firewall`) *(walkthrough)*.** Reason through how a perimeter firewall governs north-south traffic at the network edge — complementary to, not a substitute for, the east-west controls in Parts A/B. Impractical to run fully on a laptop; studied at the same depth.
+
+No solutions below — design and write the policies yourself, prove each observable, then check your work against the Reference solution.
+
+## Build it (guided)
 
 ### Part A — Default-deny then targeted allow (`net-policy`)
 
@@ -37,42 +49,17 @@ Watch one pod reach another, cut it off with a default-deny NetworkPolicy, then 
    kubectl -n oss500-apps exec client-allowed -- wget -qO- --timeout=3 http://web    # -> nginx welcome HTML
    kubectl -n oss500-apps exec client-denied  -- wget -qO- --timeout=3 http://web    # -> also works (!)
    ```
-3. Apply a **default-deny ingress** policy for the namespace — an empty `podSelector` selects every pod, and with no `ingress` rules, all inbound east-west traffic is dropped:
-   ```yaml
-   # deny-all.yaml
-   apiVersion: networking.k8s.io/v1
-   kind: NetworkPolicy
-   metadata: { name: default-deny-ingress, namespace: oss500-apps, labels: { app.kubernetes.io/part-of: oss500 } }
-   spec:
-     podSelector: {}                 # net-policy: selects ALL pods in the namespace
-     policyTypes: ["Ingress"]        # no ingress rules below => deny all inbound
-   ```
-   ```bash
-   kubectl apply -f deny-all.yaml
-   ```
+3. **Write a default-deny ingress policy — your turn.** Goal: block all inbound east-west traffic to every pod in the namespace, the zero-trust starting point where nothing talks until you explicitly allow it.
+   - Hint: an empty `podSelector: {}` selects *every* pod; declaring `policyTypes: ["Ingress"]` with **no** `ingress` rules underneath denies all inbound.
+   - Your turn: write a `NetworkPolicy` named `default-deny-ingress` in `oss500-apps` (label it `app.kubernetes.io/part-of: oss500`) and `kubectl apply -f` it.
 4. **Prove it's cut off** — the request now hangs and **times out** (dropped, not refused):
    ```bash
    kubectl -n oss500-apps exec client-allowed -- wget -qO- --timeout=3 http://web
    # wget: download timed out        <- the control is working
    ```
-5. Re-open **exactly one path**: allow ingress to `app=web` only from pods labelled `role=frontend`:
-   ```yaml
-   # allow-frontend.yaml
-   apiVersion: networking.k8s.io/v1
-   kind: NetworkPolicy
-   metadata: { name: allow-frontend-to-web, namespace: oss500-apps, labels: { app.kubernetes.io/part-of: oss500 } }
-   spec:
-     podSelector: { matchLabels: { app: web } }        # target: the web pod
-     policyTypes: ["Ingress"]
-     ingress:
-       - from:
-           - podSelector: { matchLabels: { role: frontend } }   # net-policy: only frontend may reach it
-         ports:
-           - { protocol: TCP, port: 80 }
-   ```
-   ```bash
-   kubectl apply -f allow-frontend.yaml
-   ```
+5. **Reopen exactly one path — your turn.** Goal: allow ingress to `app=web` only from pods labelled `role=frontend`; every other client stays denied.
+   - Hint: the policy's `podSelector` targets `app: web`; the allowed source goes in an `ingress[].from[].podSelector` matching `role: frontend`; scope `ports` to TCP 80.
+   - Your turn: write a second `NetworkPolicy` named `allow-frontend-to-web` and apply it.
 6. **Prove least-privilege segmentation** — only the intended client gets through; the other is still denied:
    ```bash
    kubectl -n oss500-apps exec client-allowed -- wget -qO- --timeout=3 http://web   # -> nginx HTML  (allowed)
@@ -89,40 +76,12 @@ NetworkPolicy filters by label/IP; a **service mesh** adds cryptographic **workl
    kubectl label namespace oss500-apps istio-injection=enabled --overwrite
    kubectl -n oss500-apps rollout restart deploy    # pods come back with an Envoy sidecar (2/2)
    ```
-8. Enforce **STRICT mTLS** — plaintext is now rejected mesh-wide; every call must present a mesh-issued SPIFFE identity cert:
-   ```yaml
-   # strict-mtls.yaml
-   apiVersion: security.istio.io/v1
-   kind: PeerAuthentication
-   metadata: { name: default, namespace: oss500-apps }
-   spec:
-     mtls: { mode: STRICT }        # net-mesh: reject non-mTLS traffic
-   ```
-   ```bash
-   kubectl apply -f strict-mtls.yaml
-   ```
-9. Add a **default-deny AuthorizationPolicy**, then allow one identity — authorization by *service account principal*, not IP:
-   ```yaml
-   # authz.yaml
-   apiVersion: security.istio.io/v1
-   kind: AuthorizationPolicy
-   metadata: { name: deny-all, namespace: oss500-apps }
-   spec: {}                         # empty spec = deny-all in the namespace
-   ---
-   apiVersion: security.istio.io/v1
-   kind: AuthorizationPolicy
-   metadata: { name: allow-frontend, namespace: oss500-apps }
-   spec:
-     selector: { matchLabels: { app: web } }
-     action: ALLOW
-     rules:
-       - from:
-           - source:
-               principals: ["cluster.local/ns/oss500-apps/sa/frontend-sa"]   # identity-aware allow
-   ```
-   ```bash
-   kubectl apply -f authz.yaml
-   ```
+8. **Enforce STRICT mTLS — your turn.** Goal: reject plaintext mesh-wide; every call must present a mesh-issued SPIFFE identity cert.
+   - Hint: a `PeerAuthentication` named `default` in the namespace, with `spec.mtls.mode: STRICT`.
+   - Your turn: write `strict-mtls.yaml` and apply it.
+9. **Add identity-based authorization — your turn.** Goal: default-deny the namespace via `AuthorizationPolicy`, then allow exactly one identity — authorization by *service account principal*, not IP.
+   - Hint: an empty-spec `AuthorizationPolicy` selecting the workload denies everything for it; the companion allow policy scopes `selector.matchLabels.app: web`, sets `action: ALLOW`, and restricts `rules[].from[].source.principals` to a single principal, `cluster.local/ns/oss500-apps/sa/frontend-sa`.
+   - Your turn: write both policies (e.g. `deny-all` + `allow-frontend`) and apply them.
 10. **Prove it**:
     - A call from the `frontend-sa` workload → **200**.
     - A call from any other identity → **RBAC: access denied** (Envoy 403), even from inside the namespace.
@@ -159,6 +118,85 @@ NetworkPolicy filters by label/IP; a **service mesh** adds cryptographic **workl
 
 - **Before/after segmentation**: `wget http://web` from `client-allowed` **succeeds** with no policy, **times out** after `default-deny-ingress`, then **succeeds again** once `allow-frontend-to-web` is applied — while `client-denied` still times out. The observable is a request that goes from working → dropped → selectively re-allowed.
 - **Mesh**: a call carrying the allowed SPIFFE principal returns 200; a call from any other identity returns Envoy's "RBAC: access denied"; `istioctl x describe` reports `mTLS: STRICT` — proving identity- and encryption-based east-west control beyond IP filtering.
+
+## Reference solution
+
+Build it yourself first; check after.
+
+### Part A — NetworkPolicy (`net-policy`)
+
+Apply a **default-deny ingress** policy for the namespace — an empty `podSelector` selects every pod, and with no `ingress` rules, all inbound east-west traffic is dropped:
+```yaml
+# deny-all.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: default-deny-ingress, namespace: oss500-apps, labels: { app.kubernetes.io/part-of: oss500 } }
+spec:
+  podSelector: {}                 # net-policy: selects ALL pods in the namespace
+  policyTypes: ["Ingress"]        # no ingress rules below => deny all inbound
+```
+```bash
+kubectl apply -f deny-all.yaml
+```
+
+Re-open **exactly one path**: allow ingress to `app=web` only from pods labelled `role=frontend`:
+```yaml
+# allow-frontend.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-frontend-to-web, namespace: oss500-apps, labels: { app.kubernetes.io/part-of: oss500 } }
+spec:
+  podSelector: { matchLabels: { app: web } }        # target: the web pod
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { role: frontend } }   # net-policy: only frontend may reach it
+      ports:
+        - { protocol: TCP, port: 80 }
+```
+```bash
+kubectl apply -f allow-frontend.yaml
+```
+
+### Part B — service mesh mTLS + authorization (`net-mesh`)
+
+Enforce **STRICT mTLS** — plaintext is now rejected mesh-wide; every call must present a mesh-issued SPIFFE identity cert:
+```yaml
+# strict-mtls.yaml
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: default, namespace: oss500-apps }
+spec:
+  mtls: { mode: STRICT }        # net-mesh: reject non-mTLS traffic
+```
+```bash
+kubectl apply -f strict-mtls.yaml
+```
+
+Add a **default-deny AuthorizationPolicy**, then allow one identity — authorization by *service account principal*, not IP:
+```yaml
+# authz.yaml
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: deny-all, namespace: oss500-apps }
+spec: {}                         # empty spec = deny-all in the namespace
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-frontend, namespace: oss500-apps }
+spec:
+  selector: { matchLabels: { app: web } }
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/oss500-apps/sa/frontend-sa"]   # identity-aware allow
+```
+```bash
+kubectl apply -f authz.yaml
+```
+
+If your "default-deny" NetworkPolicy leaves an `ingress` key present (even empty) instead of omitting it, double-check behavior against your CNI — the absence of the ingress rules list is what denies all. If the AuthorizationPolicy allow rule checks `namespaces` instead of `principals`, any pod in the namespace bypasses the identity check — key the allow on the SPIFFE principal, not location.
 
 ## Teardown
 

@@ -18,22 +18,34 @@ Build a device-level encrypted **WireGuard mesh** with a **self-hosted control p
 
 > **Directions-first.** Build the Terraform yourself from the steps below. A CI-validated **reference solution** lives in [`../lab-infra/ztna-netbird/`](../lab-infra/ztna-netbird/); use it to check your work, not to copy.
 
-## Steps — build it yourself
+## Challenge
+
+Build a self-hosted NetBird control plane and author the Terraform that turns it into a real ZTNA mesh: two identity groups (`admins`, `servers`), one enrollment key per group, and exactly one ACL policy — such that joining the mesh grants a peer **no reach at all** until a policy says otherwise.
+
+Reach these observables:
+- The admin peer can SSH the server peer (tcp/22) — nothing else is open between them.
+- The server peer **cannot** initiate anything back to the admin peer — the policy is one-directional.
+- A third peer enrolled into **neither** group can reach nothing, even though it's on the same encrypted mesh.
+
+No solution below — that's in **Reference solution**, after Verification.
+
+## Build it (guided)
 
 ### Part A — stand up the control plane
-Bring up NetBird self-hosted (control plane + Zitadel IdP) via its docker-compose quickstart. Create a service-user PAT → `terraform.tfvars`. This is the **self-hostable** control plane that makes NetBird $0/local (unlike Tailscale's SaaS).
+Bring up NetBird self-hosted (control plane + Zitadel IdP) via its docker-compose quickstart, then create a service-user PAT and drop it into `terraform.tfvars`. This is the **self-hostable** control plane that makes NetBird $0/local (unlike Tailscale's SaaS) — no cloud account, no seat licence.
+
+**Your turn**: get the compose stack healthy and mint the PAT before touching Terraform — everything in Part B depends on a reachable `management_url` and a valid token.
 
 ### Part B — groups, keys, and the ACL (`ztna-netbird`)
-Author Terraform (`netbirdio/netbird` provider) that creates:
-1. Two `netbird_group`s: `admins` and `servers` — identity buckets, not subnets.
-2. Two reusable `netbird_setup_key`s with `auto_groups` pinning each device to its group at enrollment (`admin-laptops` → admins, `server-fleet` → servers).
-3. One `netbird_policy` with a rule: `sources = [admins]`, `destinations = [servers]`, `protocol = "tcp"`, `ports = ["22"]`, `bidirectional = false`. Everything not allowed is denied.
+Author Terraform (`netbirdio/netbird` provider) that builds the ACL from three ingredients — work out the resources and the wiring yourself:
 
-`terraform fmt`, `init`, `apply`. Enroll each peer with its key:
-```bash
-netbird up --management-url $MGMT --setup-key $(terraform output -raw admin_setup_key)   # on the admin peer
-netbird up --management-url $MGMT --setup-key $(terraform output -raw server_setup_key)   # on the server peer
-```
+1. **Groups are identity buckets, not subnets.** Create two `netbird_group` resources. Name them so a policy can reference them by role (e.g. `admins`, `servers`), not by IP.
+2. **Setup keys enroll a device straight into its group.** Create two reusable `netbird_setup_key`s, one per group. Hint: the setup-key resource has an attribute that auto-assigns a peer to a group the moment it joins — find it in the `netbirdio/netbird` provider docs and use it so an admin laptop lands in `admins` and a server lands in `servers`, with no manual group-assignment step afterward.
+3. **One policy, one rule — default-deny for everything else.** Write a single `netbird_policy` whose rule sources from the admin group and destinations the server group. Your turn to decide: which protocol and port satisfy "SSH only," and which `bidirectional` setting stops the server group from ever initiating back to admins? Get either wrong and the Challenge observables won't hold — either access is too narrow to work, or you've accidentally allowed lateral reach.
+
+Run `terraform fmt`, `init`, `apply` once the policy is in place.
+
+Then enroll each peer with its own setup key — pull the key straight out of the Terraform output rather than pasting it by hand, and point each peer's `netbird up` at your `management_url`. One peer takes the admin key, the other takes the server key.
 
 ## Verification
 ```bash
@@ -47,6 +59,21 @@ ssh user@<admin-peer-netbird-ip>             # blocked
 - Both peers are on the same WireGuard mesh, yet reach is limited to exactly what the group ACL allows.
 - Add a third peer to **neither** group → it can reach nothing — mesh membership ≠ access.
 - Flip `bidirectional` or widen `ports` and re-apply to see the ACL change take effect — access is policy, versioned in code.
+
+## Reference solution
+Build it yourself first; check after. The CI-validated Terraform lives in [`../lab-infra/ztna-netbird/`](../lab-infra/ztna-netbird/):
+
+- [`main.tf`](../lab-infra/ztna-netbird/main.tf) — the two `netbird_group`s (`admins`, `servers`); the two reusable `netbird_setup_key`s (`admin-laptops`, `server-fleet`) with `auto_groups` pinning each device to its group at enrollment; and the single `netbird_policy` rule (`sources = [admins]`, `destinations = [servers]`, `protocol = "tcp"`, `ports = ["22"]`, `bidirectional = false`). Everything not allowed is denied.
+- [`up.sh`](../lab-infra/ztna-netbird/up.sh) / [`down.sh`](../lab-infra/ztna-netbird/down.sh) — `terraform init`/`apply`/`destroy` wrappers; `up.sh` prints the enrollment commands below after applying.
+- [`terraform.tfvars.example`](../lab-infra/ztna-netbird/terraform.tfvars.example) / [`variables.tf`](../lab-infra/ztna-netbird/variables.tf) — the `management_url`, `netbird_token`, `ssh_port` inputs.
+
+`terraform fmt`, `init`, `apply`. Enroll each peer with its key:
+```bash
+netbird up --management-url $MGMT --setup-key $(terraform output -raw admin_setup_key)   # on the admin peer
+netbird up --management-url $MGMT --setup-key $(terraform output -raw server_setup_key)   # on the server peer
+```
+
+If your policy allows both directions or opens more than port 22, tighten `bidirectional` and `ports` and re-apply — the mesh doesn't self-correct; the policy is the only thing enforcing least privilege.
 
 ## Teardown
 ```bash
