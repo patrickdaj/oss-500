@@ -2,6 +2,8 @@
 
 A complete, self-built **Cloud & AI Security** curriculum on a **100% open-source stack** — for **$0**, entirely on a local machine, with no cloud account and no expiring trials. It's **defense *and* offense, standards-grounded**: build each control, then prove it by attacking it.
 
+> ▶ **Browse it as an app: [patrickdaj.github.io/oss-500](https://patrickdaj.github.io/oss-500/)** — the hosted study UI (dashboard, plan, notes, labs, tracker, quizzes, search). Built from [`study-hub`](https://github.com/patrickdaj/study-hub) and auto-deployed from this repo.
+
 The **defensive anchor is Microsoft SC-500 (Cloud and AI Security Engineer Associate)** — every SC-500 control is mapped to an open-source equivalent and practiced as a hands-on lab you deploy, verify, and tear down. On top of that anchor the course expands *beyond* the exam into the two dimensions a modern cloud/AI security engineer needs: the full **zero-trust access-model** picture and a **purple-team** habit of validating every defense. The skills transfer across Azure, AWS, GCP, and on-prem — you learn the *concept* through a portable tool, not a vendor console. Beyond-blueprint material is marked as such, so the SC-500 path stays clear.
 
 > **This is a content-only course repo.** The study app is [`study-hub`](../study-hub) — a course-agnostic dashboard/notes/labs/tracker/quiz runner that ingests this repo as a git submodule. There is no `ui/` here by design.
