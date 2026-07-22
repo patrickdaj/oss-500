@@ -30,5 +30,5 @@
 ## 6. Verification
 
 - [x] 6.1 Coverage check: every `fab-*` id appears as a note heading, in the lab, and in a quiz question; `net-firewall` still present as walkthrough
-- [ ] 6.2 study-hub: bump the `content/oss-500` submodule, run `npm run lint:content` + `npm test` green; confirm the fabric note/lab and `lab-infra/network/cilium/README.md` render
+- [x] 6.2 study-hub: bump the `content/oss-500` submodule, run `npm run lint:content` + `npm test` green; confirm the fabric note/lab and `lab-infra/network/cilium/README.md` render (done: submodule 3bd4590→128cefd; lint:content OK; 43/43 tests green after updating the content invariant 4→5 domains / 75→86 objectives; fabric note/lab + cilium README confirmed ingested and rendering; study-hub commit fd2dd29)
 - [x] 6.3 No dead links; secrets scan clean (no committed kubeconfigs/keys from Cilium)
