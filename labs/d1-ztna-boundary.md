@@ -11,7 +11,7 @@ Broker identity-based, per-session access to **one** private host — with Vault
 **SC-500 correspondence**: Microsoft Entra **Private Access** (Global Secure Access) + **PIM** — per-session, identity-gated access to a private resource with no standing network position. **Standards**: NIST SP 800-207 (PDP/PEP, per-session); the credential-injection step maps to ATT&CK **T1078 (Valid Accounts)** hardening.
 
 **Prerequisites**
-- Terraform ≥1.6; a local controller (`boundary dev`) and `vault server -dev` with the SSH secrets engine; a private SSH host the worker can reach.
+- Terraform ≥1.6; a local controller (`boundary dev`) and `vault server -dev` with the SSH secrets engine; a private SSH host the worker can reach. Stand up a throwaway target locally: `docker run -d --name ssh-target -e PASSWORD_ACCESS=true -e USER_NAME=labuser -e USER_PASSWORD=labpass -p 2222:22 lscr.io/linuxserver/openssh-server` — its address/port (`host.docker.internal`/`localhost` and `2222`) are the target host address and port you set in `terraform.tfvars`.
 - Notes read: [`../domains/1-identity-governance/ztna-access-models.md`](../domains/1-identity-governance/ztna-access-models.md).
 
 **Estimated time**: 2–3 h · $0 (local)

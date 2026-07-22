@@ -12,7 +12,7 @@ Light (~1 GB) relative to the SIEM/observability stacks. If you want Suricata's 
 
 | File | Purpose | Objective |
 |---|---|---|
-| `up.sh` / `down.sh` | `docker compose -p oss500` up/down | — |
+| `up.sh` / `down.sh` | `docker compose -p oss500-netdet` up/down | — |
 | `docker-compose.yml` | `suricata` + `zeek` containers on the same traffic source | `nid-suricata`, `nid-zeek` |
 | `suricata/suricata.yaml` | Suricata config (AF-PACKET IDS; commented IPS/NFQUEUE alternative) | `nid-suricata` |
 | `suricata/rules/local.rules` | Custom detection signature (the rule you fire) | `nid-suricata` |
@@ -24,11 +24,11 @@ Light (~1 GB) relative to the SIEM/observability stacks. If you want Suricata's 
 ```bash
 ./up.sh
 # Update signatures + fire an alert:
-docker compose -p oss500 exec suricata suricata-update
-docker compose -p oss500 exec suricata suricata -r /pcaps/test.pcap -l /var/log/suricata
-docker compose -p oss500 exec suricata grep '"event_type":"alert"' /var/log/suricata/eve.json
+docker compose -p oss500-netdet exec suricata suricata-update
+docker compose -p oss500-netdet exec suricata suricata -r /pcaps/test.pcap -l /var/log/suricata
+docker compose -p oss500-netdet exec suricata grep '"event_type":"alert"' /var/log/suricata/eve.json
 # Behavioral logs:
-docker compose -p oss500 exec zeek ls /usr/local/zeek/logs/current/
+docker compose -p oss500-netdet exec zeek ls /usr/local/zeek/logs/current/
 ./down.sh
 ```
 

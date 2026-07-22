@@ -13,6 +13,7 @@ Prove a Kubernetes Secret sits in etcd as readable plaintext, turn on encryption
 
 **Prerequisites**
 
+- The shared **Phase 0 kind cluster** is up (reused by every lab) — check with `kind get clusters` (you should see `oss500`). If it isn't, create it once: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh`.
 - [`lab-infra/encryption`](../lab-infra/encryption/) up (`./up.sh`) — provides the `EncryptionConfiguration` and the kube-apiserver patch for the kind cluster.
 - Notes read: [data-protection.md](../domains/2-secrets-data-networking/data-protection.md).
 - `trivy` and `gitleaks` installed locally (the component README lists install commands), plus `docker`/`etcdctl` access to the kind node.
@@ -39,7 +40,7 @@ By default kind/kubeadm store Secrets in etcd **unencrypted** (only base64-encod
    ```bash
    kubectl -n oss500-apps create secret generic canary --from-literal=token=SUPERSECRET-PLAINTEXT-123
    ```
-2. **Read it straight out of etcd — BEFORE.** etcd runs as a static pod on the kind control-plane node; exec in and dump the raw key:
+2. **Read it straight out of etcd — BEFORE.** etcd runs as a static pod on the kind control-plane node; exec in and dump the raw key. (The node name `oss500-control-plane` below assumes the standard `oss500` kind cluster — if your control-plane container is named differently, check `kind get nodes --name oss500` and substitute it.)
    ```bash
    docker exec -it oss500-control-plane sh -c '
      ETCDCTL_API=3 etcdctl \

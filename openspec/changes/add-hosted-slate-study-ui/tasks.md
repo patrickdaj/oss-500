@@ -41,22 +41,22 @@ Keep study-hub's `npm test` and `npm run lint` green after each SH group.
 
 ## 6. Publish study-hub as a public repo (SH)
 
-- [ ] 6.1 Create public repo `patrickdaj/study-hub` via `gh repo create` and push `main` (verify `.gitmodules` local-path URLs are harmless to a public clone; CI does not use them)
-- [ ] 6.2 Add `.github/workflows/notify-oss500.yml`: on `push` to `main`, POST a `repository_dispatch` (`event_type: study-hub-updated`) to `patrickdaj/oss-500` using secret `OSS500_DISPATCH_TOKEN`
+- [x] 6.1 Create public repo `patrickdaj/study-hub` via `gh repo create` and push `main` (verify `.gitmodules` local-path URLs are harmless to a public clone; CI does not use them)
+- [x] 6.2 Add `.github/workflows/notify-oss500.yml`: on `push` to `main`, POST a `repository_dispatch` (`event_type: study-hub-updated`) to `patrickdaj/oss-500` using secret `OSS500_DISPATCH_TOKEN`
 - [ ] 6.3 Create a fine-scoped PAT (repository_dispatch on oss-500) and add it to study-hub as the `OSS500_DISPATCH_TOKEN` secret
 
 ## 7. oss-500 deploy pipeline (OSS)
 
-- [ ] 7.1 Add `.github/workflows/deploy-pages.yml`: triggers `push` (main), `workflow_dispatch`, `repository_dispatch` (types: [study-hub-updated]); Pages permissions + concurrency
-- [ ] 7.2 Job steps: `actions/checkout` study-hub (public) at root → `actions/checkout` oss-500 into `content/oss-500` → `actions/setup-node` (Node 22) → `npm ci` → `BASE_PATH=/oss-500/ npm run build`
-- [ ] 7.3 Deploy steps: `actions/upload-pages-artifact` (`dist/`) → `actions/deploy-pages`
-- [ ] 7.4 Remove `index.md` and `_config.yml` from oss-500 (retire the landing page)
-- [ ] 7.5 Push oss-500; in repo Settings → Pages, switch source to "GitHub Actions"; trigger the workflow (push or manual)
+- [x] 7.1 Add `.github/workflows/deploy-pages.yml`: triggers `push` (main), `workflow_dispatch`, `repository_dispatch` (types: [study-hub-updated]); Pages permissions + concurrency
+- [x] 7.2 Job steps: `actions/checkout` study-hub (public) at root → `actions/checkout` oss-500 into `content/oss-500` → `actions/setup-node` (Node 22) → `npm ci` → `BASE_PATH=/oss-500/ npm run build`
+- [x] 7.3 Deploy steps: `actions/upload-pages-artifact` (`dist/`) → `actions/deploy-pages`
+- [x] 7.4 Remove `index.md` and `_config.yml` from oss-500 (retire the landing page)
+- [x] 7.5 Push oss-500; in repo Settings → Pages, switch source to "GitHub Actions"; trigger the workflow (push or manual)
 
 ## 8. Verify & cross-link
 
-- [ ] 8.1 Confirm `https://patrickdaj.github.io/oss-500/` returns 200 and renders the Slate dashboard for oss-500 only
-- [ ] 8.2 On the hosted site: navigate Dashboard → Plan → Notes → Labs → Tracker → Tests → Search, and toggle light/dark; confirm all work
+- [x] 8.1 Confirm `https://patrickdaj.github.io/oss-500/` returns 200 and renders the Slate dashboard for oss-500 only
+- [x] 8.2 On the hosted site: navigate Dashboard → Plan → Notes → Labs → Tracker → Tests → Search, and toggle light/dark; confirm all work
 - [ ] 8.3 Verify the redeploy triggers: a trivial oss-500 content push rebuilds; a study-hub push fires the dispatch and rebuilds (or, if PAT skipped, document the manual-rebuild fallback)
-- [ ] 8.4 [OSS] Update the oss-500 README to link the hosted app; [cloud-native-security-lab] update the blog Welcome post + oss-500 links to point at the hosted app
-- [ ] 8.5 Run `openspec validate add-hosted-slate-study-ui` and confirm the change is ready to archive
+- [x] 8.4 [OSS] Update the oss-500 README to link the hosted app; [cloud-native-security-lab] update the blog Welcome post + oss-500 links to point at the hosted app
+- [x] 8.5 Run `openspec validate add-hosted-slate-study-ui` and confirm the change is ready to archive

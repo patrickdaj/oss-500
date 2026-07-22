@@ -18,7 +18,7 @@ sudo sysctl -w vm.max_map_count=262144      # add to /etc/sysctl.conf to persist
 
 | File | Purpose | Objective |
 |---|---|---|
-| `up.sh` / `down.sh` | `docker compose -p oss500` up/down (+ cert bootstrap) | `siem-deploy` |
+| `up.sh` / `down.sh` | `docker compose -p oss500-siem` up/down (+ cert bootstrap) | `siem-deploy` |
 | `.env.example` | Indexer/admin/API credential template → copy to `.env` (gitignored) | `siem-deploy` |
 | `docker-compose.yml` | wazuh.manager + wazuh.indexer + wazuh.dashboard (single-node) | `siem-deploy` |
 | `agent-compose.yml` | A Wazuh agent container to onboard/enroll | `siem-collect` |
@@ -31,10 +31,10 @@ sudo sysctl -w vm.max_map_count=262144      # add to /etc/sysctl.conf to persist
 
 ```bash
 cp .env.example .env          # set strong INDEXER_PASSWORD, API_PASSWORD, DASHBOARD creds
-./up.sh                       # generates certs, then docker compose -p oss500 up -d
+./up.sh                       # generates certs, then docker compose -p oss500-siem up -d
 # dashboard: https://localhost:5601  (self-signed; log in with your .env creds)
 # ...do labs/d4-siem-wazuh.md: onboard agent, Sigma->query, hunt with DSL, active response...
-./down.sh                     # docker compose -p oss500 down -v  (removes heavy volumes)
+./down.sh                     # docker compose -p oss500-siem down -v  (removes heavy volumes)
 ```
 
 ## Ports
@@ -49,7 +49,7 @@ cp .env.example .env          # set strong INDEXER_PASSWORD, API_PASSWORD, DASHB
 
 ## Secrets hygiene
 
-Only `.env.example` is committed; the real `.env` and generated `config/wazuh_indexer_ssl_certs/` are gitignored. **Change every default credential** — shipping Wazuh/OpenSearch defaults is a classic finding (`siem-deploy` hardening). All containers run under the `oss500` compose project; find them with `docker compose -p oss500 ps`.
+Only `.env.example` is committed; the real `.env` and generated `config/wazuh_indexer_ssl_certs/` are gitignored. **Change every default credential** — shipping Wazuh/OpenSearch defaults is a classic finding (`siem-deploy` hardening). All containers run under the `oss500-siem` compose project; find them with `docker compose -p oss500-siem ps`.
 
 ## Images
 

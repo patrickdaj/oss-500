@@ -63,7 +63,7 @@ resource "boundary_target" "ssh" {
   host_source_ids = [boundary_host_set_static.app.id]
 
   # Vault injects the SSH credential at connect time — the user never sees it. [credentials-vault.tf]
-  injected_application_credential_source_ids = [boundary_credential_library_vault_generic.ssh.id]
+  injected_application_credential_source_ids = [boundary_credential_library_vault.ssh.id]
 }
 
 # --- Authorization: least-privilege grant — this user may connect to this target only ---

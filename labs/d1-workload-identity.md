@@ -13,7 +13,7 @@ Prove a workload has an identity with **no stored secret** — a bound, audience
 **SC-500 correspondence**: Managed identities (`wi-sa`), Workload identity federation (`wi-oidc`), Managed identities for services / mesh identity (`wi-spiffe`).
 
 **Prerequisites**
-- Base kind cluster up: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh` (namespaces incl. `oss500-apps`). *No `identity`/`pam` component needed.*
+- The shared **Phase 0 kind cluster** is up (reused by every lab) — check with `kind get clusters` (you should see `oss500`). If it isn't, create it once: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh` (namespaces incl. `oss500-apps`). *No `identity`/`pam` component needed.*
 - Notes read: [workload-identity.md](../domains/1-identity-governance/workload-identity.md)
 - `jq` and a base64 decoder on the host to inspect tokens
 

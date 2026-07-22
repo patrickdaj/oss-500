@@ -27,6 +27,8 @@ Notes live in [`domains/5-offensive-validation/`](../domains/5-offensive-validat
 
 ## Day 4 — ZTNA authorization testing (prove least privilege denies)
 
+> **Prerequisite.** These attacks need the ZTNA brokers **already deployed and reachable** — they are built in [Phase 1 → Day 6, "ZTNA access brokers"](phase1-identity-governance.md). Re-stand-up the `lab-infra/ztna-*` broker(s) you're testing (Boundary+Vault, OpenZiti, Pomerium, NetBird) before firing; a broker that isn't up can't prove a deny.
+
 - [ ] **[2h] Read ZTNA authz notes** — [ztna-authz.md](../domains/5-offensive-validation/ztna-authz.md) (`av-ztna-authz`): the per-model negative tests (Boundary+Vault, OpenZiti, Pomerium, NetBird), why an over-granted policy is more dangerous than an outage, and why only the negative test surfaces it.
 - [ ] **[2.5h] Lab — attack each broker, confirm the deny** — [d5-ztna-authz](../labs/d5-ztna-authz.md) against the D1 `d1-ztna` brokers: attempt access you are not authorized for and reach the host directly, bypassing the broker. **Observable: access is *denied* and there is no standing network route — the dial refuses, the underlay shows no listening port, or the request 302→IdP then 403.**
 - [ ] **[1h] Close the loop into the SIEM** — wire a broker session-denied event into the D4 Wazuh SIEM so the refusal is not just enforced but *alertable* (attack → deny → alert). Tear down.

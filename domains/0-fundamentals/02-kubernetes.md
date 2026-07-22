@@ -28,6 +28,19 @@ kubectl auth can-i list secrets -n <ns> # RBAC check (previews Phase 1)
 kubectl get events -n <ns> --sort-by=.lastTimestamp
 ```
 
+## Hands-on: deploy, expose, scale (on your kind cluster)
+
+Run these against the `oss500` cluster from Phase 0 — no minikube, no separate cluster:
+
+```bash
+kubectl create deployment nginx --image=nginx
+kubectl expose deployment nginx --port=80 --type=NodePort
+kubectl scale deployment nginx --replicas=3
+kubectl get pods,svc
+```
+
+Watch the ReplicaSet bring up three pods, then `kubectl delete deployment,svc nginx` to clean up.
+
 ## ServiceAccounts and the token model
 
 Every pod runs as a **ServiceAccount** (the `default` SA if none is set). The API server projects a short-lived, audience-scoped token into the pod at `/var/run/secrets/kubernetes.io/serviceaccount/token`. That token *is* the workload's identity — the foundation of Kubernetes RBAC and of workload-identity federation (`wi-*`) where the cluster's OIDC issuer lets Vault or a cloud trust that token. Understand this now; Phase 1 builds directly on it.
@@ -47,6 +60,6 @@ Every pod runs as a **ServiceAccount** (the `default` SA if none is set). The AP
 
 ## Primary sources
 - [Kubernetes — Concepts: Overview](https://kubernetes.io/docs/concepts/overview/)
-- [Kubernetes Basics — interactive tutorial](https://kubernetes.io/docs/tutorials/kubernetes-basics/)
+- [Kubernetes Basics — interactive tutorial](https://kubernetes.io/docs/tutorials/kubernetes-basics/) — concepts / interactive only. It provisions its cluster with **minikube**, which this course never uses; do ALL hands-on on your `kind` cluster (see [Phase 0](../../plan/phase0-fundamentals.md)) using the commands below, not minikube.
 - [kubectl reference](https://kubernetes.io/docs/reference/kubectl/)
 - [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/)

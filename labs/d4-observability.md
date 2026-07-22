@@ -15,7 +15,7 @@ Stand up the open-source observability triad, then prove each signal fires: a Pr
 **SC-500 correspondence**: Azure Monitor Metrics (Prometheus), Log Analytics (Loki), Application Insights (Tempo/OpenTelemetry), Azure Monitor Workbooks (Grafana), Azure Monitor alerts + action groups (Alertmanager).
 
 **Prerequisites**
-- kind cluster up + [`lab-infra/shared`](../lab-infra/shared/) applied (`kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml && lab-infra/shared/up.sh`).
+- The shared **Phase 0 kind cluster** is up (`kind get clusters` shows `oss500`; if not: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml`) with [`lab-infra/shared`](../lab-infra/shared/) applied (`lab-infra/shared/up.sh`).
 - [`lab-infra/observability`](../lab-infra/observability/) up (`cd lab-infra/observability && cp grafana-admin.env.example grafana-admin.env && ./up.sh`).
 - Notes read: [observability.md](../domains/4-posture-monitoring/observability.md).
 

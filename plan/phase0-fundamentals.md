@@ -13,6 +13,12 @@ Set up the reference host and the cluster once here; every later phase reuses it
 
 ## Day 2 — Kubernetes primitives
 
+- [ ] **[0.5h] Stand up the kind cluster (do this first)** — you need a running cluster before you can deploy anything today. Create it once and reuse it for the whole course:
+  ```bash
+  kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml
+  lab-infra/shared/up.sh
+  ```
+  That's a 1 control-plane + 2 worker cluster; `up.sh` also creates the shared namespaces (including `oss500-apps`) and installs ingress-nginx. This is the single cluster every later phase reuses.
 - [ ] **[2h] Kubernetes model** — control plane vs nodes, the API server, declarative objects, `kubectl get/describe/apply`, namespaces, labels/selectors. Today's note — [domains/0-fundamentals/02-kubernetes.md](../domains/0-fundamentals/02-kubernetes.md) — backs all of Day 2 (model, workload objects, and the token model); read it alongside these blocks.
 - [ ] **[2h] Workload objects** — Pods, Deployments, ReplicaSets, Services, ConfigMaps, Secrets (and why a base64 Secret is *not* encrypted). Deploy nginx, expose it, scale it.
 - [ ] **[1.5h] ServiceAccounts and the token model** — every pod gets a ServiceAccount; projected tokens; this is the seed of workload identity (Phase 1).
@@ -21,7 +27,7 @@ Set up the reference host and the cluster once here; every later phase reuses it
 ## Day 3 — kind cluster, Helm, and the IaC loop
 
 - [ ] **[0.5h] git + Terraform foundation** — read [domains/0-fundamentals/05-git-iac-foundation.md](../domains/0-fundamentals/05-git-iac-foundation.md) *first*: the git snapshot model (working tree/index/repo, branches, remotes, GitOps) and Terraform's write→plan→apply loop with state + locking. It's the foundation under today's applied kind/Helm work, and every later lab is Terraform-automated — get the plumbing straight before it's in your way.
-- [ ] **[2h] Stand up the lab cluster** — follow [lab-infra/README.md](../lab-infra/README.md): create the kind cluster, install the ingress controller, apply the shared namespaces/labels. This cluster is your lab environment for the whole course. Today's note — [domains/0-fundamentals/03-kind-helm-iac.md](../domains/0-fundamentals/03-kind-helm-iac.md) — backs all of Day 3 (kind, Helm, and the deploy→verify→destroy loop); read it alongside these blocks.
+- [ ] **[2h] Know your lab cluster** — you already created the `oss500` cluster on Day 2, and `up.sh` installed the ingress controller and the shared namespaces/labels. Read [lab-infra/README.md](../lab-infra/README.md) to understand what that bootstrap did (ingress, namespaces including `oss500-apps`), confirm the cluster is up (`kind get clusters` shows `oss500`), and inspect it (`kubectl get ns`, `kubectl get pods -A`). Today's note — [domains/0-fundamentals/03-kind-helm-iac.md](../domains/0-fundamentals/03-kind-helm-iac.md) — backs all of Day 3 (kind, Helm, and the deploy→verify→destroy loop); read it alongside these blocks.
 - [ ] **[2h] Helm** — charts, values, releases, `helm install/upgrade/template`, and why `helm template` makes IaC reviewable. Install one chart (e.g. a demo app) and read its rendered manifests.
 - [ ] **[1.5h] The deploy → verify → destroy loop** — practice the discipline every lab uses: `up.sh` a component, check it's healthy, `down.sh` it, confirm no leftovers (`kubectl get all -A`, `docker ps`).
 - [ ] **[1h] Consolidate + self-check** — finish [03-kind-helm-iac.md](../domains/0-fundamentals/03-kind-helm-iac.md); prove you can install and uninstall a Helm chart with nothing left behind.

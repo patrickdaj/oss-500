@@ -19,13 +19,15 @@ Stand up an OIDC identity provider, model a realm, and prove MFA and app identit
 
 **Estimated time**: 2–3 h · $0 (local)
 
-Throughout, open a shell in the Keycloak pod and authenticate `kcadm` once (reuse the session):
+Throughout, open a shell in the Keycloak pod and authenticate `kcadm` once (reuse the session). First get the admin password into *your* shell — `./up.sh` only sources it inside its own subshell, so `KEYCLOAK_ADMIN_PASSWORD` is **not** set in your interactive session afterward:
 
 ```bash
+source lab-infra/identity/admin-password.env       # exports KEYCLOAK_ADMIN_PASSWORD into this shell
 KC="kubectl -n oss500-identity exec -i deploy/keycloak -- /opt/bitnami/keycloak/bin/kcadm.sh"
 $KC config credentials --server http://localhost:8080 --realm master \
   --user admin --password "$KEYCLOAK_ADMIN_PASSWORD"
 ```
+(Alternatively, open a shell in the pod and run `kcadm.sh` there against the in-pod `$KEYCLOAK_ADMIN_PASSWORD`, as `up.sh`'s output shows.)
 
 ## Challenge
 

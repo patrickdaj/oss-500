@@ -1,6 +1,6 @@
 # A Wazuh agent to onboard for the lab (siem-collect).
 # Enrolls with the manager, ships auth.log + FIM + SCA. Run after the main stack:
-#   docker compose -p oss500 -f agent-compose.yml up -d
+#   docker compose -p oss500-siem -f agent-compose.yml up -d
 name: oss500
 
 services:

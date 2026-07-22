@@ -10,10 +10,10 @@ curl -s http://testmynids.org/uid/index.html
 kill %1
 
 # Replay through Suricata (fires local.rules + ET Open test sigs):
-docker compose -p oss500 exec suricata suricata -r /pcaps/test.pcap -l /var/log/suricata
+docker compose -p oss500-netdet exec suricata suricata -r /pcaps/test.pcap -l /var/log/suricata
 
 # Replay through Zeek (produces conn/http/dns logs):
-docker compose -p oss500 exec zeek zeek -r /pcaps/test.pcap /usr/local/zeek/share/zeek/site/local.zeek
+docker compose -p oss500-netdet exec zeek zeek -r /pcaps/test.pcap /usr/local/zeek/share/zeek/site/local.zeek
 ```
 
 Public sample captures: the Suricata and Zeek projects and malware-traffic-analysis.net

@@ -39,7 +39,7 @@ Notes for this phase live in [`domains/2-secrets-data-networking/`](../domains/2
 ## Day 5 — Network segmentation & service mesh
 
 - [ ] **[2h] Read: network security** — [network-security.md](../domains/2-secrets-data-networking/network-security.md) `net-policy`, `net-mesh`, `net-firewall`. Default-deny east-west, podSelector/namespaceSelector, the DNS-egress footgun; mesh mTLS + identity-aware authorization; perimeter firewall vs NetworkPolicy layering.
-- [ ] **[1h] Bring up the network stack** — `cd lab-infra/network && ./up.sh` (NetworkPolicy sets + mesh; note the CNI/Calico requirement for NetworkPolicy in kind).
+- [ ] **[1h] Bring up the network stack** — `cd lab-infra/network && ./up.sh` (NetworkPolicy sets + mesh; kind's default **kindnet** enforces the basic NetworkPolicy these labs use — Calico is an *optional* manual `kubectl apply` add-on for advanced egress/`namespaceSelector` rules and is **not** installed by `up.sh`).
 - [ ] **[2.5h] Lab: segmentation & mesh** — [d2-network-policy](../labs/d2-network-policy.md): Part A `net-policy` (prove two pods talk, apply **default-deny**, prove the curl **times out**, add a targeted allow, prove only that path works), Part B `net-mesh` (PeerAuthentication STRICT mTLS + AuthorizationPolicy allow/deny by principal), Part C `net-firewall` **walkthrough** (OPNsense/nftables perimeter — read at depth, mark `walkthrough`).
 - [ ] **[0.5h] Teardown of the mesh** — the mesh is heavy: `cd lab-infra/network && ./down.sh` once verified, or scope down to just the ingress/WAF pieces you need Day 6. Confirm resources released before shutting down.
 

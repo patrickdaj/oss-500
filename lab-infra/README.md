@@ -99,7 +99,7 @@ To go from local to Azure you swap `local-kind/` for `azure-aks/` (or a Linux-VM
 
 - Cluster name: `oss500`. In-cluster resources live in the `oss500-*` namespaces defined in [`shared/namespaces.yaml`](shared/namespaces.yaml) and carry `app.kubernetes.io/part-of: oss500`.
 - Find everything for teardown: `kubectl get all -A -l app.kubernetes.io/part-of=oss500`.
-- Compose appliances use the `oss500` project name (`docker compose -p oss500 …`).
+- Each Compose appliance uses its own project name (`-p oss500-netdet` for network-detection, `-p oss500-siem` for the SIEM) so tearing one down never removes another's volumes.
 
 ## Secrets hygiene
 

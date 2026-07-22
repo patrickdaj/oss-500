@@ -15,8 +15,9 @@ Terminate TLS at the ingress with a cert-manager cert, then put ModSecurity + th
 
 **Prerequisites**
 
+- The shared **Phase 0 kind cluster** is up (reused by every lab) — check with `kind get clusters` (you should see `oss500`). If it isn't, create it once: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh`.
 - [`lab-infra/network`](../lab-infra/network/) up (`./up.sh`) — ingress-nginx built **with ModSecurity + the OWASP CRS** bundled (the controller image ships them; the component enables them via ConfigMap/annotations).
-- [`lab-infra/certs`](../lab-infra/certs/) up for the TLS cert (from [d2-cert-manager](d2-cert-manager.md)).
+- [`lab-infra/certs`](../lab-infra/certs/) up **and** [d2-cert-manager](d2-cert-manager.md) completed first — this lab reuses the `oss500-ca-issuer` ClusterIssuer you hand-build in that lab's Part B (it is *not* shipped by `certs/up.sh`).
 - Notes read: [web-application-firewall.md](../domains/2-secrets-data-networking/web-application-firewall.md) and [network-security.md](../domains/2-secrets-data-networking/network-security.md) (`net-ingress`).
 
 **Estimated time**: 2–3 h · $0 (local)

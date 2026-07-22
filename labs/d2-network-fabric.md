@@ -40,6 +40,7 @@ Build the fabric yourself and reach five observables — one per objective. No s
 
 **Goal:** a kind cluster with no default CNI and no kube-proxy, with Cilium installed as the dataplane.
 
+- **This lab is the exception — it rebuilds the cluster.** Every other lab reuses the shared Phase 0 `oss500` cluster, but `fab-cni` intentionally needs one built with **no default CNI and no kube-proxy**, so delete the standard cluster first: `kind delete cluster --name oss500`. (When you finish this lab, recreate the standard cluster for the others: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh`.)
 - The kind cluster config that disables the default CNI and kube-proxy already exists at `lab-infra/kind/cluster-cilium.yaml` — create the cluster from it. Nodes will come up `NotReady`; that's expected, there's no CNI yet.
 - Cilium needs to reach the API server directly since kube-proxy is disabled (`kubeProxyReplacement`). The control-plane node is a docker container, not a host IP — how do you get a container's network IP from the docker CLI?
 - Add the Cilium Helm repo and install the `cilium/cilium` chart into `kube-system`, using the values file at `lab-infra/network/cilium/values.yaml` plus the API server IP/port and a cluster name so Cilium is happy without kube-proxy.
@@ -137,6 +138,7 @@ Build it yourself first; check after. A CI-validated version of everything below
 
 ### Part A — Cilium as the CNI (`fab-cni`)
 ```bash
+kind delete cluster --name oss500                                          # this lab rebuilds the cluster (no default CNI / no kube-proxy)
 kind create cluster --name oss500 --config lab-infra/kind/cluster-cilium.yaml
 kubectl get nodes            # NotReady — expected: there is no CNI yet
 

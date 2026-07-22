@@ -35,12 +35,12 @@ There is no cloud cost or trial timeline — instead, plan host resources. Basel
 | Phase | Bring up | Approx. footprint | Tear down after |
 |---|---|---|---|
 | 0 | kind cluster only | ~2 GB | keep (reused everywhere) |
-| 1 | Keycloak, Kyverno/Gatekeeper, Kubescape | ~3–4 GB | Keycloak after identity labs |
+| 1 | Keycloak, Kyverno/Gatekeeper, Kubescape, ZTNA brokers | ~3–4 GB | Keycloak after identity labs; ZTNA brokers after theirs |
 | 2 | Vault, cert-manager, ingress + WAF, a mesh | ~4–5 GB | mesh/WAF after their labs |
 | 3 | Falco, Tetragon, Trivy, Harbor, Ollama | ~5–6 GB | Harbor/Ollama after their labs |
 | 4 | Prometheus/Grafana/Loki, Wazuh+OpenSearch, Suricata/Zeek | ~6–8 GB | the whole stack after the phase |
 | 5 | Attack tooling (garak/PyRIT, Atomic/Caldera/Stratus) against the reused Phase 3/4 detection + Phase 1 ZTNA stacks | ~1–2 GB on top of the target stack | attack tooling + disposable targets after each lab |
-| 6 | LangGraph agent + MCP server + OPA, reusing the Phase 1 Keycloak/SPIRE identity plane | ~2–3 GB | the agentic stack after the phase |
+| 6 | LangGraph agent + MCP server + OPA, reusing the Phase 1 Keycloak realm (SPIRE workload identity as directions) | ~2–3 GB | the agentic stack after the phase |
 
 Bring up **only what the current lab needs**; the labs and `lab-infra/` READMEs document per-component `up.sh`/`down.sh`. Wazuh + OpenSearch (Phase 4) and the full observability stack are the heaviest — run them alone. Anything that won't fit the reference host is marked `walkthrough` in the tracker.
 

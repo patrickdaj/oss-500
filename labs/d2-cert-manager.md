@@ -15,6 +15,7 @@ Encrypt data without ever holding the key (Vault transit), then let cert-manager
 
 **Prerequisites**
 
+- The shared **Phase 0 kind cluster** is up (reused by every lab) — check with `kind get clusters` (you should see `oss500`). If it isn't, create it once: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh`.
 - [`lab-infra/certs`](../lab-infra/certs/) up (`./up.sh`) — cert-manager in `oss500-secrets`, plus `cmctl`.
 - [`lab-infra/secrets`](../lab-infra/secrets/) up for Part A (Vault transit engine).
 - Notes read: [keys-and-certificates.md](../domains/2-secrets-data-networking/keys-and-certificates.md).
