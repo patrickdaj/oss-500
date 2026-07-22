@@ -55,7 +55,7 @@ Notes: `domains/1-identity-governance/governance.md`
 |---|---|---|---|---|---|---|---|---|
 | `gov-gatekeeper` | Enforce organizational policy with OPA Gatekeeper constraints | OPA Gatekeeper | Azure Policy |  | hands-on |  |  |  |
 | `gov-kyverno` | Enforce and mutate resources with Kyverno policies | Kyverno | Azure Policy for AKS |  | hands-on |  |  |  |
-| `gov-compliance` | Evaluate compliance against frameworks and baselines | Kubescape compliance frameworks | Defender secure score / regulatory compliance |  | hands-on |  |  |  |
+| `gov-compliance` | Measure the estate against a framework as the detective half of governance — apply Kubescape scoring, then enforce (mechanics: vuln-compliance) | Kubescape compliance frameworks | Defender secure score / regulatory compliance |  | hands-on |  |  |  |
 | `gov-iac` | Implement and configure security controls by using infrastructure as code | Helm / Kubernetes manifests | Security controls via IaC |  | hands-on |  |  |  |
 
 ### Zero-trust access — five models (beyond-blueprint)
@@ -227,7 +227,7 @@ Notes: `domains/4-posture-monitoring/vulnerability-posture.md`
 |---|---|---|---|---|---|---|---|---|
 | `vuln-cluster` | Scan cluster configuration for posture risks | Kubescape | Defender for Cloud posture |  | hands-on |  |  |  |
 | `vuln-cis` | Audit nodes and cluster against CIS benchmarks | kube-bench / Kubescape | CIS benchmark auditing |  | hands-on |  |  |  |
-| `vuln-compliance` | Produce compliance and secure-score style reports | Kubescape frameworks | Secure score / regulatory compliance |  | hands-on |  |  |  |
+| `vuln-compliance` | Produce the canonical compliance %/secure-score and audit report (Kubescape framework scoring/reporting mechanics) | Kubescape frameworks | Secure score / regulatory compliance |  | hands-on |  |  |  |
 | `vuln-remediate` | Prioritize and remediate findings across images and infrastructure | Trivy + Kubescape | Defender recommendations |  | hands-on |  |  |  |
 
 ## Prove it: offensive validation (beyond-blueprint)

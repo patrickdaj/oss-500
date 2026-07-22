@@ -1,0 +1,8 @@
+## ADDED Requirements
+
+### Requirement: A shared tool-and-skill is taught once and applied by reference
+When two or more objectives use the **same open-source tool to teach the same underlying skill** (the same command/mechanic mapped to the same SC-500 control), exactly **one** objective SHALL be the canonical teaching location that explains the mechanics, and every other objective SHALL frame that skill as an **application in its own domain context** and defer the mechanics to the canonical location by an explicit cross-reference, rather than re-teaching them. Both objectives SHALL remain present in `assessment/data/tracker.yaml` with descriptions differentiated by their domain lens, so shared-tool reuse never duplicates instruction and never removes coverage.
+
+#### Scenario: Kubescape compliance-scoring is taught once and applied by reference
+- **WHEN** a reader compares `gov-compliance` in `domains/1-identity-governance/governance.md` with `vuln-compliance` in `domains/4-posture-monitoring/vulnerability-posture.md`, both of which use `kubescape scan framework` to produce a compliance score mapped to Defender secure score / regulatory compliance
+- **THEN** `vuln-compliance` SHALL be the canonical location teaching the scoring mechanics (framework scans, compliance %/secure-score, report formats, and the "score is not a formal certification" caveat), `gov-compliance` SHALL frame the skill as a governance-context application (measure the estate as the detective half of the enforce/measure loop) and cross-reference `vuln-compliance` for the mechanics instead of re-teaching them, and both objective ids SHALL still resolve in `assessment/data/tracker.yaml` with differentiated descriptions

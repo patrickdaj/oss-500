@@ -119,7 +119,7 @@ domains:
             sc500: Azure Policy for AKS
             lab: hands-on
           - id: gov-compliance
-            text: "Evaluate compliance against frameworks and baselines"
+            text: "Measure the estate against a framework as the detective half of governance — apply Kubescape scoring, then enforce (mechanics: vuln-compliance)"
             oss: Kubescape compliance frameworks
             sc500: Defender secure score / regulatory compliance
             lab: hands-on
@@ -507,7 +507,7 @@ domains:
             sc500: CIS benchmark auditing
             lab: hands-on
           - id: vuln-compliance
-            text: "Produce compliance and secure-score style reports"
+            text: "Produce the canonical compliance %/secure-score and audit report (Kubescape framework scoring/reporting mechanics)"
             oss: Kubescape frameworks
             sc500: Secure score / regulatory compliance
             lab: hands-on

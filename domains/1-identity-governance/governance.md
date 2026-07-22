@@ -98,25 +98,15 @@ Exam gotchas:
 
 *Objective: `gov-compliance` · OSS: Kubescape compliance frameworks ≈ SC-500: Defender secure score / regulatory compliance · Lab: [d1-governance-policy](../../labs/d1-governance-policy.md)*
 
-Admission policy stops bad config going *in*; **compliance scanning** measures the *whole estate* against a recognized framework and gives you a score to drive down — the job of Defender for Cloud's **secure score** and **regulatory compliance** dashboards. **Kubescape** does this open-source: it evaluates the live cluster (and manifests/Helm) against built-in **frameworks** — **NSA-CISA** Kubernetes hardening, **MITRE ATT&CK**, **CIS Kubernetes Benchmark**, SOC 2, and others — reporting per-**control** pass/fail, a **compliance score**, and remediation for each failure.
+Admission policy stops bad config going *in*; **compliance scanning** is the other half of the governance loop — it **measures the whole estate** against a recognized framework and gives you a score to drive down, the **detective** counterpart to the **preventive** enforcement of Gatekeeper/Kyverno (`deny`/`Enforce`). In governance, **Kubescape's framework scan is an instrument, not the subject**: you **measure, then enforce** — scan to see where the estate stands against a framework, close the gaps with admission policy, and wire the same scan into the `gov-iac` shift-left `--compliance-threshold` gate so a non-compliant change fails CI before it can ever reach admission control. It is the open-source analogue of driving down Defender for Cloud's **secure score** and acting on the **regulatory compliance** dashboard.
 
-```bash
-# Score the cluster against a framework — the secure-score analogue
-kubescape scan framework nsa --format pretty-printer
-kubescape scan framework cis --compliance-threshold 80   # fail CI below 80% (gov-iac gate)
-kubescape scan framework mitre --format json --output results.json
-```
-
-Each control maps to a concrete risk (e.g. "Applications credentials in configuration files," "Cluster-admin binding," "Privileged container") with an **assigned score weighted by severity**, so the aggregate compliance percentage moves as you remediate — the same secure-score mechanic where high-impact recommendations move the needle most. Kubescape can run **ad hoc** (CLI, and in CI to gate a pipeline) or as an **in-cluster operator** for continuous scanning with results in a dashboard, mirroring Defender's continuous assessment. Note it overlaps with `kube-bench` (CIS node checks) and Trivy (image CVEs) — in Domain 4 (`vuln-*`) Kubescape reappears for posture management; here the lens is *governance/compliance frameworks*.
+The **mechanics** of the scan itself — which frameworks Kubescape ships, how the compliance %/secure-score is computed and severity-weighted, the output/report formats, and the caveat that a passing score is technical-control coverage and **not** a formal certification — are taught canonically under `vuln-compliance` in [`domains/4-posture-monitoring/vulnerability-posture.md`](../4-posture-monitoring/vulnerability-posture.md#produce-compliance-and-secure-score-style-reports). Read them there; here the point is the *governance application* — the measure you act on with policy.
 
 Exam gotchas:
 
-- **Compliance scanning ≠ admission enforcement.** Kubescape *measures and scores* posture against a framework (detective, like secure score); Kyverno/Gatekeeper *prevent* non-compliant admission (preventive, like Deny). The exam pairs them: measure, then enforce.
-- **Framework names matter**: NSA-CISA and CIS Kubernetes Benchmark are the headline Kubernetes hardening baselines — the analogue of MCSB/CIS/regulatory standards in Defender regulatory compliance.
-- **Score is severity-weighted**: remediating high-severity controls moves the compliance percentage most — same prioritization logic as Defender secure score recommendations.
-- A **passing compliance score is not a certification** — it's technical-control coverage, exactly the caveat Defender's regulatory-compliance dashboard carries.
-- **Overlapping tools have different lenses**: Kubescape (framework/posture), `kube-bench` (CIS *node* checks against the kubelet/API-server config), and Trivy (image CVEs) all touch "security scanning" — the exam wants you to map the tool to the *question* (framework compliance vs node hardening vs vulnerabilities).
-- **Scope matters**: some controls only evaluate against a *live cluster* (host/API-server config), others against *manifests* — a manifest-only scan can't report node-level findings, so a clean IaC scan is not a clean cluster.
+- **Compliance scanning ≠ admission enforcement.** Kubescape *measures and scores* posture against a framework (detective, like secure score); Kyverno/Gatekeeper *prevent* non-compliant admission (preventive, like Deny). The exam pairs them: **measure, then enforce.**
+- **The measure feeds the gate.** The same compliance scan is the shift-left signal for `gov-iac`: a `--compliance-threshold` that fails the pipeline keeps a non-compliant change from ever landing, so measurement and enforcement are one loop, not two disconnected activities.
+- **Same tool, different lens.** Kubescape reappears in Domain 4 (`vuln-*`) for posture management and reporting; in governance the interest is *policy* — you scan to decide *what to enforce*, not to produce the audit artifact (that scoring/reporting mechanic is `vuln-compliance`).
 
 **Resources:**
 - [Kubescape — Frameworks and controls](https://kubescape.io/docs/frameworks-and-controls/) (~20 min)
@@ -161,5 +151,5 @@ Exam gotchas:
 |---|---|
 | `gov-gatekeeper` | ConstraintTemplate (definition/Rego) + Constraint (scope+action); `deny` vs `dryrun`/`warn` = Azure Policy Deny vs Audit; audit finds existing violations without deleting; *is* the engine behind Azure Policy for AKS |
 | `gov-kyverno` | YAML policies (no Rego); validate/mutate/generate/verifyImages; Enforce vs Audit; mutate/generate = Modify/DINE remediation; verifyImages = cosign supply-chain gate |
-| `gov-compliance` | Kubescape scores the cluster against NSA-CISA/CIS/MITRE frameworks (secure-score analogue); measuring ≠ enforcing; severity-weighted score; passing ≠ certified |
+| `gov-compliance` | Compliance scanning is the **detective/measure** half that pairs with preventive admission enforcement — measure the estate against a framework, then enforce (Gatekeeper/Kyverno) and gate CI (`gov-iac` `--compliance-threshold`); scoring/report mechanics live canonically in `vuln-compliance` |
 | `gov-iac` | Controls as Helm/manifests in git: reviewable/reproducible/versioned/testable; policy-as-code + shift-left CI scanning; deploy→verify→destroy is the IaC loop |
