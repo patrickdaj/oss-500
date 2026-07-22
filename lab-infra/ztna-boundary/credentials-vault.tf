@@ -11,7 +11,7 @@ resource "boundary_credential_store_vault" "vault" {
   token       = var.vault_token # a least-privilege Vault token; gitignored via tfvars
 }
 
-resource "boundary_credential_library_vault_generic" "ssh" {
+resource "boundary_credential_library_vault" "ssh" {
   name                = "ssh-injected"
   description         = "Injects an SSH credential from Vault into the session"
   credential_store_id = boundary_credential_store_vault.vault.id
