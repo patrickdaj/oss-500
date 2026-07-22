@@ -2,6 +2,8 @@
 
 Domain 2, subsection 3 (`d2-network`). By default a Kubernetes pod can reach every other pod in the cluster — flat, unsegmented, trust-by-location. This subsection closes that: **NetworkPolicy** segments east-west traffic, a **service mesh** enforces identity-aware mTLS, secure **ingress** terminates TLS at the edge, and (walkthrough) a **perimeter firewall** guards the host/edge. Primary labs: [d2-network-policy](../../labs/d2-network-policy.md) and [d2-ingress-waf](../../labs/d2-ingress-waf.md); environment in [`lab-infra/network/`](../../lab-infra/network/).
 
+> The **classic L3 virtual-network fabric** — VPC dataplane, NAT-gateway egress, cloud-firewall FQDN rules, flow logs, and peering — is covered hands-on in the companion subsection **`d2-fabric`** ([`network-fabric.md`](network-fabric.md)), which builds those controls on Cilium. This subsection is the Kubernetes-native (east-west) view; `d2-fabric` is the L3 fabric (north-south / egress) view.
+
 ## Segment east-west traffic with default-deny NetworkPolicies
 
 *Objective: `net-policy` · OSS: Kubernetes NetworkPolicy ≈ SC-500: NSGs / segmentation · Lab: [d2-network-policy](../../labs/d2-network-policy.md)*
@@ -174,6 +176,8 @@ Exam gotchas:
 *Objective: `net-firewall` · OSS: OPNsense / pfSense / nftables ≈ SC-500: Azure Firewall · Lab: [d2-network-policy](../../labs/d2-network-policy.md) (walkthrough section)*
 
 **Walkthrough** — a full network-appliance firewall (OPNsense/pfSense) wants its own NICs and network segments, impractical to run meaningfully on a single laptop host, so study the model. Where NetworkPolicy and the mesh secure *inside* the cluster (east-west), a **perimeter firewall** guards the network edge (north-south) between zones: it does **stateful** packet filtering (tracks connection state so return traffic is allowed without a mirror rule), NAT, and enforces **DMZ segmentation** — untrusted internet → DMZ (public-facing services) → trusted internal, with default-deny between zones. **OPNsense**/**pfSense** are full FreeBSD-based firewall distros; on a single Linux host, **nftables** (the successor to iptables) expresses the same stateful ruleset:
+
+> **Hands-on counterpart:** this appliance model stays a walkthrough, but the *enforcement* it couldn't run locally — a **DNS/FQDN application allowlist** actually blocking a non-approved domain, plus host-level firewalling in eBPF — is now hands-on as **`fab-fqdn`** in the cloud-network-fabric subsection ([`network-fabric.md`](network-fabric.md), lab [d2-network-fabric](../../labs/d2-network-fabric.md)). Study `net-firewall` for the perimeter/NAT/zone model (the truest 1:1 with the Azure networking stack); build `fab-fqdn` to see FQDN rules deny a callout live.
 
 ```
 # nftables: default-deny inbound, allow established + explicit services

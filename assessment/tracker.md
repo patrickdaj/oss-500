@@ -107,6 +107,18 @@ Notes: `domains/2-secrets-data-networking/network-security.md`
 | `net-ingress` | Secure ingress with TLS termination and authenticated access | ingress-nginx + cert-manager | Secure ingress / App Gateway |  | hands-on |  |  |  |
 | `net-firewall` | Apply perimeter firewall and segmentation concepts for the host/edge | OPNsense / pfSense / nftables | Azure Firewall |  | walkthrough |  |  |  |
 
+### Cloud network fabric: VPC, egress, and flow control
+
+Notes: `domains/2-secrets-data-networking/network-fabric.md`
+
+| id | Objective | OSS | SC-500 | Standards | Lab | Lab done | Checkpoint | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| `fab-cni` | Install an eBPF CNI as the cluster dataplane (the VPC/VNet dataplane substrate) | Cilium eBPF CNI | VNet / VPC dataplane | NIST 800-207 · CIS network controls | hands-on |  |  |  |
+| `fab-egress` | Pin a fixed, known SNAT egress IP for selected workloads (controlled egress) | Cilium Egress Gateway | NAT gateway / controlled egress | NIST 800-207 · ATT&CK T1048 ↔ D3FEND outbound-traffic filtering | hands-on |  |  |  |
+| `fab-fqdn` | Enforce DNS/FQDN-aware egress rules and host firewalling (cloud-firewall application rules) | Cilium FQDN policy + host firewall | Azure Firewall (application rules) | NIST 800-207 · ATT&CK T1071 ↔ D3FEND traffic filtering | hands-on |  |  |  |
+| `fab-flowlogs` | Make cluster network flows observable and attributable by identity (flow logs) | Hubble | NSG / VNet flow logs | NIST CSF Detect · D3FEND network traffic analysis | hands-on |  |  |  |
+| `fab-peering` | Join two clusters into one policy/discovery domain (VNet peering / hub-spoke) | Cilium Cluster Mesh | VNet peering / hub-spoke | NIST 800-207 (peering ≠ trust; policy still decides) | walkthrough |  |  |  |
+
 ### Protect web workloads with a web application firewall
 
 Notes: `domains/2-secrets-data-networking/web-application-firewall.md`
@@ -254,4 +266,4 @@ Notes: `domains/5-offensive-validation/ztna-authz.md`
 |---|---|---|---|---|---|---|---|---|
 | `av-ztna-authz` | Attempt unauthorized access against each ZTNA broker (Boundary/OpenZiti/Pomerium/NetBird) and confirm it is denied and logged | authz-bypass attempts (local) | — (beyond SC-500) | NIST 800-207 PEP · CISA ZTMM · ATT&CK T1078/T1021 | hands-on |  |  |  |
 
-**Total objectives: 81**
+**Total objectives: 86**

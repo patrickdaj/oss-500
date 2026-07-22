@@ -24,6 +24,7 @@ Lab environments live in [`lab-infra/`](../lab-infra/); each has an `up.sh`/`dow
 | Secrets management (`d2-secrets`) | [d2-vault-dynamic-secrets](d2-vault-dynamic-secrets.md) · [d2-vault-k8s-injection](d2-vault-k8s-injection.md) | hands-on | HashiCorp Vault |
 | Keys & certificates (`d2-keys-certs`) | [d2-cert-manager](d2-cert-manager.md) | hands-on (HSM section: walkthrough) | cert-manager, Vault transit |
 | Network segmentation (`d2-network`) | [d2-network-policy](d2-network-policy.md) | hands-on (perimeter firewall: walkthrough) | NetworkPolicy, service mesh |
+| Cloud network fabric (`d2-fabric`) | [d2-network-fabric](d2-network-fabric.md) | hands-on (peering: walkthrough) | Cilium: eBPF CNI, Egress Gateway, FQDN + host firewall, Hubble, Cluster Mesh |
 | Web application firewall (`d2-waf`) | [d2-ingress-waf](d2-ingress-waf.md) | hands-on | ingress-nginx, ModSecurity, OWASP CRS |
 | Data protection (`d2-data`) | [d2-data-protection](d2-data-protection.md) | hands-on | etcd encryption, Trivy, Gitleaks |
 

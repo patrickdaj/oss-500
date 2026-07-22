@@ -1,0 +1,29 @@
+# fab-egress — Cilium Egress Gateway = a cloud NAT gateway.
+# Pods labelled egress=gateway in oss500-apps leave the cluster through ONE node's
+# IP (the gateway), so an external listener always sees the same, known source IP —
+# controlled, attributable egress. A pod without the label egresses with its own
+# node's IP, which is the observable contrast that proves the gateway is in effect.
+#
+# Set destinationCIDRs to the network you want funneled through the gateway. For the
+# lab, narrow it to the /32 of your external listener container (see the lab); using
+# 0.0.0.0/0 funnels ALL cluster egress and can trip cluster-internal reachability, so
+# prefer a specific CIDR. egressGateway.interface/egressIP can pin the exact SNAT IP;
+# here we select the gateway node by label and let Cilium use its egress interface.
+apiVersion: cilium.io/v2
+kind: CiliumEgressGatewayPolicy
+metadata:
+  name: fixed-egress
+spec:
+  selectors:
+    - podSelector:
+        matchLabels:
+          io.kubernetes.pod.namespace: oss500-apps
+          egress: gateway
+  # Replace with your external listener's /32 (e.g. the `nc`/httpbin container IP on
+  # the kind docker network). Kept as a placeholder RFC-5737 doc range on purpose.
+  destinationCIDRs:
+    - "203.0.113.10/32"
+  egressGateway:
+    nodeSelector:
+      matchLabels:
+        egress-gateway: "true"      # up.sh labels oss500-worker with this

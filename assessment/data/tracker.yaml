@@ -248,6 +248,40 @@ domains:
             oss: OPNsense / pfSense / nftables
             sc500: Azure Firewall
             lab: walkthrough
+      - id: d2-fabric
+        name: "Cloud network fabric: VPC, egress, and flow control"
+        notes: domains/2-secrets-data-networking/network-fabric.md
+        objectives:
+          - id: fab-cni
+            text: "Install an eBPF CNI as the cluster dataplane (the VPC/VNet dataplane substrate)"
+            oss: Cilium eBPF CNI
+            sc500: VNet / VPC dataplane
+            standards: "NIST 800-207 · CIS network controls"
+            lab: hands-on
+          - id: fab-egress
+            text: "Pin a fixed, known SNAT egress IP for selected workloads (controlled egress)"
+            oss: Cilium Egress Gateway
+            sc500: NAT gateway / controlled egress
+            standards: "NIST 800-207 · ATT&CK T1048 ↔ D3FEND outbound-traffic filtering"
+            lab: hands-on
+          - id: fab-fqdn
+            text: "Enforce DNS/FQDN-aware egress rules and host firewalling (cloud-firewall application rules)"
+            oss: Cilium FQDN policy + host firewall
+            sc500: Azure Firewall (application rules)
+            standards: "NIST 800-207 · ATT&CK T1071 ↔ D3FEND traffic filtering"
+            lab: hands-on
+          - id: fab-flowlogs
+            text: "Make cluster network flows observable and attributable by identity (flow logs)"
+            oss: Hubble
+            sc500: NSG / VNet flow logs
+            standards: "NIST CSF Detect · D3FEND network traffic analysis"
+            lab: hands-on
+          - id: fab-peering
+            text: "Join two clusters into one policy/discovery domain (VNet peering / hub-spoke)"
+            oss: Cilium Cluster Mesh
+            sc500: VNet peering / hub-spoke
+            standards: "NIST 800-207 (peering ≠ trust; policy still decides)"
+            lab: walkthrough
       - id: d2-waf
         name: Protect web workloads with a web application firewall
         notes: domains/2-secrets-data-networking/web-application-firewall.md

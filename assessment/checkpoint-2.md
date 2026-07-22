@@ -1,6 +1,6 @@
 # Checkpoint 2 — Secrets, data, and networking
 
-Generated from `assessment/data/quiz-2.yaml` — study-hub runs this interactively (Tests page). Pass bar: 80%. 34 questions.
+Generated from `assessment/data/quiz-2.yaml` — study-hub runs this interactively (Tests page). Pass bar: 80%. 40 questions.
 
 ### 1. You initialize a new HashiCorp Vault server and it reports itself as "Sealed: true". An engineer says the root token from `vault operator init` should let them start reading secrets immediately. What is actually required first?
 
@@ -509,5 +509,95 @@ Generated from `assessment/data/quiz-2.yaml` — study-hub runs this interactive
 **B** — vault token capabilities shows the effective capabilities a token has on a path from its attached policies, confirming the 403 is expected least-privilege behavior rather than a bug; the denied access is logged by the enabled audit device. Granting root or restarting Vault are both wrong responses.
 
 [Documentation](https://developer.hashicorp.com/vault/docs/concepts/policies#testing-vault-policies) · objectives: `vault-access`, `vault-audit`
+
+</details>
+
+### 35. You create a kind cluster with `disableDefaultCNI: true` and `kubeProxyMode: none` to run Cilium. The nodes sit `NotReady` and CoreDNS is `Pending`. A teammate says the cluster is broken. What is actually happening?
+
+- A. kube-proxy must be reinstalled or nodes never go Ready
+- B. There is no CNI yet — nodes stay NotReady until Cilium is installed as the dataplane, after which they go Ready and CoreDNS schedules
+- C. The podSubnet is wrong and must match the service CIDR
+- D. Docker Desktop cannot run kind with a custom CNI
+
+<details><summary>Answer</summary>
+
+**B** — disableDefaultCNI intentionally leaves the cluster with no dataplane, so nodes report NotReady and pods that need networking stay Pending until a CNI is installed. Installing Cilium (kubeProxyReplacement handles the absent kube-proxy) makes the nodes Ready. This is why Cilium must be installed before the shared namespace/ingress bootstrap.
+
+[Documentation](https://docs.cilium.io/en/stable/installation/kind/) · objectives: `fab-cni`
+
+</details>
+
+### 36. A partner will only accept traffic from an allowlisted source IP, but your pods currently egress with whatever node they land on. Which Cilium construct gives selected pods a fixed, known egress IP, and what is its cloud equivalent?
+
+- A. A LoadBalancer Service, which assigns a stable ingress IP — the NAT gateway analog
+- B. A CiliumEgressGatewayPolicy that SNATs the selected pods to a gateway node's IP — the NAT-gateway / controlled-egress analog
+- C. A NetworkPolicy egress rule, which rewrites the source IP
+- D. An Ingress with a fixed external IP annotation
+
+<details><summary>Answer</summary>
+
+**B** — CiliumEgressGatewayPolicy selects pods (by label/namespace) and routes their outbound traffic through a designated gateway node, SNAT'ing to that node's IP so an external listener always sees the same, allowlist-friendly source — the open-source NAT gateway. LoadBalancer/Ingress concern inbound IPs; NetworkPolicy filters but does not SNAT.
+
+[Documentation](https://docs.cilium.io/en/stable/network/egress-gateway/egress-gateway/) · objectives: `fab-egress`
+
+</details>
+
+### 37. You apply a Cilium FQDN policy allowing egress only to `docs.cilium.io:443` for a pod, but every outbound request — even to the allowed name — now fails to resolve. What is the most likely omission?
+
+- A. toFQDNs cannot be combined with any other egress rule
+- B. The policy must also allow DNS to CoreDNS with a `dns:` match rule, since the FQDN allowlist is populated from the DNS answers the proxy observes
+- C. FQDN policy requires the pod to run as root
+- D. docs.cilium.io must be added to /etc/hosts on every node
+
+<details><summary>Answer</summary>
+
+**B** — Cilium's FQDN enforcement works by watching the pod's DNS responses and pinning the resolved IPs into the allowlist. If the policy doesn't permit DNS to kube-dns with a dns rule (matchPattern), resolution is blocked and the toFQDNs set never populates — the #1 FQDN footgun. Allow DNS first, then the FQDN rule matches on the returned name.
+
+[Documentation](https://docs.cilium.io/en/stable/security/policy/language/#dns-based) · objectives: `fab-fqdn`
+
+</details>
+
+### 38. After applying an FQDN egress policy you want to prove, at the network layer, that a request to a non-allowlisted domain was dropped and by which policy. Which Cilium tool shows this, and what makes it more useful than raw NSG-style IP logs?
+
+- A. kubectl describe networkpolicy, which lists recent drops
+- B. Hubble (`hubble observe --verdict DROPPED`), which shows flows with source/destination workload identity and the deciding verdict, not just IPs
+- C. cilium status, which prints per-flow verdicts
+- D. The CoreDNS log, which records blocked connections
+
+<details><summary>Answer</summary>
+
+**B** — Hubble is Cilium's flow-observability layer: because Cilium sees packets in eBPF with workload identity attached, Hubble reports each flow by source/dest identity and its FORWARDED/DROPPED verdict (and the policy), which is the identity-attributed equivalent of NSG/VNet flow logs — far easier to read than reverse-engineering ephemeral pod IPs.
+
+[Documentation](https://docs.cilium.io/en/stable/observability/hubble/) · objectives: `fab-flowlogs`
+
+</details>
+
+### 39. You connect two clusters with Cilium Cluster Mesh (the VNet-peering analog). A colleague assumes that once peered, workloads in cluster A can freely reach workloads in cluster B. Which two statements are correct? (Select two)
+
+- A. The clusters must have non-overlapping PodCIDRs and unique cluster IDs or the mesh won't form
+- B. Peering provides routing/discovery but reachability is still governed by CiliumNetworkPolicy — default-deny across the mesh is the secure posture
+- C. Peering automatically trusts all traffic between the two clusters
+- D. Overlapping PodCIDRs are fine because Cilium NATs between clusters
+
+<details><summary>Answer</summary>
+
+**A, B** — Cluster Mesh requires non-overlapping PodCIDRs and unique cluster names/IDs for unambiguous cross-cluster routing. Like Azure VNet peering, it grants connectivity and service discovery, not trust: a CiliumNetworkPolicy on the remote identity still decides who may call whom, and default-deny is the zero-trust posture (NIST 800-207).
+
+[Documentation](https://docs.cilium.io/en/stable/network/clustermesh/clustermesh/) · objectives: `fab-peering`
+
+</details>
+
+### 40. Mapping open-source controls to Azure, which pairing is correct for the cloud-network fabric?
+
+- A. Cilium Egress Gateway ≈ Azure WAF; Cilium FQDN policy ≈ NSG
+- B. Cilium Egress Gateway ≈ Azure NAT Gateway (controlled egress); Cilium FQDN policy ≈ Azure Firewall application rules
+- C. Cilium Egress Gateway ≈ Azure Front Door; Hubble ≈ Azure Firewall
+- D. Cilium FQDN policy ≈ Azure Private Link; Egress Gateway ≈ Application Gateway
+
+<details><summary>Answer</summary>
+
+**B** — The egress gateway pins a fixed outbound SNAT IP — the NAT-gateway / controlled-egress control. FQDN egress policy allows traffic by DNS name and denies the rest — Azure Firewall application (FQDN) rules. WAF inspects HTTP payloads (a different layer), NSG is L3/4 micro-segmentation, and Private Link/Front Door/App Gateway solve inbound or backbone-connectivity problems, not egress control.
+
+[Documentation](https://learn.microsoft.com/en-us/azure/firewall/features#application-fqdn-filtering-rules) · objectives: `fab-egress`, `fab-fqdn`
 
 </details>

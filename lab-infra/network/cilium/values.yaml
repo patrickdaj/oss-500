@@ -1,0 +1,47 @@
+# Cilium Helm values — OSS-500 "Cilium mode" for the cloud-network-fabric lab (d2-fabric).
+# Chart pinned to cilium/cilium 1.16.5 in up.sh (certified here for egress gateway +
+# FQDN policy + host firewall + Hubble on kind). Each block is commented against the
+# fab-* objective it implements — the security settings are the point of this file.
+#
+# k8sServiceHost / k8sServicePort are injected by up.sh (the kind control-plane
+# container IP), so they are intentionally absent here.
+
+# --- fab-cni: eBPF dataplane as the cluster CNI (the VPC/VNet dataplane substrate) ---
+# kube-proxy is disabled in cluster-cilium.yaml (kubeProxyMode: none); Cilium's eBPF
+# implementation replaces it — required for BPF masquerade / egress gateway below.
+kubeProxyReplacement: true
+ipam:
+  mode: kubernetes            # pod IPs come from the node PodCIDRs kind assigns
+
+# --- fab-egress: Egress Gateway = cloud NAT gateway (a stable, known SNAT egress IP) ---
+egressGateway:
+  enabled: true               # turns on CiliumEgressGatewayPolicy (policies/egress-gateway.yaml)
+bpf:
+  masquerade: true            # egress SNAT is programmed in eBPF; the gateway needs this
+
+# --- fab-fqdn: DNS/FQDN egress policy + host firewall = Azure Firewall application rules ---
+# The DNS proxy is enabled implicitly by any toFQDNs policy (policies/fqdn-allow.yaml);
+# hostFirewall lets a CiliumClusterwideNetworkPolicy filter node (host) traffic
+# (policies/host-firewall.yaml) — the perimeter-firewall analog, hands-on this time.
+hostFirewall:
+  enabled: true
+
+# --- fab-flowlogs: Hubble = NSG/VNet flow logs (network observability) ---
+hubble:
+  enabled: true
+  relay:
+    enabled: true             # `hubble observe` / `cilium hubble` read through relay
+  ui:
+    enabled: true             # optional web view of flows
+  metrics:
+    enabled:                  # per-flow metrics: DNS, drops, verdicts, TCP
+      - dns
+      - drop
+      - flow
+      - tcp
+
+# --- fab-peering: Cluster Mesh = VNet peering (walkthrough — needs a 2nd cluster) ---
+# Not enabled here; the walkthrough enables clustermesh.apiserver at connect time.
+
+operator:
+  replicas: 1                 # single kind cluster — one operator is enough

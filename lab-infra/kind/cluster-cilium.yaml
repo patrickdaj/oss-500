@@ -1,0 +1,43 @@
+# kind cluster in "Cilium mode" for the cloud-network-fabric lab (d2-fabric).
+# Create:  kind create cluster --name oss500 --config lab-infra/kind/cluster-cilium.yaml
+# Delete:  kind delete cluster --name oss500
+#
+# Differs from cluster.yaml in three networking settings only — everything else
+# (topology, ingress-ready label, port mappings) is identical so every other lab
+# still runs. Bring this up INSTEAD of cluster.yaml when you want the fabric
+# controls (egress gateway, FQDN/host firewall, Hubble); then run
+# lab-infra/network/cilium/up.sh to install Cilium as the CNI.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: oss500
+networking:
+  # fab-cni: no CNI at create time — Cilium's eBPF dataplane is installed after,
+  # as the cluster CNI (the VPC/VNet dataplane substrate). Without this, kindnet
+  # would claim the dataplane and Cilium features (egress gw, host fw) wouldn't work.
+  disableDefaultCNI: true
+  # fab-cni/fab-egress: let Cilium replace kube-proxy. bpf.masquerade (which the
+  # egress gateway needs) programs SNAT in eBPF, so kube-proxy must be out of the way.
+  kubeProxyMode: none
+  # Pod CIDR Cilium's IPAM hands out from; kept off the host/docker ranges.
+  podSubnet: "10.244.0.0/16"
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      # Label the ingress-ready node so ingress-nginx schedules here (net-ingress).
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 8080
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 8443
+        protocol: TCP
+  - role: worker
+  - role: worker
+# fab-egress: the egress gateway pins SNAT to one node's IP. up.sh selects a
+# worker as the gateway node; two workers give you a "gateway" node and a
+# "non-gateway" node so the fixed-egress-IP proof is observable side by side.

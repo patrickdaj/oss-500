@@ -22,3 +22,17 @@ kubectl get node -l ingress-ready=true   # the control-plane is ingress-ready
 **Teardown:** `kind delete cluster --name oss500` — removes the cluster and every lab resource in it in one shot.
 
 etcd Secret encryption-at-rest (`data-encrypt`) is layered on separately in [`../encryption`](../encryption/) so the encryption lab can show the before/after.
+
+## Cilium mode (the cloud-network-fabric lab)
+
+The [d2-network-fabric](../../labs/d2-network-fabric.md) lab needs the eBPF dataplane (egress gateway, DNS/FQDN + host firewall, Hubble), so it runs on a variant cluster created from [`cluster-cilium.yaml`](cluster-cilium.yaml) **instead of** `cluster.yaml`:
+
+```bash
+kind create cluster --name oss500 --config lab-infra/kind/cluster-cilium.yaml
+lab-infra/network/cilium/up.sh    # installs Cilium as the CNI, then the fabric policies
+lab-infra/shared/up.sh            # namespaces + ingress (after Cilium is Ready)
+```
+
+`cluster-cilium.yaml` is the same topology with three networking changes: `disableDefaultCNI: true` (Cilium becomes the CNI — `fab-cni`), `kubeProxyMode: none` (Cilium replaces kube-proxy so BPF masquerade / egress gateway work), and an explicit `podSubnet`. Every other lab still runs on this cluster; only the fabric controls are added. This is an **opt-in mode**, not the default — bring up the plain `cluster.yaml` for all the other labs.
+
+> **eBPF-fussy hosts:** egress gateway + host firewall want a modern Linux kernel with the right eBPF features. On Docker Desktop (macOS/Windows, the LinuxKit VM) most works, but if egress-gateway SNAT or the host firewall misbehaves, run kind inside a Linux VM — [Lima](https://lima-vm.io/) on macOS or any Linux VM — exactly the fallback the Falco/Tetragon eBPF labs document. Cilium version is pinned in [`../network/cilium/`](../network/cilium/).

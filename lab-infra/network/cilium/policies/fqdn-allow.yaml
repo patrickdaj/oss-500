@@ -1,0 +1,35 @@
+# fab-fqdn — DNS/FQDN-aware egress allowlist = Azure Firewall application rules.
+# The hands-on control net-firewall couldn't provide locally: the fqdn-client may
+# reach ONLY docs.cilium.io on 443 (plus DNS to CoreDNS); every other FQDN is denied.
+# Cilium's DNS proxy watches the pod's DNS answers and pins the resolved IPs to the
+# allowlist, so the policy follows the name, not a hard-coded IP.
+#
+# Verify: curl https://docs.cilium.io -> 200 ; curl https://example.com -> denied
+# (times out / connection refused), and the drop shows in Hubble (fab-flowlogs).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: fqdn-allowlist
+  namespace: oss500-apps
+spec:
+  endpointSelector:
+    matchLabels:
+      app: fqdn-client
+  egress:
+    # DNS must be allowed first, and its answers are what the FQDN rule matches on.
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - { port: "53", protocol: ANY }
+          rules:
+            dns:
+              - matchPattern: "*"
+    # The application allowlist: only this FQDN, only on 443.
+    - toFQDNs:
+        - matchName: "docs.cilium.io"
+      toPorts:
+        - ports:
+            - { port: "443", protocol: TCP }

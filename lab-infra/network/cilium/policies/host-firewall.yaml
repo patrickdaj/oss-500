@@ -1,0 +1,35 @@
+# fab-fqdn (host-firewall half) — CiliumClusterwideNetworkPolicy filtering the NODE
+# itself = the perimeter/host firewall (Azure Firewall / nftables analog), enforced
+# in eBPF. This is the hands-on version of the net-firewall walkthrough.
+#
+# ⚠️  APPLY BY HAND, NOT FROM up.sh, AND READ THIS FIRST.
+# A host policy selecting the node enables default-deny on host traffic for the
+# directions listed — get the allow rules wrong on kind and you can cut off the
+# kube-apiserver / kubelet and wedge the cluster (recover with `kind delete cluster`).
+# This example is deliberately INGRESS-only and permissive enough to stay safe on
+# kind: it demonstrates a host-level allowlist without locking the control plane out.
+#
+# nodeSelector below targets the worker nodes only (never the control-plane), and it
+# allows established/related plus in-cluster health traffic. Tighten from here.
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: host-fw-workers
+spec:
+  description: "Host firewall demo — worker nodes, ingress allowlist"
+  nodeSelector:
+    matchLabels:
+      egress-gateway: "true"      # the worker up.sh labeled; keep control-plane out
+  ingress:
+    # Allow anything from inside the cluster (pods/nodes) so health + CNI keep working.
+    - fromEntities:
+        - cluster
+        - health
+        - remote-node
+    # Example perimeter allow: SSH from a trusted admin CIDR only. Everything else
+    # from outside the cluster is denied by the default-deny this policy triggers.
+    - fromCIDR:
+        - "10.0.0.0/8"
+      toPorts:
+        - ports:
+            - { port: "22", protocol: TCP }

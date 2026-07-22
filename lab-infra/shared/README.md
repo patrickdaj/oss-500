@@ -32,3 +32,15 @@ kubectl get all -A -l app.kubernetes.io/part-of=oss500
 ```
 
 **Teardown:** namespaces and ingress go away with `kind delete cluster --name oss500`. To remove just these: `kubectl delete -f lab-infra/shared/namespaces.yaml`.
+
+## Cilium mode
+
+For the [d2-network-fabric](../../labs/d2-network-fabric.md) lab the cluster is created from [`../kind/cluster-cilium.yaml`](../kind/cluster-cilium.yaml) and Cilium is installed as the CNI (see [`../network/cilium/`](../network/cilium/)). Install Cilium **before** running this bootstrap — with `disableDefaultCNI` the nodes stay `NotReady` until a CNI is present, and ingress-nginx can't schedule until then:
+
+```bash
+kind create cluster --name oss500 --config lab-infra/kind/cluster-cilium.yaml
+lab-infra/network/cilium/up.sh    # Cilium CNI + fabric policies -> nodes go Ready
+lab-infra/shared/up.sh            # then namespaces + ingress as usual
+```
+
+The `oss500-*` namespaces and their PSA levels are unchanged in Cilium mode; the fabric lab uses `oss500-apps` for its client workloads.
