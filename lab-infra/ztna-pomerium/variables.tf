@@ -12,8 +12,8 @@ variable "kube_context" {
 
 variable "namespace" {
   type        = string
-  default     = "ztna-pomerium"
-  description = "Namespace for the Pomerium release."
+  default     = "oss500-ztna"
+  description = "Shared PSA-labelled namespace for the Pomerium release (lab-infra/shared/namespaces.yaml); must already exist."
 }
 
 # OIDC (Keycloak from Domain 1) — Pomerium is the identity-aware proxy; the IdP is

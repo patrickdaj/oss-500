@@ -5,12 +5,7 @@
 # tunnelers (client + host) you enroll with the tokens this prints.
 set -euo pipefail
 cd "$(dirname "$0")"
-if [ ! -f terraform.tfvars ]; then
-  echo "Copy terraform.tfvars.example -> terraform.tfvars and fill it in first." >&2
-  exit 1
-fi
-terraform init -input=false
-terraform apply -input=false -auto-approve
+../ztna-common/tf.sh up    # shared: tfvars guard + terraform init + apply
 echo
 echo "Applied. Enroll the tunnelers with the one-time tokens:"
 echo "  terraform output -raw host_enrollment_token   > host.jwt   && ziti-edge-tunnel enroll -j host.jwt"

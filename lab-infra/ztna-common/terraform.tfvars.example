@@ -1,0 +1,4 @@
+# Shared tfvars preamble for the ztna-* stack family.
+# Every stack's terraform.tfvars.example opens with this line, then appends its own
+# provider-specific variables. Copy to terraform.tfvars (gitignored). Never commit
+# real values.

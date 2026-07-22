@@ -1,3 +1,5 @@
+# Common shape is templated in ../ztna-common/versions.tf.tmpl; only this stack's
+# required_providers/provider block is per-model.
 terraform {
   required_version = ">= 1.6"
   required_providers {

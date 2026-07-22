@@ -6,9 +6,11 @@
 # (https://artifacthub.io/packages/helm/pomerium/pomerium) — re-check the pin.
 
 resource "helm_release" "pomerium" {
-  name             = "pomerium"
-  namespace        = var.namespace
-  create_namespace = true
+  name      = "pomerium"
+  namespace = var.namespace
+  # Land in the shared, PSA-labelled oss500-ztna namespace (lab-infra/shared/namespaces.yaml)
+  # rather than self-creating a bespoke one — so `part-of=oss500` finds it for teardown.
+  create_namespace = false
   repository       = "https://helm.pomerium.io"
   chart            = "pomerium"
   version          = "~> 46.0"

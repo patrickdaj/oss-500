@@ -5,12 +5,7 @@
 # or the official quickstart) reachable at management_url, plus a PAT in tfvars.
 set -euo pipefail
 cd "$(dirname "$0")"
-if [ ! -f terraform.tfvars ]; then
-  echo "Copy terraform.tfvars.example -> terraform.tfvars and fill it in first." >&2
-  exit 1
-fi
-terraform init -input=false
-terraform apply -input=false -auto-approve
+../ztna-common/tf.sh up    # shared: tfvars guard + terraform init + apply
 echo
 echo "Applied. Enroll peers into their groups with the setup keys:"
 echo "  netbird up --management-url \$MGMT --setup-key \$(terraform output -raw admin_setup_key)"

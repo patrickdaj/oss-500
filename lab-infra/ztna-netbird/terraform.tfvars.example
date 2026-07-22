@@ -1,3 +1,4 @@
+# Shared preamble: ../ztna-common/terraform.tfvars.example.
 # Copy to terraform.tfvars (gitignored). Never commit real values.
 management_url = "http://localhost:33073" # self-hosted NetBird management API
 netbird_token  = "REDACTED"               # PAT or service-user token

@@ -6,12 +6,7 @@
 # `internal-app` Service in the default namespace to protect.
 set -euo pipefail
 cd "$(dirname "$0")"
-if [ ! -f terraform.tfvars ]; then
-  echo "Copy terraform.tfvars.example -> terraform.tfvars and fill it in first." >&2
-  exit 1
-fi
-terraform init -input=false
-terraform apply -input=false -auto-approve
+../ztna-common/tf.sh up    # shared: tfvars guard + terraform init + apply
 echo
 echo "Applied. Browse to the route (https://app.localtest.me) — you're bounced to"
 echo "Keycloak to authenticate, then allowed only if your identity matches policy."

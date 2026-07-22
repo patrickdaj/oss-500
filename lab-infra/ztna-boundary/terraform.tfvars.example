@@ -1,3 +1,4 @@
+# Shared preamble: ../ztna-common/terraform.tfvars.example.
 # Copy to terraform.tfvars (gitignored). Never commit real values.
 boundary_addr       = "http://127.0.0.1:9200"   # `boundary dev` controller, or your HCP/self-hosted URL
 boundary_login_name = "admin"

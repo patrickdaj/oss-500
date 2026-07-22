@@ -1,3 +1,4 @@
+# Shared preamble: ../ztna-common/terraform.tfvars.example.
 # Copy to terraform.tfvars (gitignored). Never commit real values.
 ziti_mgmt_host = "https://127.0.0.1:1280/edge/management/v1" # `ziti edge quickstart`
 ziti_username  = "admin"

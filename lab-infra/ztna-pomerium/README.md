@@ -7,7 +7,8 @@ A `helm_release` of the `pomerium/pomerium` chart into the local kind cluster, c
 
 ## Prereqs
 - Terraform ≥1.6; provider `hashicorp/helm`.
-- The kind cluster up (`../kind/`), Keycloak reachable as the OIDC IdP (Domain 1), and an `internal-app` Service in `default` to protect.
+- The kind cluster up (`../kind/`) and the shared namespaces applied (`../shared/up.sh`) — Pomerium lands in the shared, PSA-labelled `oss500-ztna` namespace (`create_namespace = false`), so `part-of=oss500` finds it for teardown.
+- Keycloak reachable as the OIDC IdP (Domain 1), and an `internal-app` Service in `default` to protect.
 - A Pomerium OIDC client registered in Keycloak (id/secret → tfvars).
 
 ## Run

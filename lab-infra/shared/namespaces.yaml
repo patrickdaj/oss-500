@@ -49,3 +49,14 @@ metadata:
     app.kubernetes.io/part-of: oss500
     pod-security.kubernetes.io/enforce: baseline
     pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oss500-ztna            # Pomerium identity-aware proxy (d1 ztna)
+  labels:
+    app.kubernetes.io/part-of: oss500
+    # Pomerium's proxy pods run under baseline (not restricted): the chart's
+    # containers want a little latitude — the same latitude Vault/cert-manager get.
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted

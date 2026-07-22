@@ -2,5 +2,5 @@
 # Tear down the Pomerium reference solution.
 set -euo pipefail
 cd "$(dirname "$0")"
-terraform destroy -input=false -auto-approve
+../ztna-common/tf.sh down    # shared: terraform destroy
 echo "Destroyed."

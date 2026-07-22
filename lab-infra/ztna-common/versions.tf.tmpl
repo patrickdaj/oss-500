@@ -1,0 +1,14 @@
+# Shared versions.tf template for the ztna-* stack family.
+# Every stack pins the same Terraform core (required_version below); only the
+# required_providers/provider blocks differ per model. Each stack keeps its own
+# versions.tf with this common framing plus its provider block — the
+# provider-specific bits deliberately stay per stack so no shared file has to know
+# every provider (boundary / netbird / ziti / helm).
+terraform {
+  required_version = ">= 1.6"
+  required_providers {
+    # <name> = { source = "<org>/<name>", version = "~> x.y" }   # per-model
+  }
+}
+
+# provider "<name>" { ... }   # per-model credentials wiring — see the stack's versions.tf

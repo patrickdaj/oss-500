@@ -1,7 +1,8 @@
+# Shared preamble: ../ztna-common/terraform.tfvars.example.
 # Copy to terraform.tfvars (gitignored). Never commit real values.
 kubeconfig_path = "~/.kube/config"
 kube_context    = "kind-oss500"
-namespace       = "ztna-pomerium"
+namespace       = "oss500-ztna" # shared PSA-labelled namespace (lab-infra/shared/namespaces.yaml)
 
 idp_provider_url  = "https://keycloak.localtest.me/realms/oss500" # Keycloak from Domain 1
 idp_client_id     = "pomerium"
