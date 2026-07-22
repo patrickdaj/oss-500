@@ -1,6 +1,6 @@
 # OSS-500 Study Plan — Overview
 
-A phased path that teaches the SC-500 (Cloud & AI Security Engineer) concepts on a 100% open-source stack. Six phases: a fundamentals ramp, four domain phases weighted by their SC-500 exam percentages, and a review/capstone phase. Everything runs locally on a laptop-class host for **$0** — no cloud account, no expiring trials.
+A phased path that teaches the SC-500 (Cloud & AI Security Engineer) concepts on a 100% open-source stack — then pushes past the blueprint. Eight phases: a fundamentals ramp, four SC-500 domain phases weighted by their exam percentages, two **beyond-blueprint** domain phases (offensive validation, agentic zero trust), and a review/capstone phase. Everything runs locally on a laptop-class host for **$0** — no cloud account, no expiring trials.
 
 ## Phase map
 
@@ -11,9 +11,11 @@ A phased path that teaches the SC-500 (Cloud & AI Security Engineer) concepts on
 | [2](phase2-secrets-data-networking.md) | Secrets, data, networking | 25–30% | Domain 2 objectives green; checkpoint 2 ≥ 80% |
 | [3](phase3-compute-ai.md) | Compute & AI security | 20–25% | Domain 3 objectives green; checkpoint 3 ≥ 80% |
 | [4](phase4-posture-monitoring.md) | Posture, SIEM, monitoring | 20–25% | Domain 4 objectives green; checkpoint 4 ≥ 80% |
+| [5](phase5-offensive-validation.md) | Offensive validation (purple-team) | — *(beyond-blueprint)* | Domain 5 objectives green; checkpoint 5 ≥ 80% |
+| [6](phase6-agentic-zero-trust.md) | Agentic zero trust | — *(beyond-blueprint)* | Domain 6 objectives green; checkpoint 6 ≥ 80% |
 | [R](review.md) | Review, capstone, readiness | — | Full-stack capstone stands up; checkpoints ≥ 85% |
 
-Phase 2 (secrets/data/networking, 25–30% — the heaviest SC-500 domain) gets the most days, mirroring the exam weighting.
+Phase 2 (secrets/data/networking, 25–30% — the heaviest SC-500 domain) gets the most days, mirroring the exam weighting. Phases 5 and 6 carry no exam weight — their day time is sized to objective depth, not an exam percentage — but gate on their checkpoint exactly as the SC-500 phases do.
 
 ## Day structure
 
@@ -37,6 +39,8 @@ There is no cloud cost or trial timeline — instead, plan host resources. Basel
 | 2 | Vault, cert-manager, ingress + WAF, a mesh | ~4–5 GB | mesh/WAF after their labs |
 | 3 | Falco, Tetragon, Trivy, Harbor, Ollama | ~5–6 GB | Harbor/Ollama after their labs |
 | 4 | Prometheus/Grafana/Loki, Wazuh+OpenSearch, Suricata/Zeek | ~6–8 GB | the whole stack after the phase |
+| 5 | Attack tooling (garak/PyRIT, Atomic/Caldera/Stratus) against the reused Phase 3/4 detection + Phase 1 ZTNA stacks | ~1–2 GB on top of the target stack | attack tooling + disposable targets after each lab |
+| 6 | LangGraph agent + MCP server + OPA, reusing the Phase 1 Keycloak/SPIRE identity plane | ~2–3 GB | the agentic stack after the phase |
 
 Bring up **only what the current lab needs**; the labs and `lab-infra/` READMEs document per-component `up.sh`/`down.sh`. Wazuh + OpenSearch (Phase 4) and the full observability stack are the heaviest — run them alone. Anything that won't fit the reference host is marked `walkthrough` in the tracker.
 
