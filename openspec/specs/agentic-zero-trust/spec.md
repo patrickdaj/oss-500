@@ -3,9 +3,7 @@
 ## Purpose
 
 oss-500 stops at defending humans-in-the-loop and chat/RAG AI, but the emerging attack surface is the autonomous agent — a principal that holds its own identity, wields tools, and takes consequential actions. This capability adds a beyond-blueprint Domain 6 that both **builds** agentic zero-trust controls (workload + delegated identity, authorized tool/MCP calls, action gating, identity-based multi-agent trust) and **red-teams** them (injection→action, delegated-token bypass, confused-deputy, memory poisoning). Every control is paired with its defensive standard (NIST SP 800-207/207A, RFC 8693, SPIFFE, the MCP authorization spec) and its offensive/validation standard (OWASP Agentic AI, MAESTRO, MITRE ATLAS agentic techniques), the additions are purely additive to Domains 1–5, and all resource links satisfy the `resource-citation` standard.
-
 ## Requirements
-
 ### Requirement: Domain 6 — Agentic Zero Trust exists as a beyond-blueprint build-and-prove track
 The curriculum SHALL include a new Domain 6, `agentic-zero-trust`, marked `(beyond-blueprint)`, that both **builds** agentic security controls and **red-teams** them. It SHALL comprise five subsections (`d6-identity`, `d6-tools-mcp`, `d6-action-gating`, `d6-multi-agent`, `d6-validate`), each with a note under `domains/6-agentic-zero-trust/` and at least one lab under `labs/d6-*`, and SHALL be wired into `domains/standards-map.md`, `assessment/data/tracker.yaml`, and `labs/README.md`. It SHALL NOT modify the objective ids, labs, or SC-500 exam mappings of Domains 1–5.
 
@@ -27,6 +25,10 @@ The `d6-identity` subsection SHALL teach and demonstrate that an agent is a prin
 #### Scenario: Workload identity is distinct from delegated authority
 - **WHEN** the `d6-identity` note and lab are followed
 - **THEN** the learner can distinguish the agent's SPIFFE workload identity (who the process is) from its RFC 8693 on-behalf-of token (what it may do for which user), and cite the NIST 800-207 / RFC 8693 / SPIFFE standards behind each
+
+#### Scenario: The SVID mechanics are taught once within Domain 6
+- **WHEN** the `d6-identity` and `d6-multi-agent` notes are compared for how each covers SPIFFE SVID mechanics (short-lived and non-exportable, fetched from the SPIRE Workload API, X.509-SVID mTLS vs JWT-SVID bearer, a co-located rogue cannot obtain a peer's SVID)
+- **THEN** `d6-identity` (`agent-workload`) SHALL be the single Domain 6 owner of that explanation and `d6-multi-agent` (`agent-mtls`) SHALL reference it rather than restate it, contributing only the net-new agent-to-agent authorization delta (a peer is authorized by its SPIFFE ID rather than by network position, and privilege does not launder across the trust chain), while both notes SHALL preserve their back-link to the Domain 1 canonical `workload-identity.md` (`wi-spiffe`)
 
 ### Requirement: Every agent tool and MCP call is authenticated and authorized
 The `d6-tools-mcp` subsection SHALL demonstrate an MCP server exposing tools to a LangGraph agent where each tool call is authorized by an OPA policy decision (which identity may call which tool with which arguments) and the MCP server itself authenticates callers (via Keycloak / the MCP authorization spec).
@@ -82,3 +84,4 @@ The `d6-validate` subsection SHALL red-team the agent's action/identity surface 
 #### Scenario: New links pass the specificity lint
 - **WHEN** `npm run lint:links` (oss-500) and `npm run lint:content` (study-hub) run over the new Domain 6 content
 - **THEN** they pass — every learning-resource link deep-links to a named section or is marked `(reference)`
+

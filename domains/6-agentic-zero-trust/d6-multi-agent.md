@@ -10,7 +10,7 @@ Domain 6, subsection `d6-multi-agent`. One agent is a workload; **many** agents 
 
 When agent A calls agent B, B must decide *who is calling* before it decides *what to allow*. The wrong answer — the one that feels natural and is quietly fatal — is to trust the **network**: "the request came from inside the cluster / from the agents subnet / over the mesh, so it's a peer." That is trust-by-location, the exact anti-pattern zero trust exists to kill. Any process that lands on the same pod network, any mis-scoped egress rule, any lateral move, and the "trusted" position is now the attacker's. In a multi-agent system the blast radius is worse than a normal microservice, because agents *act* — they call tools, spend budget, mutate state.
 
-The right answer is the one already established in `net-mesh`: **cryptographic workload identity**. Each agent process holds a **SPIFFE SVID** — a short-lived, non-exportable X.509 identity document it fetches from the SPIRE Workload API — and every agent-to-agent hop is **mutual TLS**, so *both* ends prove identity with their SVID. B authenticates A by the SPIFFE ID in A's client certificate (`spiffe://oss500.local/ns/oss500-apps/sa/agent-a`), not by A's IP. Identity is the principal; the network is just plumbing.
+The right answer is the one already established in `net-mesh`: **cryptographic workload identity**. Each agent process holds a **SPIFFE SVID** — its workload identity, whose mechanics are owned by [d6-identity.md](d6-identity.md) (`agent-workload`) — and every agent-to-agent hop is **mutual TLS**, so *both* ends prove identity with their SVID. B authenticates A by the SPIFFE ID in A's client certificate (`spiffe://oss500.local/ns/oss500-apps/sa/agent-a`), not by A's IP. Identity is the principal; the network is just plumbing.
 
 ```
 # agent-b authorizes a call by the PEER's SPIFFE ID (the SVID), never by source IP:
@@ -19,16 +19,15 @@ if peer_id not in AGENT_B_ALLOWED_CALLERS:        # identity allowlist, not a CI
     reject("unauthenticated/unauthorized peer")   # a peer with no valid SVID never gets here
 ```
 
-This is the SVID/mTLS model from Domain 2 — the SPIFFE principal `…/sa/web` reused as an *AuthorizationPolicy* source — carried one layer up: the "workloads" authenticating each other are now agents. The SVID is minted and rotated by SPIRE (hours-long TTL, key material never leaves the Workload API), so a stolen cert expires fast and a rogue co-located process **cannot** obtain agent-a's SVID just by sharing its network. In MAESTRO terms this is the trust boundary between the **Agent Frameworks** and **Deployment/Infrastructure** layers — the cross-layer seam where "it's on our network" must be replaced by "it presented a valid, attested identity." An agent's SVID (its *workload* identity, `agent-workload` in `d6-identity`) is distinct from any user-delegated token it also carries (`agent-deleg`): one says *which process* is calling, the other says *on whose behalf*.
+This is the SVID/mTLS model from Domain 2 — the SPIFFE principal `…/sa/web` reused as an *AuthorizationPolicy* source — carried one layer up: the "workloads" authenticating each other are now agents. In MAESTRO terms this is the trust boundary between the **Agent Frameworks** and **Deployment/Infrastructure** layers — the cross-layer seam where "it's on our network" must be replaced by "it presented a valid, attested identity." An agent's SVID (its *workload* identity, `agent-workload` in [d6-identity.md](d6-identity.md)) is distinct from any user-delegated token it also carries (`agent-deleg`): one says *which process* is calling, the other says *on whose behalf*.
 
 Gotchas:
 - **Authenticate by SPIFFE ID, not by IP/subnet/"inside the mesh."** Network position is not identity. A default-allow-because-co-located posture is the multi-agent version of the flat-network trap `net-policy` closes.
 - mTLS is **mutual** — B proves itself to A *and* A proves itself to B. One-way TLS (only B has a cert) authenticates the server, not the caller, so B still can't say who A is.
-- The SVID is short-lived and fetched from the **Workload API**; the agent never holds long-lived key material. A leaked cert self-heals on rotation — don't reintroduce static, long-lived agent creds.
+- **How the SVID itself works** — short-lived, non-exportable, fetched from the Workload API, X.509-SVID mTLS vs JWT-SVID bearer — is owned by [d6-identity.md](d6-identity.md) (`agent-workload`); this note leans on that owner rather than re-deriving the primitive, and adds only the agent-to-agent authorization angle.
 - Authentication answers **who**, not **what** — a valid SVID gets A *recognized*, not *authorized*. Pair it with per-caller authz (next objective); an identity allowlist with an empty rule set denies all, no policy at all defaults to allow.
 
 **Resources:**
-- [SPIFFE concepts — SPIFFE Verifiable Identity Document (SVID)](https://spiffe.io/docs/latest/spiffe-about/spiffe-concepts/#spiffe-verifiable-identity-document-svid) (~15 min)
 - [CSA — MAESTRO: the seven-layer agentic AI threat-modeling framework](https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro) (~20 min)
 
 ## Contain cascading prompt injection: a compromised peer must not launder privilege
@@ -73,5 +72,5 @@ Gotchas:
 ## Summary
 | Objective | Takeaway |
 |---|---|
-| `agent-mtls` | Agent B authenticates a caller by its **SPIFFE SVID over mTLS**, never by network position — the `net-mesh` identity-not-IP rule applied between agents; short-lived, non-exportable SVIDs mean a co-located rogue can't impersonate a peer. |
+| `agent-mtls` | Agent B authenticates a caller by its **SPIFFE SVID over mTLS**, never by network position — the `net-mesh` identity-not-IP rule applied between agents; the SVID primitive itself is owned by `d6-identity` (`agent-workload`). |
 | `agent-cascade` | Cascading/wormable prompt injection (A→B) propagates the *prompt* but not the *privilege*: authentication ≠ authorization, so B re-authorizes against **B's own** least privilege and a poisoned peer cannot launder escalation through it. |
