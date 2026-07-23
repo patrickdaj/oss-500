@@ -71,3 +71,52 @@ A family of near-identical `lab-infra/` stacks (e.g. the ZTNA Terraform stacks `
 - **WHEN** a stack's `main.tf`, objective ids, and deploy–verify–destroy observable are compared before and after the scaffolding is extracted
 - **THEN** they are unchanged — only boilerplate was factored out, so the study value and the lab's coverage are preserved
 
+### Requirement: Companion Compose services join the primary stack's network
+When a `lab-infra/` component is a multi-file Docker Compose stack whose companion services (such as an onboarded agent) must reach the primary services, all files SHALL be brought up under the same Compose project name and the companion SHALL attach to the network that project actually creates, so companion services can resolve and reach the primary services.
+
+#### Scenario: The Wazuh agent lands on the manager's network
+- **WHEN** a learner brings up the SIEM with `docker compose -p oss500-siem` and then onboards the agent from `agent-compose.yml` under the same project
+- **THEN** the agent attaches to `oss500-siem_default` (the network that project creates), resolves `wazuh.manager`, and enrolls — rather than failing because the file names a different, non-existent external network
+
+#### Scenario: Onboarding-dependent lab stages are reachable
+- **WHEN** the agent has enrolled
+- **THEN** the SIEM collect, detect, hunt, and response stages can be exercised against real agent-sourced events
+
+### Requirement: A lab's prove-it observable is reproducible from the shipped component
+Every backend, service, credential, or client that a lab's verification step depends on SHALL be created by that lab's backing `lab-infra/` component `up.sh` (or by the lab's own explicit steps) — never assumed to exist. A lab SHALL NOT reference a manifest, host, or namespace that the component does not actually provide.
+
+#### Scenario: The dynamic-secrets lab has its database backend
+- **WHEN** a learner runs `lab-infra/secrets/up.sh` and follows `labs/d2-vault-dynamic-secrets.md` Part C
+- **THEN** a Postgres Deployment and Service exist at the host the lab names, and a psql-capable client is available, so `vault write database/config/appdb` connects and the dynamic credential can be tested
+
+#### Scenario: Lease revocation is observable end to end
+- **WHEN** the learner reads a dynamic credential, uses it against Postgres, then revokes the lease (or waits for TTL expiry)
+- **THEN** the credential is accepted before revocation and rejected after — the `vault-dynamic` observable — rather than failing at `vault write database/config` because no database exists
+
+#### Scenario: No dangling references to absent resources
+- **WHEN** the lab or the component's scripts name a manifest, host, or namespace (e.g. `postgres.oss500-secrets`)
+- **THEN** that resource is actually created by the component and the scripts and lab agree on one name (no `postgres.yaml` that does not exist, no namespace mismatch between `configure.sh` and the lab)
+
+### Requirement: The AI lab deploys enforcing guardrails and gateway in the request path
+The `lab-infra/ai/` component SHALL deploy an AI gateway and NeMo Guardrails as running workloads that sit in the request path in front of Ollama, so that every prove-it observable in the Domain 3 AI-security lab and the Domain 5 AI red-team lab is reproducible from `up.sh` as shipped. Guardrail and policy configuration SHALL be loaded by a running workload, not left as inert ConfigMaps, and Ollama SHALL be reachable only through the gateway.
+
+#### Scenario: The gateway is a real, reachable workload
+- **WHEN** a learner runs `lab-infra/ai/up.sh` and issues a request to the gateway Service on its documented port
+- **THEN** an `ai-gateway` Deployment and Service are running in `oss500-apps` and answer the request (rather than returning a name-resolution error for a Service that does not exist)
+
+#### Scenario: Authentication and rate limiting are enforced
+- **WHEN** a learner calls the gateway with no valid token, and separately floods it past its rate limit
+- **THEN** the gateway returns `401` for the unauthenticated call and `429` for the rate-limited call
+
+#### Scenario: Input and output rails execute in-path
+- **WHEN** a learner sends a jailbreak prompt, and separately asks the model to repeat a seeded secret
+- **THEN** the input rail refuses the jailbreak, the output rail redacts the secret, and a `guardrail.blocked` OpenTelemetry span is emitted — while a benign prompt is answered normally
+
+#### Scenario: Ollama is only reachable through the gateway
+- **WHEN** a pod that is not the gateway or guardrails attempts to reach Ollama on `:11434`
+- **THEN** the Ollama NetworkPolicy denies it, so the gateway is the only legitimate path to the model
+
+#### Scenario: The Domain 5 AI red-team target stands up
+- **WHEN** the Domain 5 AI red-team lab fires garak at the guardrailed gateway
+- **THEN** the gateway target is running and reachable, so the defended-vs-baseline comparison can be performed rather than attacking a target that was never deployed
+
