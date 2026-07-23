@@ -17,6 +17,7 @@ Scan the cluster's posture, benchmark its nodes against CIS, scan images for CVE
 - kind cluster up + [`lab-infra/shared`](../lab-infra/shared/) applied.
 - [`lab-infra/posture`](../lab-infra/posture/) available (`cd lab-infra/posture && ./up.sh` deploys the kube-bench Job and installs the Kubescape/Trivy CLIs or Jobs).
 - Notes read: [vulnerability-posture.md](../domains/4-posture-monitoring/vulnerability-posture.md).
+- Tools for this lab: `kubescape`, `kube-bench`, `trivy` — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2–2.5 h · $0 (local)
 

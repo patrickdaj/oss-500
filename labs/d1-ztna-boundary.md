@@ -13,6 +13,7 @@ Broker identity-based, per-session access to **one** private host — with Vault
 **Prerequisites**
 - Terraform ≥1.6; a local controller (`boundary dev`) and `vault server -dev` with the SSH secrets engine; a private SSH host the worker can reach. Stand up a throwaway target locally: `docker run -d --name ssh-target -e PASSWORD_ACCESS=true -e USER_NAME=labuser -e USER_PASSWORD=labpass -p 2222:22 lscr.io/linuxserver/openssh-server` — its address/port (`host.docker.internal`/`localhost` and `2222`) are the target host address and port you set in `terraform.tfvars`.
 - Notes read: [`../domains/1-identity-governance/ztna-access-models.md`](../domains/1-identity-governance/ztna-access-models.md).
+- Tools for this lab: `terraform`, `vault`, `boundary` — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2–3 h · $0 (local)
 
@@ -75,6 +76,9 @@ Author Terraform (`hashicorp/boundary` provider) that creates, top-down, the org
 8. **Re-apply.** *Your turn*: before you verify, write down what you'd expect to see (or not see) in your shell history / `boundary connect` output if the credential really was injected rather than typed — you'll check that prediction in `## Verification`.
 
 ## Verification
+
+> **Validation status — host-pending.** The full **`boundary connect` credential injection** against a CA-trusting target has not yet been run end-to-end on a host by the author. The Vault SSH-CA setup *is* verified (a real Vault dev server signs a short-lived cert), and the reference Terraform passes `terraform validate`. Getting the target's sshd to trust the Vault CA is the load-bearing host step (see the setup note above). If injection misbehaves, it's a finding to report.
+
 ```bash
 boundary authenticate password -login-name appuser
 boundary connect ssh -target-id $(terraform output -raw target_id)

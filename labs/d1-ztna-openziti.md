@@ -13,6 +13,7 @@ Reach a private app **by name over a mutual-TLS mesh** — with **zero listening
 **Prerequisites**
 - Terraform ≥1.6; a local controller + edge router via `ziti edge quickstart`; two `ziti-edge-tunnel` instances (client + host); a private backend app (any HTTP listener on `127.0.0.1:8080` works).
 - Notes read: [`../domains/1-identity-governance/ztna-access-models.md`](../domains/1-identity-governance/ztna-access-models.md).
+- Tools for this lab: `terraform`, `ziti`, `ziti-edge-tunnel` — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2–3 h · $0 (local)
 

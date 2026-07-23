@@ -6,6 +6,10 @@ Types: **hands-on** = you perform it on the local kind cluster / Compose stack �
 
 Lab environments live in [`lab-infra/`](../lab-infra/); each has an `up.sh`/`down.sh` and its own README.
 
+## Validation status
+
+This is a **newly authored** curriculum. The `lab-infra/` is real and reviewable, and much of it has been verified as far as a laptop without a full running cluster allows (config renders, policies evaluate, scripts lint, individual controls exercised) — but **some lab observables have not yet been run end-to-end on a host by the author.** Where that's the case, the lab carries a **`Validation status — host-pending`** note by its Verification section naming exactly which step is unproven. Treat a step that doesn't behave as written as a **finding to report**, not a personal failing — that honesty is the same discipline Domain 5 teaches (a control you haven't proven is a hypothesis). Absence of a note never asserts validation; positive `host-validated` markers are added only for observables actually run on a host.
+
 ## How labs teach — *challenge → guided build → verify → reference solution*
 
 The learning is in the building, not in reading a finished answer. Every lab follows the same four-part shape so you produce the artifact yourself before you ever see a full solution:

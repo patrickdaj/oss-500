@@ -17,6 +17,7 @@ Fail a build on a CRITICAL CVE, generate and attach an SBOM, sign an image with 
 - kind cluster + [`lab-infra/shared`](../lab-infra/shared/) up; [`lab-infra/governance`](../lab-infra/governance/) up for Kyverno (Part D).
 - [`lab-infra/supplychain`](../lab-infra/supplychain/) up (`./up.sh`) — Harbor. Trivy/Grype/Syft/cosign are CLIs (`brew install trivy grype syft cosign` or the container forms).
 - Notes read: [supply-chain.md](../domains/3-compute-ai/supply-chain.md)
+- Tools for this lab: `trivy`, `grype`, `syft`, `cosign` — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2–2.5 h · $0 (local)
 

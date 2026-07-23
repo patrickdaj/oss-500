@@ -18,6 +18,7 @@ Deploy a full SIEM, onboard an endpoint, engineer a detection (Sigma → OpenSea
 - Docker + Docker Compose. **No kind cluster needed** for the core lab (the SIEM is a Compose appliance).
 - [`lab-infra/siem`](../lab-infra/siem/) prepared (`cd lab-infra/siem && cp .env.example .env` and set strong `INDEXER_PASSWORD`/`API_PASSWORD`, then `./up.sh`).
 - Notes read: [siem-incident-response.md](../domains/4-posture-monitoring/siem-incident-response.md).
+- Tools for this lab: `sigma` (sigma-cli, rule→query conversion) — install per [`../TOOLS.md`](../TOOLS.md).
 - Linux `vm.max_map_count=262144` set (the indexer requires it — `up.sh` checks and instructs).
 
 **Estimated time**: 3–4 h · $0 (local)
@@ -81,6 +82,9 @@ No finished decoder mapping, Sigma→DSL conversion, hunt query, or active-respo
 16. Watch it self-revert: after the timeout you found in step 14 elapses, re-run the `iptables -L -n` check — the rule should be gone, automatically. Detection → decision (level) → action (drop) → recovery (timeout): the full IR loop, and you just watched all four stages happen.
 
 ## Verification
+
+> **Validation status — host-pending.** Full **Wazuh agent enrollment** (agent shows *active* in the dashboard, alerts flow) has not yet been run end-to-end on a host by the author. The agent↔manager docker-network fix (the agent now joins `oss500-siem_default`, the network the `-p oss500-siem` project actually creates) *is* verified mechanically with a throwaway Compose stack. If enrollment misbehaves, it's a finding to report.
+
 - **Deploy**: all three containers `healthy`; dashboard reachable over TLS with **non-default** credentials; manager API authenticates.
 - **Collect**: the agent shows *active*, and a brute-force alert document in the indexer has **parsed fields** (`data.srcip`, `rule.mitre.id`) — normalization proven.
 - **Detect**: the Sigma YAML converts to a backend query and the corresponding rule/monitor **flags the brute-force events** (a Sigma rule matching an event in Wazuh/OpenSearch — the observable proof).

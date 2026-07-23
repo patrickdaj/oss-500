@@ -17,6 +17,7 @@ Build the **classic L3 cloud-network fabric** — VPC dataplane, **NAT-gateway e
 **Prerequisites**
 - `docker`, `kind`, `kubectl`, `helm`; optionally the [`cilium`](https://github.com/cilium/cilium-cli) CLI. ~16 GB host.
 - Notes read: [`../domains/0-fundamentals/04-linux-networking.md`](../domains/0-fundamentals/04-linux-networking.md) (the substrate) and [`../domains/2-secrets-data-networking/network-fabric.md`](../domains/2-secrets-data-networking/network-fabric.md) (the cloud mapping).
+- Tools for this lab: `cilium`, `hubble` — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2–3 h · $0 (local)
 

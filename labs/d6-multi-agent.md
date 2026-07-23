@@ -83,6 +83,8 @@ Now A is authenticated — a legitimate, SVID-bearing peer. Part C proves that t
 
 ## Verification
 
+> **Validation status — host-pending.** The **SPIFFE mTLS between agents** (which needs the SPIRE chart up + agent-a/agent-b SVIDs issued) has not yet been run end-to-end on a host by the author. The SPIRE deploy + `ClusterSPIFFEID` registration and the re-authorize-at-B logic are in place. If the mTLS/deny check misbehaves, it's a finding to report.
+
 - **`agent-mtls`**: an authenticated agent-a call to B succeeds; a no-SVID client on the **same network** is **refused** — B authorized by SPIFFE ID, not by network position. You can state *why* the rogue was rejected (no valid peer SVID).
 - **`agent-cascade`**: with A poisoned and asking B for a consequential action over valid mTLS, B **authenticates** A but **denies / gates** the action against B's own authority. Log shows the peer recognized *and* the escalation stopped at B. The poisoned peer laundered no privilege.
 - Both properties hold because of *structure* (per-hop re-authentication + per-callee least privilege), not because you detected that A was compromised.

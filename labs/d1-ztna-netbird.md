@@ -13,6 +13,7 @@ Build a device-level encrypted **WireGuard mesh** with a **self-hosted control p
 **Prerequisites**
 - Terraform ≥1.6; a **self-hosted** NetBird control plane ($0, local), stood up from the official quickstart: <https://docs.netbird.io/selfhosted/selfhosted-quickstart> (the `getting-started-with-zitadel` docker-compose stack). This is an **external dependency** Part B relies on — pin the compose stack to a specific tagged NetBird release rather than tracking `latest`, so the provider/API surface doesn't drift under you mid-lab. You also need a PAT/service-user token, and the `netbird` client on two peers (e.g. two containers/VMs).
 - Notes read: [`../domains/1-identity-governance/ztna-access-models.md`](../domains/1-identity-governance/ztna-access-models.md).
+- Tools for this lab: `terraform`, `netbird` — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2–3 h · $0 (local)
 

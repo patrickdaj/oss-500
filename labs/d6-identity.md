@@ -51,6 +51,8 @@ Give an agent its **two** identities by hand and prove they're separate: a SPIRE
 6. **Read, don't run.** Two SPIRE trust domains federating SVIDs across clusters needs federated bundle exchange — impractical to stand up fully on one laptop. Trace `federatesWith` and bundle endpoints as a walkthrough; mark it *directions* in your notes.
 
 ## Verification
+
+> **Validation status — host-pending.** The **SPIRE chart bring-up + SVID issuance** on kind have not yet been run end-to-end on a host by the author. The SPIRE manifests/wiring (`lab-infra/agentic/spire/`), the `ClusterSPIFFEID` auto-registration, and the correction of the previously-false "SPIRE reused from Domain 1" claims are done. If SPIRE or the SVID check misbehaves, it's a finding to report.
 - **`agent-workload`**: the agent presents its SVID and is accepted; a process with no valid SVID is rejected. You can state that the SVID identifies the *process*, independent of any user.
 - **`agent-deleg`**: a `read`-scoped exchanged token is **refused** when it attempts a write (scope/audience mismatch), and an **expired** token is refused (401), while a correctly-scoped, unexpired token succeeds.
 - You can articulate the two-identity split: SVID = who the process is; delegated token = what it may do, for which user, for how long.

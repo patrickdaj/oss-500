@@ -17,6 +17,7 @@ Prove policy stops bad config at the door — a privileged pod rejected, a misla
 - [`lab-infra/governance`](../lab-infra/governance/) up (`./up.sh`) — installs Kyverno + Gatekeeper and applies the lab policies.
 - Kubescape CLI installed (see the component README).
 - Notes read: [governance.md](../domains/1-identity-governance/governance.md).
+- Tools for this lab: `kubescape` (compliance scan) — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2–3 h · $0 (local)
 

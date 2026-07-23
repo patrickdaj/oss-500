@@ -5,7 +5,7 @@ Everything here provisions the open-source security stack **locally**, on a sing
 ## Reference host
 
 - **~4 CPU cores, 16 GB RAM, 40 GB free disk.** Every hands-on lab fits if you bring up **only what the current lab needs**.
-- Software: Docker, [kind](https://kind.sigs.k8s.io/), `kubectl`, [Helm](https://helm.sh/). No cloud account, no cost.
+- Software (day-one baseline): Docker, [kind](https://kind.sigs.k8s.io/), `kubectl`, [Helm](https://helm.sh/), `git`, [`jq`](https://jqlang.github.io/jq/), [Terraform](https://developer.hashicorp.com/terraform/install). Every other CLI the labs use (Vault, Boundary, cert-manager `cmctl`, Trivy, OPA, garak, …) is in [`../TOOLS.md`](../TOOLS.md) with a per-OS install — **grab each as its phase arrives.** No cloud account, no cost.
 - The heaviest components — Wazuh + OpenSearch (SIEM) and the full observability stack — should be run alone. Anything that won't fit the reference host is marked `walkthrough` in the tracker.
 
 ## Running on Apple Silicon (macOS)

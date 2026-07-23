@@ -21,6 +21,7 @@ Stand up a local LLM (Ollama + Open WebUI), lock the model behind an authenticat
 - Domain 1 [`lab-infra/identity`](../lab-infra/identity/) (Keycloak) is up — the AI gateway validates its OIDC tokens (needed for the authenticated path in Part A; the unauthenticated-401 test works without it).
 - (Optional) [`lab-infra/secrets`](../lab-infra/secrets/) (Vault) for the RAG secrets step.
 - Notes read: [ai-security.md](../domains/3-compute-ai/ai-security.md)
+- Tools for this lab: `opa` (evaluate the gateway Rego in Part F) — install per [`../TOOLS.md`](../TOOLS.md). The gateway image itself is built + `kind load`ed by `lab-infra/ai/up.sh` (needs only Docker/kind).
 
 **Estimated time**: 2.5–3 h · $0 (local)
 
@@ -84,6 +85,8 @@ No solutions below — build/observe each of these yourself, then check the Refe
 18. Reason through the governance mapping: routing *all* AI traffic through this one gateway is how shadow AI becomes visible and controllable — the local mirror of Purview DSPM for AI discovering third-party AI usage — and every decision here gets logged to the OTel/SIEM feed for a "who used which model against what data" inventory. What would you need to add to this policy to govern a second, larger model your org just adopted?
 
 ## Verification
+
+> **Validation status — host-pending.** The **NeMo Guardrails rails + model round-trip** on kind have not yet been run end-to-end on a host by the author. The gateway's authn (401), rate-limit (429), and OPA governance decisions *are* verified (`opa eval`), and the manifests/app compile and pass dry-run. If a rail or the model call misbehaves, it's a finding to report.
 - Ollama is **ClusterIP-only**; the gateway returns **401 without a token** and **429 when the per-identity token budget is exceeded** (Part A).
 - **A jailbreak prompt is blocked** and returns a refusal while a benign prompt is answered normally — the concrete prompt-injection mitigation (Part B).
 - An **output rail redacts/blocks a seeded secret** the model was asked to repeat (Part C).

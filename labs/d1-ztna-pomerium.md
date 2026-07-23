@@ -14,6 +14,7 @@ Put an internal web app behind a proxy that re-authorizes **every request** agai
 - Terraform ≥1.6; the kind cluster up (`../lab-infra/kind/`); Keycloak reachable as the OIDC IdP (Domain 1 lab); an `internal-app` Service in `default` (any small HTTP app) — create one with `kubectl create deployment internal-app --image=nginx && kubectl expose deployment internal-app --port=80`.
 - (The Pomerium OIDC client in Keycloak is **created in Part A** of this lab — you don't need it beforehand.)
 - Notes read: [`../domains/1-identity-governance/ztna-access-models.md`](../domains/1-identity-governance/ztna-access-models.md).
+- Tools for this lab: `terraform` (deploy is a Terraform-wrapped Helm release) — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2 h · $0 (local)
 

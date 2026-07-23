@@ -45,7 +45,7 @@ scripts/      gen-md.mjs — regenerate the markdown views from the YAML
 
 ## Using this repo
 
-1. **Prerequisites**: Docker, [kind](https://kind.sigs.k8s.io/), `kubectl`, and [Helm](https://helm.sh/). A laptop-class host with ~16 GB RAM runs every hands-on lab (bring components up per lab, tear down after).
+1. **Prerequisites**: Docker, [kind](https://kind.sigs.k8s.io/), `kubectl`, [Helm](https://helm.sh/), `git`, plus [`jq`](https://jqlang.github.io/jq/) and [Terraform](https://developer.hashicorp.com/terraform/install) (the Vault bring-up needs `jq`; the ZTNA labs are Terraform-automated). Those are the day-one baseline; the rest of the per-lab CLIs (Vault, Boundary, Trivy, OPA, …) are listed in [`TOOLS.md`](TOOLS.md) — **install each as its phase arrives**, not all at once. A laptop-class host with ~16 GB RAM runs every hands-on lab (bring components up per lab, tear down after).
 2. **Start with the plan**: [`plan/overview.md`](plan/overview.md) explains the phased path; [`plan/phase0-fundamentals.md`](plan/phase0-fundamentals.md) is day one.
 3. **Run a lab**: each `lab-infra/<component>/` is self-contained —
    ```bash

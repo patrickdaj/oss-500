@@ -16,7 +16,7 @@ Prove a Kubernetes Secret sits in etcd as readable plaintext, turn on encryption
 - The shared **Phase 0 kind cluster** is up (reused by every lab) — check with `kind get clusters` (you should see `oss500`). If it isn't, create it once: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh`.
 - [`lab-infra/encryption`](../lab-infra/encryption/) up (`./up.sh`) — provides the `EncryptionConfiguration` and the kube-apiserver patch for the kind cluster.
 - Notes read: [data-protection.md](../domains/2-secrets-data-networking/data-protection.md).
-- `trivy` and `gitleaks` installed locally (the component README lists install commands), plus `docker`/`etcdctl` access to the kind node.
+- Tools for this lab: `trivy` and `gitleaks` (install per [`../TOOLS.md`](../TOOLS.md)), plus `docker`/`etcdctl` access to the kind node.
 
 **Estimated time**: 2–2.5 h · $0 (local)
 

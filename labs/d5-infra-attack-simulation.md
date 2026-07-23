@@ -14,6 +14,7 @@ Fire **real MITRE ATT&CK techniques** at the detection stack you built in Domain
 **Prerequisites**
 - The detection stack up: [`d3-runtime-detection`](d3-runtime-detection.md) (Falco/Tetragon), [`d4-network-detection`](d4-network-detection.md) (Suricata), [`d4-siem-wazuh`](d4-siem-wazuh.md) (Wazuh). Offense tooling from [`../lab-infra/offense/`](../lab-infra/offense/).
 - Notes read: [`../domains/5-offensive-validation/infra-attack-simulation.md`](../domains/5-offensive-validation/infra-attack-simulation.md).
+- Tools for this lab: `atomic` (Invoke-AtomicTest), `caldera`, `stratus` — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 3–4 h · $0 (local) · **disposable targets only**
 

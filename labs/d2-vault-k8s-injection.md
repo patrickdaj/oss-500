@@ -16,6 +16,7 @@ Get a Vault secret onto a pod's filesystem — authenticated by the pod's own Se
 - The shared **Phase 0 kind cluster** is up (reused by every lab) — check with `kind get clusters` (you should see `oss500`). If it isn't, create it once: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh`.
 - [`lab-infra/secrets`](../lab-infra/secrets/) up (`./up.sh`) — Vault **plus** the Agent Injector (enabled in the chart values) and, for Part C, the Secrets Store CSI driver + Vault CSI provider.
 - Notes read: [secrets-management.md](../domains/2-secrets-data-networking/secrets-management.md).
+- Tools for this lab: `vault` (or `exec` the vault-0 pod) — install per [`../TOOLS.md`](../TOOLS.md).
 - The Kubernetes auth method configured in [d2-vault-dynamic-secrets](d2-vault-dynamic-secrets.md) Part B (or run its enable step first).
 
 **Estimated time**: 2 h · $0 (local)

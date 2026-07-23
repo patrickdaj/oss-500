@@ -18,6 +18,7 @@ Issue a database credential that Postgres accepts, watch it expire on its lease,
 
 - [`lab-infra/secrets`](../lab-infra/secrets/) up (`./up.sh`) — Vault in the `oss500-secrets` namespace, Raft storage, initialized/unsealed by the script (init keys written to a gitignored file).
 - Notes read: [secrets-management.md](../domains/2-secrets-data-networking/secrets-management.md).
+- Tools for this lab: `vault` (or `exec` the vault-0 pod), `jq`, `psql` (or `exec` the shipped `psql-client` pod) — install per [`../TOOLS.md`](../TOOLS.md).
 - A Postgres backend for the dynamic-secrets engine: the component's `up.sh` deploys it (Service `postgres.oss500-secrets`, db `appdb`, admin `vaultadmin`) plus a `psql-client` pod. Run the Part C `psql` checks from that pod, e.g. `kubectl -n oss500-secrets exec deploy/psql-client -- env PGPASSWORD='<pw>' psql -h postgres.oss500-secrets -U '<user>' -d appdb -c 'SELECT 1;'`.
 
 **Estimated time**: 2–3 h · $0 (local)
@@ -143,6 +144,8 @@ Reach these observables (see Verification for the exact checks):
 18. Note in the JSON: the request `path`, the `auth` block (which token/policy), the client IP, and that the **secret value is HMAC'd, not plaintext** — auditors see *that* the secret was accessed and *by whom*, without the log itself becoming a secret store. This is exactly what you'd forward to Loki/Wazuh (Phase 4) to alert on anomalous access — the Defender-for-Key-Vault analogue.
 
 ## Verification
+
+> **Validation status — host-pending.** The Part A **Raft init/unseal bring-up on kind** has not yet been run end-to-end on a host by the author. The dynamic-secrets flow (a credential that `psql` accepts, then fails after `lease revoke`, and `rotate-root` invalidating the admin password) *is* verified end to end against a real Vault + Postgres. If the bring-up misbehaves, it's a finding to report.
 
 - **Dynamic credential works then dies**: `vault read database/creds/app` yields a username/password that `psql` authenticates with, and the *same* credential fails to authenticate after its lease TTL expires or after `vault lease revoke -prefix`. Proves short-lived, centrally-revocable secrets.
 - **Policy scoping**: `vault token capabilities` returns `read` for the granted path and `deny` for any other path under the `app-ro` token.

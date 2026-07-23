@@ -18,6 +18,7 @@ Watch one pod reach another, cut it off with a default-deny NetworkPolicy, then 
 - [`lab-infra/network`](../lab-infra/network/) up (`./up.sh`) for **Part A** — deploys the demo app (`web` + a `client` pod) and the baseline NetworkPolicies (`default-deny-all` + `allow-dns` + `allow-client-to-web`). It does **not** install a new CNI: kind's built-in `kindnet` already enforces the basic NetworkPolicy this part uses. (Calico is only needed for advanced egress/`namespaceSelector` behaviour and is an *optional* manual step — `kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/calico.yaml`.)
 - For **Part B** (the service mesh), run `./up-mesh.sh` — Istio is a separate, heavier install and is **not** part of `up.sh`.
 - Notes read: [network-security.md](../domains/2-secrets-data-networking/network-security.md).
+- Tools for this lab: `istioctl` (mesh install/inspect) — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2–3 h · $0 (local)
 

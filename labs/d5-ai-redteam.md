@@ -14,6 +14,7 @@ Attack the **exact LLM gateway** Domain 3 built (Ollama behind NeMo Guardrails +
 **Prerequisites**
 - The `d3-ai` gateway running locally ([`d3-ai-security`](d3-ai-security.md)); `pipx`/`python3`; offense tooling from [`../lab-infra/offense/`](../lab-infra/offense/).
 - Notes read: [`../domains/5-offensive-validation/purple-team.md`](../domains/5-offensive-validation/purple-team.md), [`ai-redteam.md`](../domains/5-offensive-validation/ai-redteam.md).
+- Tools for this lab: `garak`, `pyrit` — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2–3 h · $0 (local) · **local target only**
 
@@ -41,6 +42,8 @@ Re-point garak at the **NeMo-fronted** gateway and re-run the **same** probe set
 - **Burp/PortSwigger**: test the gateway's **HTTP** surface yourself — auth on the API, IDOR on any conversation/session id. The model can be perfectly guarded while the API in front of it isn't.
 
 ## Verification
+
+> **Validation status — host-pending.** This lab fires **garak at the D3 guardrailed gateway**, whose rails + model round-trip have not yet been run end-to-end on a host (see `d3-ai-security.md`). The gateway target now stands up (a real Deployment) and its authn/rate-limit/OPA layers are verified; the guardrail-vs-baseline delta is the part awaiting a host run. If it misbehaves, it's a finding to report.
 - Each garak probe that the gateway **defends** is reported as such; each that **passes** is logged against its OWASP/ATLAS id with a reproduction.
 - The defended-vs-baseline table shows the rails measurably reducing successful probes.
 - Any gap (a probe that passes the guardrail) is written up with the missing rail named — **not** hidden.

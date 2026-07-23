@@ -19,6 +19,7 @@ Encrypt data without ever holding the key (Vault transit), then let cert-manager
 - [`lab-infra/certs`](../lab-infra/certs/) up (`./up.sh`) — cert-manager in `oss500-secrets`, plus `cmctl`.
 - [`lab-infra/secrets`](../lab-infra/secrets/) up for Part A (Vault transit engine).
 - Notes read: [keys-and-certificates.md](../domains/2-secrets-data-networking/keys-and-certificates.md).
+- Tools for this lab: `cmctl` (cert-manager CLI, Part C) — install per [`../TOOLS.md`](../TOOLS.md).
 
 **Estimated time**: 2–2.5 h · $0 (local)
 
