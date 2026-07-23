@@ -38,6 +38,8 @@ Set up the reference host and the cluster once here; every later phase reuses it
 - [ ] **[1.5h] YAML/manifest fluency** — reading `securityContext`, resource limits, and probes in a manifest without flinching.
 - [ ] **[1h] Catch-up / rest** — finish any self-checks; make sure `kind`, `kubectl`, and `helm` all work end to end before Phase 1.
 
+> **Read-ahead (no study block yet).** [`domains/0-fundamentals/04-linux-networking.md`](../domains/0-fundamentals/04-linux-networking.md) is the Linux-networking substrate — network namespaces, veth pairs, CIDR, routing, NAT — that the segmentation and cloud-fabric labs stand on. It lives in Phase 0 but is **deep-read in Phase 2 at point of use**, alongside [`network-fabric.md`](../domains/2-secrets-data-networking/network-fabric.md) and the [`d2-network-fabric`](../labs/d2-network-fabric.md) lab, so it adds no Phase 0 hours here.
+
 ## Self-check (pass before Phase 1)
 
 1. Create a namespace, deploy a non-root pod with a read-only root filesystem, and confirm it can't write to `/`.

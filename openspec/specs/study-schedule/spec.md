@@ -19,6 +19,10 @@ The plan SHALL define a phased schedule under `plan/`: a Phase 0 fundamentals ra
 - **WHEN** a reader reaches the Phase-0 day that introduces the IaC loop
 - **THEN** that day links `domains/0-fundamentals/05-git-iac-foundation.md` (the git model and Terraform write→plan→apply foundation) as reading to precede the applied kind/Helm work, and the phase self-check exercises the git working-tree/index/repo model and Terraform state/locking
 
+#### Scenario: Phase-0 plan points to the Linux-networking substrate note as a Phase-2 read-ahead
+- **WHEN** a reader works through the Phase-0 plan
+- **THEN** the plan links `domains/0-fundamentals/04-linux-networking.md` at least once as the Linux-networking substrate (netns/veth/CIDR/routing/NAT) and states that its deep read is scheduled in Phase 2 alongside `network-fabric.md` / the `d2-network-fabric` lab, so every Phase-0 domain note is reachable from the Phase-0 plan without adding a full timed study block or relocating the note
+
 #### Scenario: Heaviest domain gets the most time
 - **WHEN** comparing planned hours across domains
 - **THEN** the secrets/data/networking domain (SC-500 weight 25–30%) receives more planned hours than any other domain
