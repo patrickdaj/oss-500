@@ -31,6 +31,31 @@ No solution below — just the shape of what "done" looks like. Build the Terraf
 
 ## Build it (guided)
 
+### Setup — Vault's SSH secrets engine (do this first)
+
+> **Front-loaded Vault.** This is a sliver of Domain 2 (`vault-*`), pulled forward because the broker's whole point is a Vault-injected credential. You don't need Vault fluency yet — run these four commands; the full engine is taught in [Phase 2](../plan/phase2-secrets-data-networking.md) ([secrets-management.md](../domains/2-secrets-data-networking/secrets-management.md)).
+
+Against your `vault server -dev` (`export VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN=root`), enable the **SSH secrets engine as a certificate authority** and add the signing role the Terraform reads at `ssh/sign/boundary`:
+
+```bash
+vault secrets enable ssh
+vault write ssh/config/ca generate_signing_key=true          # Vault becomes the SSH CA
+vault write ssh/roles/boundary key_type=ca allow_user_certificates=true \
+  allowed_users=appuser,labuser default_user=appuser \
+  default_extensions='{"permit-pty":""}' ttl=5m               # signs short-lived user certs
+```
+
+The credential library calls `ssh/sign/boundary` at connect time to sign a per-session public key — that signed cert is the ephemeral credential injected into the session (TTL 5m, unique per session). Mint a least-privilege Vault token for Boundary's credential store and put it in `terraform.tfvars` as `vault_token` (don't reuse `root`):
+
+```bash
+vault policy write boundary-ssh -<<'EOF'
+path "ssh/sign/boundary" { capabilities = ["create","update"] }
+EOF
+vault token create -policy=boundary-ssh -field=token          # -> terraform.tfvars: vault_token
+```
+
+> **The target must trust the CA.** A Vault-signed cert only authenticates if the target's `sshd` trusts Vault's SSH CA. Capture the CA public key — `vault read -field=public_key ssh/config/ca > trusted-ca.pem` — and configure the throwaway target's `sshd` with `TrustedUserCAKeys` pointing at it (mount `trusted-ca.pem` into the container and add `TrustedUserCAKeys /path/to/trusted-ca.pem` to its `sshd_config`). Without this, `boundary connect` will inject a valid cert that the target rejects — the classic "creds look right but auth fails" dead end. (A password-only target proves brokering, not injection.)
+
 ### Part A — the broker (`ztna-boundary`)
 
 Author Terraform (`hashicorp/boundary` provider) that creates, top-down, the org→project→identity→target→grant chain. Work through it in this order — each layer depends on the one before it:
@@ -45,7 +70,7 @@ Author Terraform (`hashicorp/boundary` provider) that creates, top-down, the org
 
 ### Part B — Vault credential injection
 
-6. **Add a Vault-backed credential store and library.** A `boundary_credential_store_vault` + `boundary_credential_library_vault_generic`, pointed at Vault's SSH secrets engine.
+6. **Add a Vault-backed credential store and library.** A `boundary_credential_store_vault` + `boundary_credential_library_vault`, pointed at Vault's SSH secrets engine.
 7. **Wire it as *injection*, not brokering.** Attach the library to the target via **`injected_application_credential_source_ids`**. *Why the distinction matters*: brokered credentials are handed to the client (the user sees the secret); injected credentials are placed into the session by the worker — the client never sees it, and because it comes from Vault's SSH engine it's short-lived and unique per session.
 8. **Re-apply.** *Your turn*: before you verify, write down what you'd expect to see (or not see) in your shell history / `boundary connect` output if the credential really was injected rather than typed — you'll check that prediction in `## Verification`.
 
@@ -62,7 +87,7 @@ boundary connect ssh -target-id $(terraform output -raw target_id)
 ## Reference solution
 Build it yourself first; check after. The complete, CI-validated Terraform lives in [`../lab-infra/ztna-boundary/`](../lab-infra/ztna-boundary/):
 - [`main.tf`](../lab-infra/ztna-boundary/main.tf) — the org/project scopes, the password auth-method + account + user, the static host catalog/host/host-set, the `tcp` target, and the least-privilege `boundary_role` granting only `authorize-session` (Part A, steps 1–5).
-- [`credentials-vault.tf`](../lab-infra/ztna-boundary/credentials-vault.tf) — the `boundary_credential_store_vault` + `boundary_credential_library_vault_generic`, wired to the target via `injected_application_credential_source_ids` (Part B, steps 6–7).
+- [`credentials-vault.tf`](../lab-infra/ztna-boundary/credentials-vault.tf) — the `boundary_credential_store_vault` + `boundary_credential_library_vault`, wired to the target via `injected_application_credential_source_ids` (Part B, steps 6–7).
 - [`variables.tf`](../lab-infra/ztna-boundary/variables.tf) / [`terraform.tfvars.example`](../lab-infra/ztna-boundary/terraform.tfvars.example) — the inputs (Vault address/token, target host address, port) to fill in.
 - [`up.sh`](../lab-infra/ztna-boundary/up.sh) / [`down.sh`](../lab-infra/ztna-boundary/down.sh) — `terraform init`/`apply` and `terraform destroy`, wrapping the same commands from Part A/B and `## Teardown`.
 - [`README.md`](../lab-infra/ztna-boundary/README.md) — prereqs and run instructions for the component.

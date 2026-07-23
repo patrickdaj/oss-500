@@ -21,7 +21,10 @@ services:
 
 networks:
   default:
-    name: oss500_default
+    # Must match the network the main stack creates. It is brought up with
+    # `docker compose -p oss500-siem`, so the project (and its default network)
+    # is oss500-siem_default — the `-p` flag overrides this file's `name:`.
+    name: oss500-siem_default
     external: true
 
 volumes:
