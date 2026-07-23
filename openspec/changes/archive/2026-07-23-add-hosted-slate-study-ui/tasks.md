@@ -43,7 +43,7 @@ Keep study-hub's `npm test` and `npm run lint` green after each SH group.
 
 - [x] 6.1 Create public repo `patrickdaj/study-hub` via `gh repo create` and push `main` (verify `.gitmodules` local-path URLs are harmless to a public clone; CI does not use them)
 - [x] 6.2 Add `.github/workflows/notify-oss500.yml`: on `push` to `main`, POST a `repository_dispatch` (`event_type: study-hub-updated`) to `patrickdaj/oss-500` using secret `OSS500_DISPATCH_TOKEN`
-- [ ] 6.3 Create a fine-scoped PAT (repository_dispatch on oss-500) and add it to study-hub as the `OSS500_DISPATCH_TOKEN` secret
+- [x] 6.3 Create a fine-scoped PAT (repository_dispatch on oss-500) and add it to study-hub as the `OSS500_DISPATCH_TOKEN` secret — done; `gh secret list -R patrickdaj/study-hub` shows `OSS500_DISPATCH_TOKEN` (set 2026-07-22).
 
 ## 7. oss-500 deploy pipeline (OSS)
 
@@ -57,6 +57,6 @@ Keep study-hub's `npm test` and `npm run lint` green after each SH group.
 
 - [x] 8.1 Confirm `https://patrickdaj.github.io/oss-500/` returns 200 and renders the Slate dashboard for oss-500 only
 - [x] 8.2 On the hosted site: navigate Dashboard → Plan → Notes → Labs → Tracker → Tests → Search, and toggle light/dark; confirm all work
-- [ ] 8.3 Verify the redeploy triggers: a trivial oss-500 content push rebuilds; a study-hub push fires the dispatch and rebuilds (or, if PAT skipped, document the manual-rebuild fallback)
+- [x] 8.3 Verify the redeploy triggers — done; `gh run list --workflow deploy-pages.yml` shows successful `push` builds **and** two successful `repository_dispatch` ("study-hub-updated") builds (2026-07-23), confirming both the content-push and study-hub→dispatch rebuild paths fire.
 - [x] 8.4 [OSS] Update the oss-500 README to link the hosted app; [cloud-native-security-lab] update the blog Welcome post + oss-500 links to point at the hosted app
 - [x] 8.5 Run `openspec validate add-hosted-slate-study-ui` and confirm the change is ready to archive
