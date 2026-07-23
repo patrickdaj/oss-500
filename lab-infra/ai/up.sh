@@ -40,10 +40,24 @@ kubectl -n "$NS" create configmap ai-gateway-policy \
 echo "==> Deploying OpenTelemetry collector  [ai-observability]"
 kubectl apply -f "$here/otel/collector.yaml"
 
-echo "==> Deploying Open WebUI (chat + RAG front end)  [ai-rag]"
+echo "==> Building + loading the AI gateway image  [ai-access / ai-guardrails]"
+# The gateway is the enforced hop: bearer auth (401), OPA governance (403) +
+# rate limit (429), NeMo Guardrails rails, OTel spans. It mounts the
+# nemo-guardrails + ai-gateway-policy configmaps created above.
+CLUSTER="${KIND_CLUSTER:-oss500}"
+docker build -t ai-gateway:local "$here/gateway"
+kind load docker-image ai-gateway:local --name "$CLUSTER"
+kubectl apply -f "$here/gateway/deployment.yaml"
+kubectl -n "$NS" rollout status deploy/ai-gateway --timeout=5m
+
+echo "==> Deploying Open WebUI (chat + RAG front end, routed THROUGH the gateway)  [ai-rag]"
 kubectl apply -f "$here/open-webui/deployment.yaml"
 kubectl -n "$NS" rollout status deploy/open-webui --timeout=5m
 
 echo "==> Done. Open WebUI: http://ai.oss500.local  (add to /etc/hosts -> 127.0.0.1)"
-echo "    Ollama is NOT exposed (ai-access): kubectl -n $NS get svc ollama -> ClusterIP"
-echo "    Guardrails/gateway sit in the request path; do labs/d3-ai-security.md."
+echo "    Ollama is NOT exposed (ai-access): kubectl -n $NS get svc ollama -> ClusterIP,"
+echo "    and its NetworkPolicy now admits ONLY the ai-gateway pod."
+echo "    Gateway (enforced path):  kubectl -n $NS port-forward svc/ai-gateway 8080:8080"
+echo "      curl -s localhost:8080/v1/models                 -> 401 (no token)"
+echo "      curl -s -H 'Authorization: Bearer alice' ...     -> 200"
+echo "    Do labs/d3-ai-security.md (Parts A-E) and labs/d5-ai-redteam.md."

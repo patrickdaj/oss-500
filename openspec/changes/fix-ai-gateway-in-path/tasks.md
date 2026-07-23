@@ -2,21 +2,24 @@
 
 ## 1. Deploy the gateway + guardrails in-path
 
-- [ ] 1.1 Add an `ai-gateway` Deployment + Service (`:8080`, namespace `oss500-apps`) under `lab-infra/ai/gateway/` that proxies chat requests to Ollama and enforces auth (`401` when the bearer token is missing/invalid) and rate limiting (`429`).
-- [ ] 1.2 Run NeMo Guardrails in the request path — either a `nemo-guardrails` Deployment the gateway calls, or the rails in-process in the gateway — loading the existing `lab-infra/ai/guardrails/config.yml` and `prompts.yml` (mount the ConfigMaps rather than leaving them inert).
-- [ ] 1.3 Re-point `lab-infra/ai/open-webui/deployment.yaml` `OLLAMA_BASE_URL` to the gateway, so all model traffic traverses the rails.
-- [ ] 1.4 Tighten `lab-infra/ai/ollama/deployment.yaml` NetworkPolicy so only the gateway/guardrails pods may reach `:11434` (remove the direct `app: open-webui` ingress allow once the gateway is in place).
-- [ ] 1.5 Update `lab-infra/ai/up.sh` to apply the new manifests (keep the `llama3.2:1b` pull and OTel collector as-is) and confirm `guardrail.blocked` spans are emitted to the collector.
+- [x] 1.1 Added `lab-infra/ai/gateway/` — an `ai-gateway` FastAPI app (`app.py`) serving `/v1/chat/completions` (+ `/v1/chat` alias for the labs) and `/v1/models` on `:8080`, enforcing bearer auth (**401**) and a per-identity token-bucket (**429**); Deployment + Service in `oss500-apps`.
+- [x] 1.2 NeMo Guardrails run **in-process** in the gateway (loads the mounted `guardrails/config.yml` + `prompts.yml`), so the input/output rails sit in the request path; the deploy mounts the `nemo-guardrails` ConfigMap.
+- [x] 1.3 Re-pointed `open-webui/deployment.yaml` at the gateway (`OPENAI_API_BASE_URL=http://ai-gateway.oss500-apps:8080/v1`, `ENABLE_OLLAMA_API=false`, token from a new `GATEWAY_TOKEN` secret key), so model traffic traverses the rails.
+- [x] 1.4 Tightened `ollama/deployment.yaml` NetworkPolicy: `:11434` now admits **only** `app: ai-gateway` (dropped the direct `open-webui`/`nemo-guardrails` allows).
+- [x] 1.5 `up.sh` builds `ai-gateway:local`, `kind load`s it, applies the gateway (with an OPA sidecar running `gateway-policy.rego`), then Open WebUI; OTel endpoint wired so `guardrail.blocked` spans export.
 
 ## 2. Reconcile docs and lab text
 
-- [ ] 2.1 Correct `lab-infra/ai/README.md` so the component table matches the shipped workloads (no "Deployment" rows for things that are ConfigMap-only).
-- [ ] 2.2 Fix `labs/d3-ai-security.md` step 2 wording to say the Ollama policy gates by **podSelector labels**, not ServiceAccounts, and confirm Parts A–E now describe reachable observables.
-- [ ] 2.3 Verify `labs/d5-ai-redteam.md` Part B targets the now-running gateway (`http://ai-gateway.oss500-apps:8080/...`); adjust only if the Service name/port differs.
+- [x] 2.1 Corrected `lab-infra/ai/README.md`: the component table now shows the real gateway (Deployment: gateway + OPA sidecar, guardrails in-process) instead of nonexistent separate "Deployment" rows; file tree adds `gateway/`; "only the ai-gateway pod reaches Ollama".
+- [x] 2.2 Fixed `labs/d3-ai-security.md` step 2 + verification wording: the Ollama policy gates by **podSelector label** `app: ai-gateway`, not ServiceAccounts.
+- [x] 2.3 `labs/d5-ai-redteam.md` targets `http://ai-gateway.oss500-apps:8080/v1/chat` — now a real, running endpoint (the `/v1/chat` alias serves it); no lab text change needed.
 
 ## 3. Validation
 
-- [ ] 3.1 `cd lab-infra/ai && ./up.sh`; then `curl` the gateway with no token → `401`, with a valid token and a jailbreak prompt → refused, with a benign prompt → answered.
-- [ ] 3.2 Seed a fake secret in context, ask the model to repeat it, confirm the **output rail** redacts it; confirm a `guardrail.blocked` span appears for the attacking identity.
-- [ ] 3.3 Confirm Ollama is reachable **only** via the gateway (a direct `curl` to `ollama:11434` from an unauthorized pod is denied).
-- [ ] 3.4 Run `npm run lint:links` and `npx openspec validate fix-ai-gateway-in-path --strict`.
+- [x] 3.1 **OPA policy decisions verified with real `opa eval`**: unauthenticated → `allow=false`; authed + sanctioned model → `allow=true`; privileged model without the `ml` group → `allow=false` with the correct deny reason; `ml` user + privileged model → `allow=true`. `opa check` compiles the policy.
+- [x] 3.2 `app.py` compiles (`py_compile`); `gateway/deployment.yaml` passes `kubectl apply --dry-run`; `up.sh`/`down.sh` pass `bash -n`; `down.sh` deletes the gateway.
+- [ ] 3.3 (host) `cd lab-infra/ai && ./up.sh` on kind: port-forward `svc/ai-gateway`, confirm `401` without a token, a jailbreak refused, a seeded secret redacted by the output rail, and `guardrail.blocked` spans in the collector; confirm Ollama is unreachable except via the gateway.
+- [x] 3.4 `npm run lint:links` OK; `npx openspec validate fix-ai-gateway-in-path --strict` passes.
+
+## Note on runtime verification
+The auth/rate-limit/OPA/OTel/NetworkPolicy layers are verified statically + by `opa eval`. The NeMo Guardrails rails and the model round-trip need a kind cluster with the `llama3.2:1b` model pulled — flagged (3.3) for host verification. The gateway loads NeMo lazily so the pod is Ready before the model finishes pulling.

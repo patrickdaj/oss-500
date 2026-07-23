@@ -1,6 +1,6 @@
 # lab-infra/agentic — LangGraph agent + MCP + zero-trust controls
 
-The Agentic Zero Trust stack (Domain 6, `d6` → `agent-deleg`, `agent-workload`, `mcp-authz`, `mcp-authn`, `action-gate`, `agent-mtls`, `agent-cascade`, `av-agent-actions`). This domain is **beyond-blueprint** — it builds and red-teams an autonomous, tool-using agent under zero-trust principles. It **reuses** infra already deployed by other domains rather than standing up new copies: Keycloak (`d1-idp`), OPA (`d1-governance`/`d3-ai`), Vault (`d2-secrets`), and the Ollama model server (`d3-ai`). SPIFFE/SPIRE is **not** deployed anywhere — `d1-workload-identity` covers it as a walkthrough — so the agent's workload-identity steps here are **directions** (`spire/registration.md`) that assume a SPIRE server you stand up yourself.
+The Agentic Zero Trust stack (Domain 6, `d6` → `agent-deleg`, `agent-workload`, `mcp-authz`, `mcp-authn`, `action-gate`, `agent-mtls`, `agent-cascade`, `av-agent-actions`). This domain is **beyond-blueprint** — it builds and red-teams an autonomous, tool-using agent under zero-trust principles. It **reuses** infra already deployed by other domains rather than standing up new copies: Keycloak (`d1-idp`), OPA (`d1-governance`/`d3-ai`), Vault (`d2-secrets`), and the Ollama model server (`d3-ai`). **SPIRE is deployed here** by `up.sh` (the `spiffe/spire` Helm chart into `oss500-identity`) — `d1-workload-identity` covered SPIFFE/SPIRE only as a walkthrough (no server ran), so this is where it actually runs; the agent's SVID auto-registers via a `ClusterSPIFFEID`.
 
 ## What this brings up
 
@@ -10,7 +10,7 @@ The Agentic Zero Trust stack (Domain 6, `d6` → `agent-deleg`, `agent-workload`
 | MCP server | Python Deployment | exposes tools to the agent (a safe read tool + a consequential write/exec tool) | `mcp-authn`, `mcp-authz` |
 | OPA (tool + action policy) | Deployment/sidecar + ConfigMaps | PDP for every tool call and action-consequentiality decision | `mcp-authz`, `action-gate` |
 | Keycloak token-exchange | realm/client config (reuses `d1` Keycloak) | mints scoped, short-lived on-behalf-of tokens (RFC 8693) | `agent-deleg` |
-| SPIRE registration | registration entries — **directions** (`d1` covers SPIRE as a walkthrough; no server is deployed) | issues the agent workload SVID; peer mTLS for multi-agent | `agent-workload`, `agent-mtls` |
+| SPIRE | server + agent + SPIFFE CSI + controller-manager via the `spiffe/spire` chart (`oss500-identity`); SVIDs registered by `ClusterSPIFFEID` | issues the agent workload SVID; peer mTLS for multi-agent | `agent-workload`, `agent-mtls` |
 | Ollama | reused from `d3-ai` (`ClusterIP`) | local model powering the agent (`llama3.2:1b`) | — |
 
 All in **`oss500-apps`**. The model is deliberately tiny (`llama3.2:1b`) so the agent, MCP server, OPA, and Keycloak fit the ~16 GB reference host together.
@@ -33,6 +33,8 @@ agentic/
 ├── keycloak/
 │   └── token-exchange.md       # agent-deleg: enable RFC 8693 token exchange on the d1 realm
 └── spire/
+    ├── values.yaml             # spiffe/spire Helm values (trust domain oss500.local)
+    ├── clusterspiffeids.yaml   # ClusterSPIFFEID CRs — auto-register agent-a/agent-b SVIDs
     └── registration.md         # agent-workload / agent-mtls: SPIRE entries for the agent SVID(s)
 ```
 
@@ -45,7 +47,7 @@ cd lab-infra/agentic
 ./down.sh
 ```
 
-**Prerequisites (reused components must already be up):** `lab-infra/identity` (Keycloak) and `lab-infra/ai` (Ollama). `up.sh` checks for them and fails early with a pointer if they're missing. SPIRE is **not** deployed — its registration steps are directions (see the SPIRE row above and `spire/registration.md`).
+**Prerequisites (reused components must already be up):** `lab-infra/identity` (Keycloak) and `lab-infra/ai` (Ollama). `up.sh` checks for them and fails early with a pointer if they're missing. SPIRE **is** deployed by `up.sh` (into `oss500-identity`); SVIDs auto-register via `ClusterSPIFFEID` (see the SPIRE row above and `spire/registration.md`).
 
 ## Security model (what each control proves)
 

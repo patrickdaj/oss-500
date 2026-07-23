@@ -7,12 +7,11 @@ The AI-workload security stack (`d3-ai` → `ai-access`, `ai-prompt`, `ai-guardr
 | Component | Form | Role | Objective |
 |---|---|---|---|
 | Ollama | `ollama/ollama` (Helm or Deployment) | local model server (`llama3.2:1b`) | `ai-access`, `ai-rag` |
-| Open WebUI | Deployment | chat UI + RAG (knowledge bases, per-user workspaces) | `ai-rag`, `ai-guardrails` |
-| NeMo Guardrails | Deployment | input/output rails, jailbreak detection | `ai-prompt`, `ai-guardrails` |
-| AI gateway (OPA) | Deployment + OPA sidecar | authn/rate-limit + policy decision point | `ai-access`, `ai-governance` |
+| Open WebUI | Deployment | chat UI + RAG (knowledge bases, per-user workspaces), routed through the gateway | `ai-rag`, `ai-guardrails` |
+| AI gateway | Deployment (`gateway` + `opa` sidecar) | the enforced hop: bearer authn (401) + rate limit (429), **NeMo Guardrails** input/output rails run in-process, OPA governance/quota decision, OTel spans | `ai-access`, `ai-prompt`, `ai-guardrails`, `ai-governance`, `ai-observability` |
 | OpenTelemetry | collector / SDK config | LLM traces + token metrics | `ai-observability` |
 
-All in **`oss500-apps`**. **Ollama is `ClusterIP`-only — never exposed** (it has no built-in auth; `ai-access`). A NetworkPolicy restricts `:11434` so only the gateway/guardrails reach it. Model choice is deliberately tiny (`llama3.2:1b`, ~1.3 GB; swap `qwen2.5:0.5b` for an even lighter host) so it fits the ~16 GB reference host with the rest of the phase-3 stack.
+All in **`oss500-apps`**. **Ollama is `ClusterIP`-only — never exposed** (it has no built-in auth; `ai-access`). A NetworkPolicy restricts `:11434` so **only the `ai-gateway` pod** reaches it (Open WebUI and the guardrails both go through the gateway). Model choice is deliberately tiny (`llama3.2:1b`, ~1.3 GB; swap `qwen2.5:0.5b` for an even lighter host) so it fits the ~16 GB reference host with the rest of the phase-3 stack.
 
 ## Layout
 
@@ -23,6 +22,11 @@ ai/
 ├── down.sh                        # tear down (+ --purge removes the model volume)
 ├── ollama/deployment.yaml         # Ollama Deployment+Service (ClusterIP) + NetworkPolicy
 ├── open-webui/deployment.yaml     # Open WebUI Deployment+Service+Ingress
+├── gateway/                       # the enforced hop (built + kind-loaded by up.sh)
+│   ├── app.py                     #   FastAPI: authn/rate-limit, NeMo rails, OTel spans
+│   ├── requirements.txt           #   pinned deps
+│   ├── Dockerfile                 #   ai-gateway:local image
+│   └── deployment.yaml            #   Deployment (gateway + OPA sidecar) + Service
 ├── guardrails/config.yml          # NeMo Guardrails: input/output rails wiring
 ├── guardrails/prompts.yml         # self-check-input / self-check-output prompts
 ├── opa/gateway-policy.rego        # ai-access authz + ai-governance allowed-models policy

@@ -4,8 +4,9 @@ set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NS=oss500-apps
 
-echo "==> Deleting Open WebUI, guardrails, gateway, OTel, Ollama"
+echo "==> Deleting Open WebUI, gateway (+OPA sidecar), OTel, Ollama"
 kubectl delete -f "$here/open-webui/deployment.yaml" --ignore-not-found
+kubectl delete -f "$here/gateway/deployment.yaml" --ignore-not-found
 kubectl delete -f "$here/otel/collector.yaml" --ignore-not-found
 kubectl delete -f "$here/ollama/deployment.yaml" --ignore-not-found
 kubectl -n "$NS" delete configmap nemo-guardrails ai-gateway-policy --ignore-not-found

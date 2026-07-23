@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 # Post-install Vault configuration for the OSS-500 secrets labs.
-# Runs `vault` inside the vault-0 pod (dev root token "root").
+# Runs `vault` inside the vault-0 pod using the root token from .vault-init.json
+# (Raft init; up.sh must have run first).
 # Each block maps to a d2-secrets / d2-keys-certs objective.
 set -euo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NS=oss500-secrets
 POD=vault-0
 
-vex() { kubectl -n "$NS" exec -i "$POD" -- sh -c "VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN=root $*"; }
+command -v jq >/dev/null || { echo "jq required (brew install jq / apt-get install jq)"; exit 1; }
+[ -f "$here/.vault-init.json" ] || { echo "Run ./up.sh first — need .vault-init.json for the root token."; exit 1; }
+ROOT_TOKEN="$(jq -r '.root_token' "$here/.vault-init.json")"
+
+vex() { kubectl -n "$NS" exec -i "$POD" -- sh -c "VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN=$ROOT_TOKEN $*"; }
 
 echo "==> [vault-audit] Enable a file audit device (HMACs sensitive values)"
 # vault-audit: every request/response is logged as JSON; secret values are
@@ -40,27 +46,28 @@ vex 'vault write -f transit/keys/app-data' || true
 
 echo "==> [vault-dynamic] Enable the database secrets engine (skeleton)"
 # vault-dynamic: Vault mints short-lived Postgres roles on demand and revokes
-# them when the lease expires. The lab deploys the Postgres pod and completes
-# the connection/role config (see labs/d2-vault-dynamic-secrets.md).
+# them when the lease expires. up.sh deploys the Postgres backend
+# (postgres.oss500-secrets, db appdb); the lab completes the connection/role
+# config (see labs/d2-vault-dynamic-secrets.md Part C).
 vex 'vault secrets enable database' || true
 cat <<'EOF'
 
-==> [vault-dynamic] Finish in the lab once Postgres is running, e.g.:
+==> [vault-dynamic] Finish in the lab against the running Postgres, e.g.:
 
-    vault write database/config/lab-postgres \
+    vault write database/config/appdb \
       plugin_name=postgresql-database-plugin \
       allowed_roles="app" \
-      connection_url="postgresql://{{username}}:{{password}}@postgres.oss500-apps:5432/postgres?sslmode=disable" \
-      username="vault" password="vault-root-pw"
+      connection_url="postgresql://{{username}}:{{password}}@postgres.oss500-secrets:5432/appdb?sslmode=disable" \
+      username="vaultadmin" password="vaultadminpw"
 
     vault write database/roles/app \
-      db_name=lab-postgres \
+      db_name=appdb \
       creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
                            GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
-      default_ttl="1m" max_ttl="5m"        # vault-dynamic: short leases
+      default_ttl="2m" max_ttl="10m"       # vault-dynamic: short leases
 
     vault read database/creds/app          # dynamic, expiring credential
     # vault-rotation: rotate the root connection password so even the operator
     # who bootstrapped it can no longer use it:
-    vault write -f database/rotate-root/lab-postgres
+    vault write -f database/rotate-root/appdb
 EOF

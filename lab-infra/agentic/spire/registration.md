@@ -1,14 +1,23 @@
-# agent-workload / agent-mtls — SPIRE registration for the agent SVID(s)
+# agent-workload / agent-mtls — the agent SVID(s) on SPIRE
 
-**SPIRE is not deployed by any lab-infra component** — `d1-workload-identity` covers SPIFFE/SPIRE as a walkthrough. The steps below are **directions**: stand up a SPIRE server/agent yourself (e.g. the SPIRE Helm chart, into `oss500-identity`) before running them. Once it is running, the agent process
-gets a **SPIFFE SVID** as its *workload* identity — separate from the user-delegated token
-(`../keycloak/token-exchange.md`). For multi-agent, peers authenticate each other with **SPIFFE mTLS**.
+**SPIRE is deployed by `lab-infra/agentic/up.sh`** (the `spiffe/spire` Helm chart into
+`oss500-identity`: server + agent DaemonSet + SPIFFE CSI driver + controller-manager). Domain 1
+covered SPIFFE/SPIRE only as a *walkthrough* — nothing ran there — so this is where SPIRE actually
+runs. The agent process gets a **SPIFFE SVID** as its *workload* identity, separate from the
+user-delegated token (`../keycloak/token-exchange.md`); for multi-agent, peers authenticate each
+other with **SPIFFE mTLS**.
 
-## Register the agent workload (directions)
+## How the SVIDs are registered
+
+`up.sh` applies [`clusterspiffeids.yaml`](clusterspiffeids.yaml): the controller-manager watches those
+`ClusterSPIFFEID` CRs and issues an SVID to every matching pod — so `agent-a` and `agent-b` each get a
+distinct identity `spiffe://oss500.local/ns/oss500-apps/sa/<serviceAccount>` with **no manual step**,
+as soon as those pods run with the SPIFFE CSI socket mounted.
+
+The equivalent **manual** registration (the concept the exam frames) is a `spire-server entry create`:
 
 ```bash
-# On the SPIRE server (one you deployed — not shipped by lab-infra/identity):
-kubectl -n oss500-identity exec deploy/spire-server -- \
+kubectl -n oss500-identity exec statefulset/spire-server -c spire-server -- \
   /opt/spire/bin/spire-server entry create \
     -spiffeID  spiffe://oss500.local/ns/oss500-apps/sa/agent-a \
     -parentID  spiffe://oss500.local/ns/oss500-apps/sa/spire-agent \
@@ -16,10 +25,15 @@ kubectl -n oss500-identity exec deploy/spire-server -- \
     -selector  k8s:sa:agent-a
 ```
 
-`agent-a` (and, for `d6-multi-agent`, `agent-b`) each get a distinct SVID. The agent fetches its SVID
-from the Workload API and uses it as the client cert when calling the MCP server and peer agents.
+## Verify
 
-## Prove it
+```bash
+# SPIRE is up:
+kubectl -n oss500-identity get pods -l app.kubernetes.io/name=server
+# The registration entries exist (one per ClusterSPIFFEID / manual create):
+kubectl -n oss500-identity exec statefulset/spire-server -c spire-server -- \
+  /opt/spire/bin/spire-server entry show
+```
 
 - **`agent-workload` (labs/d6-identity.md):** the agent presents its SVID to the MCP server; a process
   without a valid SVID is rejected — workload identity ≠ delegated authority.
@@ -28,5 +42,5 @@ from the Workload API and uses it as the client cert when calling the MCP server
 
 ## Walkthrough
 
-**Multi-region / federated SPIRE trust domains** (cross-cluster agent trust) is a **walkthrough** —
+**Multi-region / federated SPIRE trust domains** (cross-cluster agent trust) stays a **walkthrough** —
 it needs federated bundles across trust domains that aren't practical to run fully on one laptop host.

@@ -12,11 +12,11 @@ Primary lab: [d6-identity](../../labs/d6-identity.md). Lab-infra component: [`la
 
 Start with the identity the agent has *before any user asks it to do anything*: its **workload identity**. This is unchanged from `wi-spiffe` — the agent process runs as a Kubernetes ServiceAccount, and SPIRE issues it a short-lived **SPIFFE SVID** (`spiffe://oss500.local/ns/oss500-apps/sa/agent-a`) after node + workload attestation. The SVID answers exactly one question: *which process is this?* It is minted just-in-time from the Workload API socket, auto-rotated, and never stored — the same "no long-lived credential" property that makes a managed identity safer than a service-principal secret. The agent presents this SVID as its client certificate when it connects to the MCP server (`d6-tools-mcp`) and to peer agents (`d6-multi-agent`), so a process that cannot produce a valid SVID is rejected at the door.
 
-Register the agent's SVID on the SPIRE server already running from Domain 1 — no new IdP, just a new entry:
+Register the agent's SVID on the SPIRE server that `lab-infra/agentic` deploys (Domain 1 covered SPIFFE/SPIRE only as a walkthrough — this is where SPIRE runs) — no new IdP, just a new entry:
 
 ```bash
-# On the SPIRE server (reused from lab-infra/identity):
-kubectl -n oss500-identity exec deploy/spire-server -- \
+# On the SPIRE server (deployed by lab-infra/agentic into oss500-identity):
+kubectl -n oss500-identity exec statefulset/spire-server -c spire-server -- \
   /opt/spire/bin/spire-server entry create \
     -spiffeID  spiffe://oss500.local/ns/oss500-apps/sa/agent-a \
     -parentID  spiffe://oss500.local/ns/oss500-apps/sa/spire-agent \

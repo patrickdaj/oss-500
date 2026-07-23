@@ -1,0 +1,7 @@
+# Pinned deps for the AI gateway (built into the image, not pip-installed at runtime).
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+httpx==0.28.1
+nemoguardrails==0.11.0
+opentelemetry-sdk==1.29.0
+opentelemetry-exporter-otlp-proto-grpc==1.29.0

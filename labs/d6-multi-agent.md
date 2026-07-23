@@ -26,9 +26,9 @@ Stand up **two** agents that call each other, and prove the two multi-agent trus
 
 You registered `agent-a` in `d6-identity`. A peer relationship needs a *second, distinct* identity — B must be a different principal, not a copy of A.
 
-1. **Register agent-b's SVID yourself** on the SPIRE server (reused from `lab-infra/identity`). Mirror the `agent-a` entry, but for a `sa:agent-b` selector — B gets its **own** SPIFFE ID:
+1. **Register agent-b's SVID** on the SPIRE server that `lab-infra/agentic` deploys. Mirror the `agent-a` entry, but for a `sa:agent-b` selector — B gets its **own** SPIFFE ID:
    ```bash
-   kubectl -n oss500-identity exec deploy/spire-server -- \
+   kubectl -n oss500-identity exec statefulset/spire-server -c spire-server -- \
      /opt/spire/bin/spire-server entry create \
        -spiffeID  spiffe://oss500.local/ns/oss500-apps/sa/agent-b \
        -parentID  spiffe://oss500.local/ns/oss500-apps/sa/spire-agent \
@@ -37,7 +37,7 @@ You registered `agent-a` in `d6-identity`. A peer relationship needs a *second, 
    ```
 2. **Confirm two distinct identities exist** — B is not A:
    ```bash
-   kubectl -n oss500-identity exec deploy/spire-server -- \
+   kubectl -n oss500-identity exec statefulset/spire-server -c spire-server -- \
      /opt/spire/bin/spire-server entry show | grep -E 'agent-a|agent-b'
    ```
    You should see two entries with two different SPIFFE IDs. That distinctness is the whole point: B can authorize *by principal* only if A and B are separable identities.
@@ -98,7 +98,7 @@ If your B accepted the rogue, you're trusting the network — move the check ont
 ## Teardown
 
 ```bash
-kubectl -n oss500-identity exec deploy/spire-server -- \
+kubectl -n oss500-identity exec statefulset/spire-server -c spire-server -- \
   /opt/spire/bin/spire-server entry delete -spiffeID spiffe://oss500.local/ns/oss500-apps/sa/agent-b
 ../lab-infra/agentic/down.sh     # remove the agents, MCP server, OPA configmaps
 # SPIRE + Ollama stay up (reused by other d6 labs)

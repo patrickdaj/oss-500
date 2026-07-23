@@ -1,0 +1,20 @@
+# SPIRE Helm values for OSS-500 agentic zero trust (agent-workload / agent-mtls).
+# Chart: spiffe/spire (https://spiffe.github.io/helm-charts-hardened/), installed
+# into oss500-identity by ../up.sh (with the spire-crds chart first).
+#
+# This DEPLOYS a real SPIRE server + agent + CSI driver + controller-manager, so
+# the agent's SVID is genuinely issued (Domain 1 covered SPIFFE/SPIRE only as a
+# walkthrough — nothing ran there; this is where SPIRE actually runs).
+global:
+  spire:
+    # The trust domain the SVIDs are minted under (matches spire/registration.md
+    # and the ClusterSPIFFEID templates: spiffe://oss500.local/ns/<ns>/sa/<sa>).
+    trustDomain: oss500.local
+    clusterName: oss500
+
+# Single-node, laptop-sized. The chart's defaults (k8s PSAT node attestation +
+# k8s workload attestation + the SPIFFE CSI driver mounting the Workload API
+# socket into pods) are what the agent uses to fetch its SVID.
+spire-server:
+  controllerManager:
+    enabled: true          # lets ClusterSPIFFEID CRs auto-register workloads

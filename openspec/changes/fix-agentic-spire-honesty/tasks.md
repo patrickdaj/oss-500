@@ -2,25 +2,25 @@
 
 ## 1. Decide the resolution (design)
 
-- [ ] 1.1 Choose (A) ship a real minimal SPIRE under `lab-infra/agentic/spire/`, or (B) re-label the SVID proofs as walkthrough/directions. Record the choice.
+- [x] 1.1 **Chosen: (A) ship a real minimal SPIRE** under `lab-infra/agentic/spire/`.
 
-## 2. Remove the false "already running" claims (both options)
+## 2. Remove the false "already running" claims
 
-- [ ] 2.1 In `labs/d6-identity.md`, remove/replace the `kubectl -n oss500-identity exec deploy/spire-server …` step and any "reused from Domain 1 / already running" SPIRE wording.
-- [ ] 2.2 Do the same in `labs/d6-multi-agent.md` and `domains/6-agentic-zero-trust/d6-identity.md`.
+- [x] 2.1 `labs/d6-identity.md`: replaced "reused from `lab-infra/identity`" with "the SPIRE server that `lab-infra/agentic` deploys"; changed the `exec deploy/spire-server` step to `exec statefulset/spire-server -c spire-server` (the chart's StatefulSet).
+- [x] 2.2 Same fixes in `labs/d6-multi-agent.md`, `domains/6-agentic-zero-trust/d6-identity.md`, and both passages of `plan/phase6-agentic-zero-trust.md` (the plan now says SPIRE is deployed here, not directions-only). Grep confirms no residual "reused from Domain 1 / not deployed / stand up yourself" claims and no `deploy/spire-server`.
 
 ## 3a. Option A — ship SPIRE
 
-- [ ] 3a.1 Add SPIRE server + `spire-agent` daemonset manifests/Helm values under `lab-infra/agentic/spire/` (trust domain `oss500.local`, k8s PSAT attestation, Workload API socket mounted into agent pods).
-- [ ] 3a.2 Wire `lab-infra/agentic/up.sh` to deploy it and rewrite `registration.md` into followable, run-it steps.
+- [x] 3a.1 Added `lab-infra/agentic/spire/values.yaml` (spiffe/spire Helm values: trust domain `oss500.local`, controller-manager on) and `clusterspiffeids.yaml` (ClusterSPIFFEID CRs auto-registering `agent-a`/`agent-b` SVIDs by pod label + namespace).
+- [x] 3a.2 Wired `lab-infra/agentic/up.sh` to `helm install spire-crds` + `spire` into `oss500-identity` and apply the ClusterSPIFFEIDs; `down.sh` uninstalls them; rewrote `registration.md` into real steps (SPIRE deployed by up.sh; auto-register + manual `entry create` + verify). README/file-tree updated.
 
 ## 3b. Option B — mark as walkthrough
 
-- [ ] 3b.1 Re-label the SVID-issuance parts of `agent-workload`/`agent-mtls` as walkthrough/directions (consistent with federation + MCP-over-HTTP), so the learner knows the running proof is optional.
-- [ ] 3b.2 Rewrite `lab-infra/agentic/spire/registration.md` as an honest "here is the shape; standing up SPIRE is out of scope for the run-it path" note; keep the Keycloak token-exchange plane as the run-it identity story.
+- [x] 3b.1 N/A — option A chosen.
+- [x] 3b.2 N/A — only true federated-SPIRE remains a walkthrough (unchanged).
 
 ## 4. Validation
 
-- [ ] 4.1 `cd lab-infra/agentic && ./up.sh` and walk `labs/d6-identity.md` step 1: no command references a `spire-server` that is not deployed; nothing `NotFound`s.
-- [ ] 4.2 Confirm every remaining "run it" SPIRE step actually works (option A) or is clearly marked directions-only (option B); confirm labs/notes match `plan/phase6-agentic-zero-trust.md`.
-- [ ] 4.3 Run `npm run lint:links` and `npx openspec validate fix-agentic-spire-honesty --strict`.
+- [x] 4.1 Static: `values.yaml`/`clusterspiffeids.yaml` YAML-parse clean; `up.sh`/`down.sh` `bash -n` clean; no lab step references a `spire-server` the component doesn't deploy.
+- [ ] 4.2 (host) `cd lab-infra/agentic && ./up.sh` on kind: confirm the SPIRE chart comes up, `spire-server entry show` lists the agent-a/agent-b SVIDs, and `labs/d6-identity.md` step 1 runs clean. (The `spiffe/spire` hardened chart may need a chart-version pin on first real run — confirm on the host.)
+- [x] 4.3 `npm run lint:links` OK; `npx openspec validate fix-agentic-spire-honesty --strict` passes.

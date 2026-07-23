@@ -42,7 +42,7 @@ No solutions below — build/observe each of these yourself, then check the Refe
 ### Part A — Lock the model behind a gateway (`ai-access`)
 
 1. **Confirm Ollama is private.** Find the Kubernetes Service type for `ollama` in `oss500-apps` (hint: `kubectl ... -o jsonpath` on `.spec.type`). Ollama ships with **no built-in auth**, so if that Service were anything but `ClusterIP` the model would be wide open to whoever can reach the cluster network. Your turn: also check whether any Ingress targets port `11434` — there shouldn't be one.
-2. **Try to bypass the gateway.** From outside the cluster, attempt to reach the model directly — there should be no route at all. From inside, inspect the NetworkPolicy guarding Ollama: which ServiceAccount(s) does it allow through? Confirm the gateway is the *only* legitimate path to the model.
+2. **Try to bypass the gateway.** From outside the cluster, attempt to reach the model directly — there should be no route at all. From inside, inspect the NetworkPolicy guarding Ollama: which **podSelector label** does it allow through (`app: ai-gateway`)? Confirm the gateway is the *only* legitimate path to the model — Open WebUI and the guardrails both route through it.
 3. **Authenticate through the gateway.** Get an OIDC token from Keycloak (Domain 1), then call the gateway's chat endpoint with `Authorization: Bearer $TOKEN`. Your turn: make the identical call again with no token at all — same request, only the credential changes. What does the gateway do differently?
 4. **Trip the rate limit.** Fire enough requests from one identity, fast, to exceed its configured budget. Hint: the LLM-specific twist is that the limit should be **token-based**, not just request-count — one huge prompt ought to cost more budget than many tiny ones. Confirm what happens once the budget is exceeded.
 
@@ -96,7 +96,7 @@ Build it yourself first; check after.
 
 ### Part A — gateway lock-down
 - Ollama's Service is `ClusterIP` only — `kubectl -n oss500-apps get svc ollama -o jsonpath='{.spec.type}'` — and there is no Ingress to `:11434`; Ollama has no auth of its own, so it must stay private.
-- From outside the cluster there is no route to the model; internally, NetworkPolicy allows only the gateway's ServiceAccount to reach Ollama.
+- From outside the cluster there is no route to the model; internally, the NetworkPolicy admits only pods labelled `app: ai-gateway` to reach Ollama.
 - `curl -H "Authorization: Bearer $TOKEN" http://ai-gateway.oss500-apps:8080/v1/chat ...` (token obtained from Keycloak, Domain 1) succeeds; the identical call with no token returns **401**. Same request, only the credential changed — authn proven.
 - Hitting the gateway rapidly trips the **token/rate limit** (configured per identity) and returns **429 Too Many Requests** once the budget is exceeded. Token-based limiting is the LLM control: one big request costs more than many small ones.
 

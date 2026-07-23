@@ -76,9 +76,10 @@ spec:
   podSelector: { matchLabels: { app: ollama } }
   policyTypes: ["Ingress"]
   ingress:
+    # ai-access: ONLY the gateway may reach the model. Open WebUI routes through
+    # the gateway (OpenAI-compatible), and NeMo Guardrails run inside the gateway,
+    # so the gateway pod is the single legitimate client of Ollama.
     - from:
         - podSelector: { matchLabels: { app: ai-gateway } }
-        - podSelector: { matchLabels: { app: nemo-guardrails } }
-        - podSelector: { matchLabels: { app: open-webui } }
       ports:
         - { protocol: TCP, port: 11434 }

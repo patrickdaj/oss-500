@@ -24,9 +24,9 @@ Give an agent its **two** identities by hand and prove they're separate: a SPIRE
 
 ### Part A — the agent's workload identity (`agent-workload`)
 
-1. **Register the agent's SVID yourself** on the SPIRE server (reused from `lab-infra/identity`). Decide the SPIFFE ID first — it names the *process*, not a user:
+1. **Register the agent's SVID** on the SPIRE server that `lab-infra/agentic` deploys (Domain 1 covered SPIFFE/SPIRE only as a *walkthrough* — this is where SPIRE actually runs; `up.sh` also auto-registers via `ClusterSPIFFEID`, but do it by hand once to see the entry). Decide the SPIFFE ID first — it names the *process*, not a user:
    ```bash
-   kubectl -n oss500-identity exec deploy/spire-server -- \
+   kubectl -n oss500-identity exec statefulset/spire-server -c spire-server -- \
      /opt/spire/bin/spire-server entry create \
        -spiffeID spiffe://oss500.local/ns/oss500-apps/sa/agent-a \
        -parentID spiffe://oss500.local/ns/oss500-apps/sa/spire-agent \

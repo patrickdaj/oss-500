@@ -12,6 +12,7 @@ kind-*.yaml.local
 .env.*
 *.env
 vault-init.json
+.vault-init.json
 *-unseal-key*
 *.token
 root-token*
@@ -53,3 +54,7 @@ crash.*.log
 .terraform.lock.hcl
 override.tf
 override.tf.json
+
+# Python build artifacts
+__pycache__/
+*.pyc

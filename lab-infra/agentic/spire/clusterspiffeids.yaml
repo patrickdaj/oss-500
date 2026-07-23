@@ -1,0 +1,32 @@
+# Declarative SVID registration (agent-workload / agent-mtls).
+# The spire-controller-manager watches these ClusterSPIFFEID CRs and issues an
+# SVID to every matching pod — so `agent-a` and `agent-b` each get a distinct
+# workload identity spiffe://oss500.local/ns/oss500-apps/sa/<serviceAccount>
+# WITHOUT a manual `spire-server entry create`. (The manual command is shown in
+# registration.md for the exam/concept, but this is the reproducible path.)
+---
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: agent-a
+spec:
+  spiffeIDTemplate: "spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
+  podSelector:
+    matchLabels:
+      app: agent-a
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: oss500-apps
+---
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: agent-b
+spec:
+  spiffeIDTemplate: "spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
+  podSelector:
+    matchLabels:
+      app: agent-b
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: oss500-apps

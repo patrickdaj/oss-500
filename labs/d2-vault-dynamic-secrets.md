@@ -18,7 +18,7 @@ Issue a database credential that Postgres accepts, watch it expire on its lease,
 
 - [`lab-infra/secrets`](../lab-infra/secrets/) up (`./up.sh`) — Vault in the `oss500-secrets` namespace, Raft storage, initialized/unsealed by the script (init keys written to a gitignored file).
 - Notes read: [secrets-management.md](../domains/2-secrets-data-networking/secrets-management.md).
-- A Postgres pod for the dynamic-secrets engine (the component's `up.sh` deploys one, or apply `lab-infra/secrets/postgres.yaml`).
+- A Postgres backend for the dynamic-secrets engine: the component's `up.sh` deploys it (Service `postgres.oss500-secrets`, db `appdb`, admin `vaultadmin`) plus a `psql-client` pod. Run the Part C `psql` checks from that pod, e.g. `kubectl -n oss500-secrets exec deploy/psql-client -- env PGPASSWORD='<pw>' psql -h postgres.oss500-secrets -U '<user>' -d appdb -c 'SELECT 1;'`.
 
 **Estimated time**: 2–3 h · $0 (local)
 

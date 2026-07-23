@@ -1,0 +1,74 @@
+# AI gateway (ai-access, ai-prompt, ai-guardrails, ai-governance, ai-observability).
+# The enforced hop in front of Ollama: bearer auth (401), OPA governance/quota
+# (403/429-via-rate-limit), NeMo Guardrails input+output rails, OTel spans.
+# The OPA policy runs as a sidecar; the gateway queries it at localhost:8181.
+# Image ai-gateway:local is built + kind-loaded by ../up.sh.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-gateway
+  namespace: oss500-apps
+  labels: { app: ai-gateway, app.kubernetes.io/part-of: oss500 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: ai-gateway } }
+  template:
+    metadata:
+      labels: { app: ai-gateway, app.kubernetes.io/part-of: oss500 }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: gateway
+          image: ai-gateway:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { containerPort: 8080, name: http }
+          env:
+            - { name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector.oss500-apps:4317" }
+            - { name: OPA_URL, value: "http://localhost:8181/v1/data/ai/gateway" }
+            - { name: GUARDRAILS_CONFIG, value: "/config/guardrails" }
+            - { name: SANCTIONED_MODELS, value: "llama3.2:1b,qwen2.5:0.5b" }
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 10001
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: guardrails, mountPath: /config/guardrails, readOnly: true }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }
+        # ai-governance: the OPA decision point, in-process next to the gateway.
+        - name: opa
+          image: openpolicyagent/opa:0.70.0
+          args: ["run", "--server", "--addr=localhost:8181", "/policy/gateway-policy.rego"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 10002
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: policy, mountPath: /policy, readOnly: true }
+          resources:
+            requests: { cpu: 25m, memory: 32Mi }
+            limits: { memory: 64Mi }
+      volumes:
+        - name: guardrails
+          configMap: { name: nemo-guardrails }
+        - name: policy
+          configMap: { name: ai-gateway-policy }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-gateway
+  namespace: oss500-apps
+  labels: { app: ai-gateway, app.kubernetes.io/part-of: oss500 }
+spec:
+  selector: { app: ai-gateway }
+  ports:
+    - { port: 8080, targetPort: 8080, name: http }

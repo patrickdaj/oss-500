@@ -38,8 +38,13 @@ spec:
             allowPrivilegeEscalation: false
             capabilities: { drop: ["ALL"] }
           env:
-            # Route to Ollama via the private ClusterIP service (never the public port).
-            - { name: OLLAMA_BASE_URL, value: "http://ollama.oss500-apps:11434" }
+            # ai-access: route model traffic THROUGH the gateway (OpenAI-compatible),
+            # not directly at Ollama — the gateway is the only client the Ollama
+            # NetworkPolicy admits, so every request is authn'd + guardrailed.
+            - { name: ENABLE_OLLAMA_API, value: "false" }
+            - { name: OPENAI_API_BASE_URL, value: "http://ai-gateway.oss500-apps:8080/v1" }
+            - name: OPENAI_API_KEY
+              valueFrom: { secretKeyRef: { name: open-webui, key: GATEWAY_TOKEN } }
             # ai-access: disable open sign-up; require auth. Session key from Secret.
             - { name: ENABLE_SIGNUP, value: "false" }
             - name: WEBUI_SECRET_KEY
