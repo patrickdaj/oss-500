@@ -34,6 +34,20 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  name: oss500-demo            # admission/runtime demo pods for d1-governance-policy,
+                                # d3-pod-security, d3-runtime-detection, d3-supply-chain
+  labels:
+    app.kubernetes.io/part-of: oss500
+    # Deliberately NOT restricted. Built-in PodSecurity admission (PSA) is evaluated
+    # before validating/mutating webhooks and short-circuits the request, so a
+    # restricted-labeled namespace would reject these labs' demo pods on PSS grounds
+    # before Kyverno, Falco, or cosign verification ever gets a look — pre-empting the
+    # control each lab exists to prove. Real workloads still belong in oss500-apps.
+    pod-security.kubernetes.io/enforce: privileged
+---
+apiVersion: v1
+kind: Namespace
+metadata:
   name: oss500-security        # Falco, Tetragon, Kyverno, Gatekeeper, Kubescape (d1/d3)
   labels:
     app.kubernetes.io/part-of: oss500

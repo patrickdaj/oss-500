@@ -45,9 +45,10 @@ Prove four things about the live cluster, then check the exact language against 
    ```bash
    kubectl get clusterpolicy disallow-privileged -o jsonpath='{.spec.validationFailureAction}{"\n"}'   # Enforce
    ```
+   **Run these demo pods in `oss500-demo`, not `oss500-apps`.** Built-in Pod Security admission (PSA) is evaluated before validating/mutating webhooks and short-circuits the request — a `restricted`-labeled namespace would reject `bad` on PSS grounds before Kyverno's webhook ever runs, so you'd see PSA's rejection instead of yours.
 3. **Enforce blocks — your turn.** Try to run a privileged pod; the admission webhook should reject it, naming your policy and rule:
    ```bash
-   kubectl -n oss500-apps run bad --image=nginx --privileged
+   kubectl -n oss500-demo run bad --image=nginx --privileged
    #  Error from server: admission webhook "validate.kyverno.svc-fail" denied the request:
    #  policy disallow-privileged/no-privileged-containers fail: Privileged containers are not allowed
    ```
@@ -55,18 +56,18 @@ Prove four things about the live cluster, then check the exact language against 
 4. **Audit vs Enforce.** Flip `validationFailureAction` to `Audit`, re-create the same pod (it should now be *admitted*), and read the PolicyReport that records the violation without blocking:
    ```bash
    kubectl patch clusterpolicy disallow-privileged --type=merge -p '{"spec":{"validationFailureAction":"Audit"}}'
-   kubectl -n oss500-apps run bad --image=nginx --privileged      # succeeds under Audit
-   kubectl -n oss500-apps get policyreport -o wide                # the fail is recorded, not blocked
-   kubectl -n oss500-apps delete pod bad
+   kubectl -n oss500-demo run bad --image=nginx --privileged      # succeeds under Audit
+   kubectl -n oss500-demo get policyreport -o wide                # the fail is recorded, not blocked
+   kubectl -n oss500-demo delete pod bad
    kubectl patch clusterpolicy disallow-privileged --type=merge -p '{"spec":{"validationFailureAction":"Enforce"}}'
    ```
 5. **Now write the remediation.** Draft a second `ClusterPolicy`, `add-default-securitycontext`, that *mutates* pods lacking a `securityContext` instead of merely rejecting them — the Modify/DINE analogue. Use Kyverno's *add-if-absent* anchor `+( )` in a `patchStrategicMerge` to inject `runAsNonRoot: true` and a `seccompProfile` of `RuntimeDefault` on the pod, plus `allowPrivilegeEscalation: false` and `capabilities.drop: [ALL]` on every container — without clobbering a value a pod already sets.
-6. **Prove the mutation — your turn.** Create a bare pod and read back the injected fields:
+6. **Prove the mutation — your turn.** Create a bare pod (in `oss500-demo`, same PSA-ordering reason as above — a bare pod with no `securityContext` would itself fail `restricted` PSS before Kyverno's mutation webhook could inject one) and read back the injected fields:
    ```bash
-   kubectl -n oss500-apps run plain --image=nginx --command -- sleep 3600
-   kubectl -n oss500-apps get pod plain -o jsonpath='{.spec.securityContext}{"\n"}{.spec.containers[0].securityContext}{"\n"}'
+   kubectl -n oss500-demo run plain --image=nginx --command -- sleep 3600
+   kubectl -n oss500-demo get pod plain -o jsonpath='{.spec.securityContext}{"\n"}{.spec.containers[0].securityContext}{"\n"}'
    #  expect: runAsNonRoot:true, seccompProfile RuntimeDefault, allowPrivilegeEscalation:false, capabilities drop:[ALL]
-   kubectl -n oss500-apps delete pod plain
+   kubectl -n oss500-demo delete pod plain
    ```
    If a field is missing, you likely used the check-only anchor `=( )` where you needed the add-if-absent anchor `+( )`.
 

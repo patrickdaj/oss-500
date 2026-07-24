@@ -1,0 +1,19 @@
+# Victim pod for rt-falco / rt-tetragon (Part A/C of d3-runtime-detection).
+# Deliberately runs as root with no restricting securityContext: the lab's
+# observable is a *successful* `cat /etc/shadow`, and a non-root image (or a
+# restricted-PSS namespace) fails that read with EACCES before a descriptor
+# exists — no completed open, so Falco's "Read sensitive file untrusted" rule
+# never fires. Lives in oss500-demo (not oss500-apps) so PSA doesn't reject it
+# before it ever gets that far.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: victim
+  namespace: oss500-demo
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  containers:
+    - name: victim
+      image: alpine:3.20
+      command: ["sleep", "3600"]

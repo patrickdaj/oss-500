@@ -36,13 +36,13 @@ The distinction that matters for the exam: Falco *detects and alerts*; Tetragon 
 
 1. Confirm the Falco DaemonSet is running on every node: `kubectl -n oss500-security get pods -l app.kubernetes.io/name=falco -o wide` — one per node, using the modern eBPF probe.
 2. Stream Falco's events: `kubectl -n oss500-security logs -f ds/falco` (leave running in one terminal).
-3. Deploy a victim pod and open a shell in it — the canonical trigger:
+3. Deploy the victim pod and open a shell in it — the canonical trigger. It runs in `oss500-demo`, not `oss500-apps`, and as root with no restricting `securityContext`: built-in PSA runs before the shell/read even matters, and a `restricted`-labeled namespace (or a non-root image) would make step 5's `/etc/shadow` read fail with EACCES before a descriptor exists, so Falco would never see a completed `open` to fire on.
    ```bash
-   kubectl -n oss500-apps run victim --image=nginxinc/nginx-unprivileged:stable --restart=Never
-   kubectl -n oss500-apps exec -it victim -- sh
+   kubectl apply -f lab-infra/runtime/victim.yaml
+   kubectl -n oss500-demo exec -it victim -- sh
    ```
 4. Within ~1–2 s, Falco should emit **`Terminal shell in container`** (priority NOTICE) with `container`, `proc.cmdline`, `user`, and the K8s pod/namespace fields. That's the runtime detection observable — same event Defender for Containers reports as a suspicious-shell alert.
-5. Trigger a second rule: inside the pod, `cat /etc/shadow` → Falco should fire **`Read sensitive file untrusted`** (or similar). Note which field the rule matched on (`fd.name` under a sensitive path) — you'll need the same idea for your own override.
+5. Trigger a second rule: inside the pod, `cat /etc/shadow` → the read succeeds (this pod runs as root) and Falco should fire **`Read sensitive file untrusted`** (or similar). Note which field the rule matched on (`fd.name` under a sensitive path) — you'll need the same idea for your own override.
 6. **Now tune it — you write the override.** Imagine a liveness/readiness probe execs into the container the same way step 3 did, and floods you with noise. Add a *local* override so that known-good process no longer trips `Terminal shell in container`, without touching the shipped rules:
    - Goal: a `falco_rules.local.yaml` entry (wired into the Helm `customRules`) that (a) defines a macro matching the known-good process name(s), and (b) extends the existing `Terminal shell in container` rule with an `and not <macro>` clause.
    - Hint: Falco's rule `append: true` field extends a named rule's `condition` instead of redefining it — that's how the shipped rule stays untouched, and how tuning is supposed to be done.
@@ -66,7 +66,7 @@ The distinction that matters for the exam: Falco *detects and alerts*; Tetragon 
     - Hint: hook the `security_file_permission` LSM call with a `kprobe`, add a `file`-typed arg for the path and an `int`-typed arg for the requested access mask, then a selector that matches the path with a `Prefix` operator and a `matchActions` of `Sigkill`.
     - Your turn: write the `TracingPolicy` YAML and `kubectl apply -f` your own file. Then trigger it:
     ```bash
-    kubectl -n oss500-apps exec -it victim -- cat /etc/shadow
+    kubectl -n oss500-demo exec -it victim -- cat /etc/shadow
     ```
     The process should be **killed by the kernel** (the command dies immediately) with a `process_kprobe` event carrying `action: Sigkill` in the Tetragon stream. Falco *alerted* on this same read in Part A; your policy *stops* it — the detect-vs-enforce distinction, live.
 
@@ -78,6 +78,7 @@ The distinction that matters for the exam: Falco *detects and alerts*; Tetragon 
 ## Reference solution
 Build it yourself first; check after.
 
+- **Victim pod** (`rt-falco`, step 3) — [`../lab-infra/runtime/victim.yaml`](../lab-infra/runtime/victim.yaml): a plain `alpine` pod in `oss500-demo`, no `securityContext`, so it runs as root — the read in step 5 has to actually succeed for Falco to have anything to fire on.
 - **Falco local override** (`rt-falco`, step 6) — [`../lab-infra/runtime/falco/values.yaml`](../lab-infra/runtime/falco/values.yaml), under `falco.customRules.falco_rules.local.yaml`: a `known_health_probe` macro (`proc.name in (livenessprobe, readinessprobe)`) plus an `append: true` exception (`and not known_health_probe`) onto `Terminal shell in container` — the shipped `falco_rules.yaml` stays untouched. The same file also sets `driver.kind: modern_ebpf` and wires the `falcosidekick` output block used in Part B.
 - **Talon response rule** (`rt-response`, step 10) — [`../lab-infra/runtime/talon/rules.yaml`](../lab-infra/runtime/talon/rules.yaml): `Respond to shell in container` matches `Terminal shell in container` at `priority: ">=notice"` and runs `kubernetes:label` (`oss500.io/quarantine: "true"`) then `kubernetes:terminate` (`grace_period_seconds: 5`, DaemonSets/StatefulSets ignored). A second rule, `Quarantine on sensitive file read`, labels the pod on `Read sensitive file untrusted` at the same priority.
 - **Tetragon TracingPolicy** (`rt-tetragon`, step 12) — [`../lab-infra/runtime/tetragon/block-sensitive-read.yaml`](../lab-infra/runtime/tetragon/block-sensitive-read.yaml): a `kprobe` on `security_file_permission` with a `file`-typed arg (index 0) and an `int`-typed access-mask arg (index 1), a selector matching `index: 0` with operator `Prefix` against `/etc/shadow` and `/etc/passwd`, and `matchActions: [{action: Sigkill}]`. Apply the shipped version directly to compare against your own:
@@ -88,7 +89,7 @@ Build it yourself first; check after.
 If your Falco override redefines `Terminal shell in container` instead of `append`-ing to it, you've silently replaced the maintained rule — the next Falco update overwrites your fix. If your Talon rule terminates before labeling, you lose the network-quarantine window. If your Tetragon selector matches on syscall name instead of hooking the LSM call, symlink or bind-mount reads of `/etc/shadow` can slip past it.
 
 ## Teardown
-- `kubectl -n oss500-apps delete pod victim --ignore-not-found; kubectl delete tracingpolicy block-sensitive-read --ignore-not-found`
+- `kubectl -n oss500-demo delete pod victim --ignore-not-found; kubectl delete tracingpolicy block-sensitive-read --ignore-not-found`
 - `cd lab-infra/runtime && ./down.sh`
 
 > **Validate it *(purple team)*.** Fire the real techniques at these rules in [`d5-infra-attack-simulation`](d5-infra-attack-simulation.md): **ATT&CK T1059** (shell in container) and **T1611** (escape to host) ↔ **D3FEND D3-PSA/D3-CI** — confirm Falco/Tetragon actually alert, or document the gap and add the rule.

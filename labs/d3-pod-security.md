@@ -64,7 +64,11 @@ Using PSA, a hardened `securityContext`, and a Kyverno `ClusterPolicy`, reach th
    - `spec.validationFailureAction: Enforce` (not `Audit`) so it actually blocks.
    - One `validate` rule matched against `kind: Pod`, with a `pattern` that constrains `spec.containers[].image` to an allowlist — Kyverno's pattern language lets you OR multiple globs with `|` (e.g. your internal registry plus a couple of trusted upstream namespaces).
    - Give the rule a `message` your team would actually understand when a pod gets rejected.
-8. `kubectl apply -f policy.yaml`, then try a pod from a disallowed registry (`kubectl -n oss500-apps run evil --image=quay.io/evil/x --restart=Never`) → **rejected by Kyverno** with your custom message. This is the layer beyond PSA: registry allowlisting, per-workload rules, mutation.
+8. `kubectl apply -f policy.yaml`, then try a pod from a disallowed registry — **run it in `oss500-demo`, not `oss500-apps`**: built-in PSA evaluates before Kyverno's validating webhook, so a `restricted`-labeled namespace would reject `evil` on PSS grounds first and you'd never see Kyverno's rejection at all.
+   ```bash
+   kubectl -n oss500-demo run evil --image=quay.io/evil/x --restart=Never
+   ```
+   → **rejected by Kyverno** with your custom message. This is the layer beyond PSA: registry allowlisting, per-workload rules, mutation.
 9. **(Optional stretch, no solution given.)** Add a Kyverno *mutate* rule that injects `seccompProfile: RuntimeDefault` into any pod missing it, and confirm a pod without it comes out with it set — mutation is a Kyverno capability Gatekeeper/PSA lack.
 
 ## Verification

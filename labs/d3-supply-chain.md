@@ -56,14 +56,14 @@ No finished commands below — goals and hints are all you get. Assemble the fla
 ### Part D — Gate admission on signature (`sc-admission`)
 
 11. **Wire the cluster-side gate.** A starting Kyverno policy lives at [`lab-infra/supplychain/kyverno/require-signed-images.yaml`](../lab-infra/supplychain/kyverno/require-signed-images.yaml) — open it first. It verifies images under `harbor.oss500.local/*` against a `publicKeys` block that currently reads `REPLACE_WITH_COSIGN_PUB_FROM_LAB`. Paste in the `cosign.pub` you generated in step 9, then apply it. Before you do, read `validationFailureAction: Enforce` and `failurePolicy: Fail` in the manifest and reason through what each does if the Kyverno webhook itself is unreachable — which one makes this fail closed?
-12. **Fire the negative case.** Try to run an **unsigned** image from Harbor as a bare pod:
+12. **Fire the negative case.** Try to run an **unsigned** image from Harbor as a bare pod — **in `oss500-demo`, not `oss500-apps`**: built-in PSA evaluates before Kyverno's `verifyImages` webhook, so a `restricted`-labeled namespace would reject a bare pod on PSS grounds regardless of signature, making the "admitted" case in the next step unreachable:
     ```bash
-    kubectl -n oss500-apps run u --image=harbor.oss500.local/lib/unsigned:x --restart=Never
+    kubectl -n oss500-demo run u --image=harbor.oss500.local/lib/unsigned:x --restart=Never
     ```
     Read the rejection Kyverno gives you — it should name the missing/failed signature check.
 13. **Fire the positive case.** Run the **signed** image the same way:
     ```bash
-    kubectl -n oss500-apps run s --image=harbor.oss500.local/lib/alpine:3.20 --restart=Never
+    kubectl -n oss500-demo run s --image=harbor.oss500.local/lib/alpine:3.20 --restart=Never
     ```
     → admitted. You now have two independent, stacked gates: Harbor blocks at the *pull*, Kyverno blocks at the *schedule*.
 
@@ -111,11 +111,11 @@ The complete manifest — public key from step 9 pasted into the `publicKeys` bl
 ```bash
 kubectl apply -f lab-infra/supplychain/kyverno/require-signed-images.yaml
 ```
-Try to run an **unsigned** image from Harbor: `kubectl -n oss500-apps run u --image=harbor.oss500.local/lib/unsigned:x --restart=Never` → **rejected by Kyverno** (`image is not signed` / failed attestor check).
-Run the **signed** image: `kubectl -n oss500-apps run s --image=harbor.oss500.local/lib/alpine:3.20 --restart=Never` → **admitted**. Cluster-side gate proven, on top of Harbor's registry-side gate.
+Try to run an **unsigned** image from Harbor: `kubectl -n oss500-demo run u --image=harbor.oss500.local/lib/unsigned:x --restart=Never` → **rejected by Kyverno** (`image is not signed` / failed attestor check).
+Run the **signed** image: `kubectl -n oss500-demo run s --image=harbor.oss500.local/lib/alpine:3.20 --restart=Never` → **admitted**. Cluster-side gate proven, on top of Harbor's registry-side gate.
 
 ## Teardown
-- `kubectl -n oss500-apps delete pod s u --ignore-not-found; kubectl delete clusterpolicy require-signed-images --ignore-not-found`
+- `kubectl -n oss500-demo delete pod s u --ignore-not-found; kubectl delete clusterpolicy require-signed-images --ignore-not-found`
 - `cd lab-infra/supplychain && ./down.sh`
 
 ## What the exam asks
