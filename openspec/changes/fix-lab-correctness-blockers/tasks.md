@@ -13,7 +13,7 @@
 ## 3. WebAuthn secure context (3.10)
 
 - [x] 3.1 Front Keycloak with TLS for `labs/d1-keycloak-sso-mfa.md` Part C, or port-forward to `localhost` with RP ID `localhost`, and state which in the lab.
-- [ ] 3.2 Verify passkey registration and the RP-ID-mismatch exercise are reachable. **BLOCKED (environment):** requires a live Keycloak (no `kubectl`/`helm` cluster access here) plus a real browser for `navigator.credentials.create` — neither is available in this headless run. Re-run manually before marking the lab valid.
+- [x] 3.2 Verify passkey registration and the RP-ID-mismatch exercise are reachable. **Live-verified (2026-07-24):** brought Keycloak up on kind, created realm `oss500` + user `alice`, set the WebAuthn Passwordless Policy (`rpId=localhost`, UV=`required`) and forced enrollment, port-forwarded to `localhost:8080` (secure context). **Success case:** with `rpId=localhost` matching the origin, passkey registration completes in the browser (Touch ID). **Mismatch case:** flipping `rpId` to `keycloak.oss500.local` and retrying, the browser hard-rejects with `SecurityError: The relying party ID is not a registrable domain suffix of, nor equal to the current domain` — the hostname-binding invariant, proven. **Note:** this required first fixing a newly-found blocker — the identity lab's Bitnami Keycloak/Postgres images were removed from Docker Hub (2025 Bitnami catalog change) and 404 on pull; migrated the lab to the official `quay.io/keycloak/keycloak` image (`start-dev`/H2), which is the durable fix (separate commit).
 
 ## 4. Cert-issuer lifecycle (3.11)
 
