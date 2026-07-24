@@ -30,15 +30,15 @@ data:
       # obs-dashboards: derives a latency HISTOGRAM METRIC from spans (Tempo has no
       # native "graph this over time" query — a dashboard timeseries panel needs a
       # real Prometheus series). Every span the traces pipeline sees is also routed
-      # here and turned into traces_spanmetrics_latency (a duration histogram) plus
-      # traces_spanmetrics_calls_total, which the metrics pipeline below re-exports
+      # here and turned into traces_span_metrics_duration_milliseconds (a duration histogram) plus
+      # traces_span_metrics_calls_total, which the metrics pipeline below re-exports
       # via the same `prometheus` exporter the OTLP metrics pipeline already uses.
       spanmetrics:
         histogram:
           explicit:
             buckets: [2ms, 8ms, 20ms, 50ms, 100ms, 200ms, 500ms, 1s, 5s]
-        dimensions:
-          - name: span.name
+        # span.name / service.name / span.kind / status.code are already default
+        # dimensions — listing span.name again fails validation ("duplicate dimension").
         metrics_flush_interval: 15s
     exporters:
       # Traces -> Tempo (OTLP gRPC).

@@ -9,7 +9,7 @@
 #      genuine equivalent: CIS Kubernetes Benchmark 5.1.5, "default service
 #      accounts should not be actively used")
 #   3. Denied/failed-auth log rate    (Loki: the demo-authlog.yaml app)
-#   4. Trace p95 latency              (Prometheus: traces_spanmetrics_latency,
+#   4. Trace p95 latency              (Prometheus: traces_span_metrics_duration_milliseconds,
 #      emitted by the otel-collector's spanmetrics connector from real spans —
 #      Tempo itself has no native "graph this over time" query)
 apiVersion: v1
@@ -83,14 +83,14 @@ data:
           "id": 4,
           "title": "Trace p95 latency",
           "type": "timeseries",
-          "description": "traced-frontend -> traced-backend span duration, derived from real spans by the otel-collector's spanmetrics connector (traces_spanmetrics_latency).",
+          "description": "traced-frontend -> traced-backend span duration, derived from real spans by the otel-collector's spanmetrics connector (traces_span_metrics_duration_milliseconds).",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
-          "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+          "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "prometheus" },
-              "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket[5m])) by (le, span_name))",
+              "expr": "histogram_quantile(0.95, sum(rate(traces_span_metrics_duration_milliseconds_bucket[5m])) by (le, span_name))",
               "legendFormat": "{{span_name}} p95",
               "refId": "A"
             }
