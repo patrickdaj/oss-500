@@ -7,6 +7,11 @@ controller:
   # it is reachable on localhost:8080/8443 (matches lab-infra/kind/cluster.yaml).
   hostPort:
     enabled: true
+  # Single-node kind + hostPort: a RollingUpdate deadlocks on re-deploy because the
+  # new pod can't bind 80/443 until the old one releases them. Recreate = tear the
+  # old controller down first, then start the new one.
+  updateStrategy:
+    type: Recreate
   service:
     type: NodePort
   nodeSelector:
