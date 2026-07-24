@@ -49,9 +49,13 @@ grafana:
     ingressClassName: nginx
     hosts: ["grafana.localtest.me"]
 
-# node-exporter + kube-state-metrics ship security-relevant signals
-# (host resource usage; object state such as privileged/running-as-root pods).
+# kube-state-metrics ships security-relevant object state (privileged/running-as-root
+# pods, ServiceAccount usage). node-exporter is DISABLED: it needs hostPath/hostNetwork
+# and cannot run in this baseline-PSA namespace — helm --wait hangs on its DaemonSet
+# (0/N ready) and the rest of up.sh never runs. Host-level agents belong in a privileged
+# namespace (the way Falco/Tetragon live in oss500-security); nothing in the OSS-500
+# dashboards or alert-rules consumes node_* metrics, so disabling it here is lossless.
 nodeExporter:
-  enabled: true
+  enabled: false
 kube-state-metrics:
   enabled: true
