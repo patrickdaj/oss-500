@@ -7,8 +7,8 @@ This track attacks the **chat/RAG guardrail** (does the model *say* something un
 ## Tools
 | Tool | What it does | Runs |
 |---|---|---|
-| **[garak](https://github.com/NVIDIA/garak)** | LLM vulnerability scanner — dozens of probes (jailbreak, prompt injection, data leakage, toxicity) fired automatically | `pipx run garak` against the local gateway |
-| **[PyRIT](https://github.com/Azure/PyRIT)** | Microsoft's automated risk-identification toolkit — multi-turn attack orchestration, scorers | pip, scripted attacks |
+| **[garak](https://github.com/NVIDIA/garak)** (reference) | LLM vulnerability scanner — dozens of probes (jailbreak, prompt injection, data leakage, toxicity) fired automatically | `pipx run garak -G lab-infra/offense/localhost-ollama.json` against the local target |
+| **[PyRIT](https://github.com/Azure/PyRIT)** (reference) | Microsoft's automated risk-identification toolkit — multi-turn attack orchestration, scorers | `python lab-infra/offense/pyrit_multiturn.py`, extend the skeleton |
 | **Burp / PortSwigger** | web-layer testing of the gateway's HTTP surface (auth, IDOR on the API in front of the model) | manual/interactive |
 
 ## The OWASP-LLM ↔ ATLAS map (what you're actually testing)

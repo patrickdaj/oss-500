@@ -18,6 +18,13 @@ The attack tooling for **Domain 5** ([`../../domains/5-offensive-validation/`](.
 2. Prints how to fetch **Atomic Red Team** (git clone), run **Caldera** (self-hosted server, local), and **Stratus Red Team** (single binary) — these are large/interactive, so they're documented rather than force-installed.
 3. Echoes the local target it will attack, and stops if it isn't local.
 
+## AI-track scaffolding (`d5-ai-redteam`, `d6-validate`)
+
+Two runnable starting points — extend them, don't just run them as-is:
+
+- **[`localhost-ollama.json`](localhost-ollama.json)** — a garak REST-generator config wired to raw Ollama's OpenAI-compatible endpoint (`http://localhost:11434/v1/chat/completions`). Port-forward Ollama first (`kubectl -n oss500-apps port-forward svc/ollama 11434:11434`), then `garak --model_type rest -G localhost-ollama.json --probes dan,promptinject,leakreplay`. To fire the same probes at the guardrailed `d3-ai` gateway instead, copy this file and repoint `uri` at `http://localhost:8080/v1/chat/completions` with an `Authorization: Bearer <token>` header.
+- **[`pyrit_multiturn.py`](pyrit_multiturn.py)** — a ~20-line `MultiPromptSendingAttack` skeleton wired to the `d3-ai` gateway (`http://localhost:8080`, port-forward `svc/ai-gateway`). Replace its `ESCALATION` list with your own turns; it executes them in sequence against the gateway and prints the final response.
+
 ## Run
 ```bash
 ./up.sh            # installs garak/pyrit into .venv-offense, prints infra-tool setup

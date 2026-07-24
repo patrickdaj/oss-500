@@ -32,7 +32,7 @@ Attack the **exact agent** Domain 6 built (scoped identity + tool authz + action
 5. **Memory poisoning.** Plant an instruction in the agent's persistent memory/context that re-fires a consequential action on a *later* turn/session. Confirm the re-fired action is still gated (`action-gate`) and scoped — persistence must not bypass the per-action controls.
 
 ### Part D — automated probes
-6. **garak / PyRIT.** Point garak's injection/leakage probes at the agent's input surface, and script a **PyRIT** multi-turn orchestrator that escalates toward a gated action. Multi-turn finds what single-shot misses. Map each result to its OWASP-Agentic / ATLAS id.
+6. **garak / PyRIT.** Point garak's injection/leakage probes at the agent's input surface, and script a **PyRIT** multi-turn orchestrator that escalates toward a gated action. Multi-turn finds what single-shot misses. Start from the shipped skeleton, [`../lab-infra/offense/pyrit_multiturn.py`](../lab-infra/offense/pyrit_multiturn.py) (a runnable `MultiPromptSendingAttack`) — repoint its target at the agent endpoint and replace `ESCALATION` with turns that escalate toward the gated action, rather than starting from an empty file. Map each result to its OWASP-Agentic / ATLAS id.
 
 ## Verification
 - Each attack that a control **defends** is reported as such, with the control named. Each attack that **passes** is logged against its OWASP-Agentic / ATLAS technique with a reproduction and the **missing control** named ("injection reached `submit_change` — the gate wasn't on that node").

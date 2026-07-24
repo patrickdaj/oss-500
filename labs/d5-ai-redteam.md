@@ -38,7 +38,7 @@ Re-point garak at the **NeMo-fronted** gateway and re-run the **same** probe set
 2. Compare defended vs. baseline — the delta is what the guardrail bought you. Where the delta is zero (a probe still passes), that's a gap to write up, not hide.
 
 ### Part C — multi-turn + web surface (`av-ai-pyrit`)
-- **PyRIT**: script a multi-turn orchestrator that escalates toward system-prompt disclosure. Multi-turn finds what single-shot garak misses — design your own escalation path (start benign, layer social-engineering/role-play turns across multiple calls, and watch for the rails to hold or slip). Name the OWASP-LLM id + ATLAS technique for whatever you find.
+- **PyRIT**: script a multi-turn orchestrator that escalates toward system-prompt disclosure. Multi-turn finds what single-shot garak misses — design your own escalation path (start benign, layer social-engineering/role-play turns across multiple calls, and watch for the rails to hold or slip). Start from the shipped skeleton, [`../lab-infra/offense/pyrit_multiturn.py`](../lab-infra/offense/pyrit_multiturn.py) (a runnable `MultiPromptSendingAttack` wired to the `d3-ai` gateway) — replace its `ESCALATION` list with your own turns rather than starting from an empty file. Name the OWASP-LLM id + ATLAS technique for whatever you find.
 - **Burp/PortSwigger**: test the gateway's **HTTP** surface yourself — auth on the API, IDOR on any conversation/session id. The model can be perfectly guarded while the API in front of it isn't.
 
 ## Verification
@@ -53,13 +53,15 @@ Build it yourself first; check after.
 
 **Tooling.** Install garak + PyRIT from [`../lab-infra/offense/`](../lab-infra/offense/) (`./up.sh` — isolated venv, refuses any non-local `TARGET_HOST`):
 ```bash
-# Part A — baseline against raw Ollama (no guardrail)
-pipx run garak --model_type rest -G localhost-ollama.json --probes dan,promptinject,leakreplay
+# Part A — baseline against raw Ollama (no guardrail): kubectl -n oss500-apps
+# port-forward svc/ollama 11434:11434 first (bypasses the ai-gateway-only
+# NetworkPolicy, since port-forward tunnels straight to the pod).
+pipx run garak --model_type rest -G ../lab-infra/offense/localhost-ollama.json --probes dan,promptinject,leakreplay
 
 # Part B — identical probes against the NeMo-fronted gateway
 pipx run garak --model_type rest -G <gateway-config>.json --probes dan,promptinject,leakreplay
 ```
-The baseline row can reuse the garak-vs-Ollama evidence migrated from `modern-security-lab`; the guardrailed row is what you run yourself against `d3-ai`.
+The shipped [`localhost-ollama.json`](../lab-infra/offense/localhost-ollama.json) points garak at raw Ollama's OpenAI-compatible endpoint out of the box — no JSON to reverse-engineer for Part A. The baseline row can reuse the garak-vs-Ollama evidence migrated from `modern-security-lab`; the guardrailed row is what you run yourself against `d3-ai`.
 
 **Attack ↔ technique map** (OWASP LLM Top 10 ↔ MITRE ATLAS), from the Standards line above:
 

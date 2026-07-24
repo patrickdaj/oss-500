@@ -22,7 +22,11 @@ python3 -m venv .venv-offense
 # shellcheck source=/dev/null
 . .venv-offense/bin/activate
 pip install --quiet --upgrade pip
-pip install --quiet "garak" "pyrit"
+# Pinned: an unpinned install can resolve to wildly different, incompatible
+# APIs depending on the interpreter (e.g. garak pre-REST-generator, or PyRIT's
+# pre-1.0 orchestrator API) — these versions are what pyrit_multiturn.py and
+# localhost-ollama.json were built and run against.
+pip install --quiet "garak==0.15.1" "pyrit==1.0.0"
 echo "    garak + pyrit installed in .venv-offense (activate it to use)."
 
 cat <<'EOF'
