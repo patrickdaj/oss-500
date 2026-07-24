@@ -44,7 +44,7 @@ spec:
     seccompProfile: { type: RuntimeDefault }
   containers:
     - name: curl
-      image: curlimages/curl:latest
+      image: curlimages/curl:8.11.1
       command: ["sleep", "3600"]
       securityContext:
         allowPrivilegeEscalation: false

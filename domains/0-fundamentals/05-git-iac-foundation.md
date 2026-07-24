@@ -82,7 +82,7 @@ output "namespace_uid" {
 }
 ```
 
-That's the same shape every ZTNA lab config uses, just smaller: a **`resource`** block (`kubernetes_namespace`, the thing Terraform manages), two **`variable`** blocks it reads at plan time, **attribute references** (`var.namespace_name`, `kubernetes_namespace.this.metadata[0].uid`) wiring config through the resource graph, and an **`output`** exposing a value the resource only gets *after* apply — the namespace's server-assigned `uid`. `owner_email` is marked **`sensitive = true`**, the same guard `netbird_token` and `idp_client_secret` use in the ZTNA stacks, so Terraform redacts it from CLI output; supply it via a gitignored **`terraform.tfvars`** (`owner_email = "you@example.com"`), never as a literal in `main.tf`.
+That's the same shape every ZTNA lab config uses, just smaller: a **`resource`** block (`kubernetes_namespace`, the thing Terraform manages), two **`variable`** blocks it reads at plan time, **attribute references** (`var.namespace_name`, `kubernetes_namespace.this.metadata[0].uid`) wiring config through the resource graph, and an **`output`** exposing a value the resource only gets *after* apply — the namespace's server-assigned `uid`. `owner_email` is marked **`sensitive = true`**, the same guard `netbird_token` and `idp_client_secret` use in the ZTNA stacks, so Terraform redacts it from CLI output; supply it via a gitignored **`terraform.tfvars`** (`owner_email = "you@example.com"`), never as a literal in `main.tf`. Mind the guard's limit: `sensitive` only redacts plan/CLI output — it does *not* encrypt state, and the moment you write the value into a namespace annotation it's readable in cleartext via `kubectl get ns -o yaml`. It's a leakage guard, not encryption.
 
 Run the loop yourself:
 

@@ -2,7 +2,7 @@
 
 > **🆕 Concept-new.** This vocabulary — tokens, context windows, embeddings, vector stores, RAG — has no equivalent in AZ-500 or the rest of this course's compute/network material. It is new the same way the rest of Domain 3's AI-security content is new to SC-500. [`ai-security.md`](ai-security.md) reasons over these terms starting in its first paragraph; this note defines them first so the threat model reads as engineering, not incantation.
 
-`ai-security.md` builds a real threat model — prompt injection, data leakage, RAG permission bypass — but it assumes you already know what a token is, what "the context window" refers to, and what happens when a query gets "embedded" and "retrieved." Those aren't security concepts; they're the plumbing an LLM application is built from, the same way you needed namespaces and cgroups before pod hardening made sense (`0-fundamentals/01-containers.md`). This note is that plumbing for AI. It teaches no security control — read it once, then read `ai-security.md` for the controls that sit on top of it.
+`ai-security.md` builds a real threat model — prompt injection, data leakage, RAG permission bypass — but it assumes you already know what a token is, what "the context window" refers to, and what happens when a query gets "embedded" and "retrieved." Those aren't security concepts; they're the plumbing an LLM application is built from, the same way you needed namespaces and cgroups before pod hardening made sense ([`01-containers.md`](../0-fundamentals/01-containers.md)). This note is that plumbing for AI. It teaches no security control — read it once, then read `ai-security.md` for the controls that sit on top of it.
 
 ## Tokens and tokenization
 
@@ -29,7 +29,7 @@ The model is *trained* to weight `system` above `user`, which is where the term 
 
 ## Embeddings
 
-An **embedding** is a fixed-length vector of floating-point numbers (typically hundreds to a few thousand dimensions) that a separate embedding model produces from a piece of text, positioned so that texts with similar *meaning* land at similar *points* in that vector space — not similar spelling, similar meaning. `"kitten"` and `"cat"` embed close together; `"cat"` and `"cattle"` don't, despite sharing more letters. Closeness is measured with a distance metric, almost always **cosine similarity** (the cosine of the angle between two vectors — 1.0 for identical direction, 0 for unrelated, -1 for opposite). Embeddings are what let a system do *semantic* search — "find text about this concept" — instead of keyword matching.
+An **embedding** is a fixed-length vector of floating-point numbers (typically hundreds to a few thousand dimensions) that a separate embedding model produces from a piece of text, positioned so that texts with similar *meaning* land at similar *points* in that vector space — not similar spelling, similar meaning. `"kitten"` and `"cat"` embed close together; `"cat"` and `"car"` land far apart despite differing by a single letter. Closeness is measured with a distance metric, almost always **cosine similarity** (the cosine of the angle between two vectors — 1.0 for identical direction, 0 for unrelated, -1 for opposite). Embeddings are what let a system do *semantic* search — "find text about this concept" — instead of keyword matching.
 
 ## Vector stores
 
