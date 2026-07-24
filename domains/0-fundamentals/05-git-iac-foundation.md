@@ -40,12 +40,71 @@ The **write → plan → apply** loop is the whole discipline: `plan` shows exac
 
 **Why it matters for this course.** The Terraform-automated ZTNA labs stand up and tear down whole environments through this loop, and `gov-iac` is provisioning security controls *as code* — reviewable, reproducible, version-controlled. When a lab's Terraform sets a default-deny policy or a hardened `securityContext`, the `plan` is where you verify the control before it's live. `03-kind-helm-iac.md` builds on this foundation with kind and Helm in the lab context.
 
+### Your first `terraform apply`
+
+Reading the loop isn't the same as running it, and the first `terraform apply` you ever execute shouldn't be inside a 2–3h ZTNA broker lab juggling four resource types and a live IdP. Do a small one here instead, against the `kind-oss500` cluster you already stood up on Day 2 — nothing to tear down but a namespace.
+
+```hcl
+# main.tf
+terraform {
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.31"
+    }
+  }
+}
+
+provider "kubernetes" {
+  config_path    = "~/.kube/config"
+  config_context = "kind-oss500"
+}
+
+variable "namespace_name" {
+  type    = string
+  default = "first-apply"
+}
+
+variable "owner_email" {
+  type      = string
+  sensitive = true
+}
+
+resource "kubernetes_namespace" "this" {
+  metadata {
+    name        = var.namespace_name
+    annotations = { owner = var.owner_email }
+  }
+}
+
+output "namespace_uid" {
+  value = kubernetes_namespace.this.metadata[0].uid
+}
+```
+
+That's the same shape every ZTNA lab config uses, just smaller: a **`resource`** block (`kubernetes_namespace`, the thing Terraform manages), two **`variable`** blocks it reads at plan time, **attribute references** (`var.namespace_name`, `kubernetes_namespace.this.metadata[0].uid`) wiring config through the resource graph, and an **`output`** exposing a value the resource only gets *after* apply — the namespace's server-assigned `uid`. `owner_email` is marked **`sensitive = true`**, the same guard `netbird_token` and `idp_client_secret` use in the ZTNA stacks, so Terraform redacts it from CLI output; supply it via a gitignored **`terraform.tfvars`** (`owner_email = "you@example.com"`), never as a literal in `main.tf`.
+
+Run the loop yourself:
+
+```bash
+terraform init      # downloads the kubernetes provider into .terraform/
+terraform plan      # read this like a diff: + kubernetes_namespace.this will be created;
+                     # owner_email shows as (sensitive value), not the literal
+terraform apply     # type yes; confirm with: kubectl get ns first-apply
+cat terraform.tfstate | jq '.resources[0].instances[0].attributes.metadata'
+                     # state maps your config to the real namespace's server-assigned uid
+terraform destroy   # tear it back down; confirm: kubectl get ns first-apply now fails
+```
+
+Read the `plan` output before you type `yes` — that's the habit that matters when a later `plan` is setting a `securityContext` or a default-deny policy instead of a bare namespace. This is the whole rep: write HCL from a blank page, watch `plan` predict reality, `apply` it, see `state` record what happened, `destroy` it. The ZTNA labs ask for the same loop with more resources and a real IdP behind them.
+
 ## Self-check
 
 1. Explain the difference between the working tree, the staging area, and the repository — and which command moves a change between each.
 2. Why is a git branch cheap, and what makes the commit history immutable?
 3. What does Terraform **state** record, and why must a shared backend **lock** it during an apply?
 4. Describe write → plan → apply and why `plan` is the step that maps onto "verify the control before it's live."
+5. Write and apply the `first-apply` namespace exercise: what does `terraform plan` show for the `sensitive` variable, and what does `kubernetes_namespace.this.metadata[0].uid` in the `output` block let you read that the `resource` block alone doesn't?
 
 ## Primary sources
 - [Pro Git — Recording changes to the repository](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository) · [Branches in a nutshell](https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell) · [Working with remotes](https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes)
@@ -53,3 +112,4 @@ The **write → plan → apply** loop is the whole discipline: `plan` shows exac
 - [OpenGitOps — Principles](https://opengitops.dev/) (reference)
 - [Terraform — The core workflow (write/plan/apply)](https://developer.hashicorp.com/terraform/intro/core-workflow) · [State](https://developer.hashicorp.com/terraform/language/state) · [State locking](https://developer.hashicorp.com/terraform/language/state/locking) · [Modules](https://developer.hashicorp.com/terraform/language/modules) · [Backends & remote state](https://developer.hashicorp.com/terraform/language/backend)
 - [Terraform](https://developer.hashicorp.com/terraform) (reference)
+- [Terraform registry — `kubernetes_namespace` resource](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) (reference)
