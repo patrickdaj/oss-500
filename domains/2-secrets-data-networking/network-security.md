@@ -38,7 +38,7 @@ spec:
         - {protocol: TCP, port: 5432}
 ```
 
-Enforcement is done by the **CNI plugin**, not the API server — so the CNI *must* support NetworkPolicy. kind's default `kindnet` has only recently gained NetworkPolicy support and it's limited; for reliable, complete enforcement this course installs **Calico** in `lab-infra/network/`. A policy applied under a CNI that ignores it is the classic "policy exists but traffic still flows" trap.
+Enforcement is done by the **CNI plugin**, not the API server — so the CNI *must* support NetworkPolicy. kind's default `kindnet` has only recently gained NetworkPolicy support and it's limited; for reliable, complete enforcement this course installs **Calico** in `lab-infra/network/`. A policy applied under a CNI that ignores it is the classic "policy exists but traffic still flows" trap — the CNI-as-enforcement-seam idea is introduced in the cluster-internals primer, [`0-fundamentals/02-kubernetes.md`](../0-fundamentals/02-kubernetes.md#how-the-cluster-is-wired-and-where-its-soft).
 
 This is the Kubernetes analog of **Network Security Groups / micro-segmentation**. An NSG is a stateful allow/deny list on a subnet/NIC by IP/port; a NetworkPolicy is the same idea keyed on **labels** instead of IPs (pods are ephemeral, labels are stable). "Default-deny then allow" is exactly the NSG hardening SC-500 wants.
 

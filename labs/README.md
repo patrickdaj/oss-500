@@ -87,6 +87,14 @@ Build and red-team an autonomous, tool-using agent under zero-trust principles �
 
 Agent/MCP scaffolding + the reference solution live in [`../lab-infra/agentic/`](../lab-infra/agentic/) (reuses Keycloak/SPIRE/OPA/Ollama).
 
+## Enrichment labs (optional, not tracked)
+
+> **Enrichment ≠ hands-on / walkthrough.** Every lab above maps to a `tracker.yaml` objective and counts toward readiness. An **enrichment** lab is the opposite kind of optional: it follows the same standard format (objectives, prerequisites, estimated time, steps, verification, teardown) and runs on the existing cluster, but it is **explicitly not mapped to any objective** — it's depth beyond the SC-500 skills outline, not coverage of it. Skipping an enrichment lab never leaves a coverage gap; the readiness gate never looks at this table.
+
+| Lab | Type | Depth on |
+|---|---|---|
+| [enrichment-kubelet-attack-surface](enrichment-kubelet-attack-surface.md) | **enrichment** (not tracker-mapped) | The kubelet's HTTPS API (10250) on the existing `kind` cluster — probes it, reads the `--anonymous-auth`/`--authorization-mode` flags that govern it, and connects the CRI boundary forward to Falco/Tetragon. Depth on the cluster-internals primer in [`0-fundamentals/02-kubernetes.md`](../domains/0-fundamentals/02-kubernetes.md#how-the-cluster-is-wired-and-where-its-soft). |
+
 ## Ground rules
 
 1. **Deploy → verify → destroy**: bring up the lab's `lab-infra/` component, perform the steps, prove the control, then `down.sh`. The loop is itself practice for the IaC objective (`gov-iac`).
