@@ -11,7 +11,7 @@ Primary lab: [d6-tools-mcp](../../labs/d6-tools-mcp.md). Lab-infra component: [`
 Before reasoning about *authorizing* or *authenticating* an MCP call, pin down the terms. **MCP client** — code embedded in the agent's host application (here, the LangGraph agent) that discovers and invokes tools. **MCP server** — a separate process that exposes those tools (and optionally resources/prompts) over JSON-RPC 2.0. The client first calls `tools/list` to discover what's available — each tool's name, description, and a JSON-Schema input shape — then invokes one with `tools/call`:
 
 ```
-→ {"method": "tools/call", "params": {"name": "submit_change", "arguments": {"tenant": "acme", "diff": "..."}}}
+→ {"method": "tools/call", "params": {"name": "submit_change", "arguments": {"tenant": "acme", "payload": "..."}}}
 ← {"content": [{"type": "text", "text": "queued"}], "isError": false}
 ```
 
