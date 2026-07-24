@@ -6,6 +6,26 @@ Domain 6, subsection `d6-tools-mcp` (tools / MCP). An agent's power *is* its too
 
 Primary lab: [d6-tools-mcp](../../labs/d6-tools-mcp.md). Lab-infra component: [`lab-infra/agentic`](../../lab-infra/agentic/) — a LangGraph agent, an MCP server exposing a *safe* read tool (`lookup`) and a *consequential* write tool (`submit_change`), and an OPA policy (`opa/tool-authz.rego`) consulted on every call. It **reuses** the OPA engine from `d3-ai`/`d1-governance` and the delegated identity from [`d6-identity`](d6-identity.md) rather than standing up new copies. The identity these decisions key on comes from `d6-identity` (a scoped, short-lived delegated token); the *consequentiality* gate that pauses a permitted write for approval is [`d6-action-gating`](d6-action-gating.md). The `mcp-authn` OAuth transport is partly a **walkthrough** — the SDKs move fast (see the Honesty notes), so the authenticating transport is reasoned/configured while the OPA authorization and the "no subject, no tool" check are runnable. Standards throughout: the **MCP authorization specification** and **OWASP Agentic AI — Threats & Mitigations**; see [`../standards-map.md`](../standards-map.md) for the offense↔defense spine.
 
+## MCP protocol primer — client, server, transport, tool call
+
+Before reasoning about *authorizing* or *authenticating* an MCP call, pin down the terms. **MCP client** — code embedded in the agent's host application (here, the LangGraph agent) that discovers and invokes tools. **MCP server** — a separate process that exposes those tools (and optionally resources/prompts) over JSON-RPC 2.0. The client first calls `tools/list` to discover what's available — each tool's name, description, and a JSON-Schema input shape — then invokes one with `tools/call`:
+
+```
+→ {"method": "tools/call", "params": {"name": "submit_change", "arguments": {"tenant": "acme", "diff": "..."}}}
+← {"content": [{"type": "text", "text": "queued"}], "isError": false}
+```
+
+That request/response pair is the exact boundary the rest of this note defends: `mcp-authz` (below) decides whether *this* `tools/call` — this identity, this tool, these arguments — is permitted; `mcp-authn` decides whether the client sending it is even a known caller.
+
+The client and server exchange those messages over one of two **transports**, and the transport is not incidental plumbing — it fixes the entire authentication design:
+
+- **stdio** — the server runs as a local subprocess; the client writes JSON-RPC to its stdin and reads replies from its stdout. There is no network hop, so there is no bearer token to steal, forge, or replay in transit — the process boundary (who can spawn or pipe to the server) *is* the trust boundary. The MCP spec accordingly says an stdio server SHOULD NOT run the OAuth flow and should instead take credentials from its environment.
+- **streamable HTTP** — the server listens on a network port and the client POSTs JSON-RPC over HTTP. A network caller is unauthenticated by default, so the MCP authorization specification requires the server behave as an OAuth 2.1 **resource server**: every request carries `Authorization: Bearer <token>`, audience-bound (RFC 8707) to this server specifically.
+
+This is why `mcp-authn`, below, has no single answer to "does the MCP server do OAuth?" — the answer is **"it depends which transport is in use."** The reference lab server (`lab-infra/agentic/mcp-server/server.py`) runs on stdio, which is exactly why the OAuth-401 handshake is a walkthrough there rather than something you run and observe.
+
+This is the protocol-level version of the domain's standing rule — **every agent tool and MCP call is authenticated and authorized** (`agentic-zero-trust`) — made concrete: `mcp-authz` is the per-`tools/call` policy decision, `mcp-authn` is the transport-dependent gate in front of it. The **MCP authorization specification** is the load-bearing reference for the latter (tagged in its Resources list below) — the resource-server role, the audience binding, and the no-passthrough rule are specific to MCP, not something to infer from OAuth flows you already know.
+
 ## Authorize every tool call — default-deny on identity × tool × arguments
 
 *Objective: `mcp-authz` · OSS: OPA on the MCP call path ≈ beyond-blueprint (extends the `d3-ai` OPA-at-the-gateway pattern down to tools) · Lab: [d6-tools-mcp](../../labs/d6-tools-mcp.md)*
@@ -89,7 +109,7 @@ Gotchas:
 - **STDIO vs HTTP changes the answer.** "Does the MCP server do OAuth?" depends on transport — HTTP: yes (resource server); STDIO: no (environment credentials). Know which transport the scenario uses.
 
 **Resources:**
-- [MCP specification — Authorization: Token Handling (OAuth 2.1 resource server, 401 on invalid)](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#token-handling) (~25 min)
+- [MCP specification — Authorization: Token Handling (OAuth 2.1 resource server, 401 on invalid)](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#token-handling) `[required-for-lab]` (~25 min)
 - [MCP specification — Authorization Flow overview (401 → discovery → bearer token)](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#authorization-flow) (~15 min)
 - [MCP specification — Confused Deputy Problem (security best practices)](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices#confused-deputy-problem) (~15 min)
 - [OWASP Agentic AI — Threats & Mitigations (identity & privilege abuse)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) (reference — agentic threat taxonomy)
