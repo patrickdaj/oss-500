@@ -12,7 +12,7 @@ Primary lab: [d6-action-gating](../../labs/d6-action-gating.md). Lab-infra compo
 
 Authorization and consequence are **different questions**. `mcp-authz` asks "may this identity call `submit_change` with these arguments?" — a yes/no on *permission*. Action-gating asks "this call is permitted, but it changes state / spends money / runs code — should it fire without a human saying go?" The failure mode it defends is the one that makes agents dangerous: a **permitted** action, invoked because an injected instruction steered the agent there. The agent had the right; the intent was hijacked. You cannot fix that with more authorization — the caller *is* authorized. You fix it by making consequence **deliberate**.
 
-Two pieces make the gate. First, a PDP that **classifies** an action as consequential vs. safe — a deterministic policy, not the model's own judgement (a compromised model will happily rate its malicious action "safe"). Consequential = it writes, executes, spends, or egresses; everything else (pure reads) proceeds. The reference policy keys on the action's effect, not the model's say-so:
+Two pieces make the gate. First, a PDP that **classifies** an action as consequential vs. safe — a deterministic policy, not the model's own judgement (a compromised model will happily rate its malicious action "safe"). Consequential = it writes, executes, spends, or egresses; everything else (pure reads) proceeds. The reference policy keys on the action's effect, not the model's say-so — read the [D1 `governance` note's Rego primer](../1-identity-governance/governance.md#rego--the-language-every-policy-below-is-written-in) first if the `if { … }` rule-body shape below is new; this note doesn't re-teach it:
 
 ```rego
 package agentic.actions

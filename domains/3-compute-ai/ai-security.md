@@ -207,6 +207,8 @@ Exam gotchas:
 
 Governance is the *organization-wide* layer above per-app guardrails: a **central policy point** every AI request flows through, so rules are defined and audited in one place rather than reimplemented per app. The **AI gateway** (the same proxy from `ai-access`) is that chokepoint, and **Open Policy Agent (OPA)** is the policy engine — the gateway calls OPA (Rego) for an allow/deny decision on each request, evaluating who the caller is, which model/route, what the request contains, and against quota. This is the pattern behind APIM's AI gateway policies and the emerging model-gateway products.
 
+New to Rego? The [D1 `governance` note's Rego primer](../1-identity-governance/governance.md#rego--the-language-every-policy-below-is-written-in) teaches the declarative model, rule bodies, the `deny[msg]`/`deny contains msg if` collection-rule shapes, `input` navigation, and `opa eval` — read it first; this note assumes it and doesn't re-derive the language.
+
 Governance policy the gateway/OPA enforces (the substance to know):
 
 - **Allowed models & routes** — which identities/groups may use which models; block unapproved or external models (route everything through the sanctioned gateway so shadow AI is visible/controllable — the local mirror of Purview discovering third-party AI usage).

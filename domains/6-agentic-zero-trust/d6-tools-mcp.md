@@ -36,7 +36,7 @@ The `ai-governance` objective put OPA at the *model* gateway — one allow/deny 
 - **what tool** — `lookup` vs `submit_change`; a read tool and a write tool are not the same trust class;
 - **which arguments** — the tool being permitted does **not** make every argument safe.
 
-Two rules make this a boundary. First, **default-deny**: an identity × tool × argument combination that isn't explicitly allowed is refused — a new tool, an unknown caller, or a caller reaching outside its scope gets nothing. Second, **argument guardrails**: even a permitted tool must reject dangerous argument shapes — a wildcard (`*`) or a path-traversal (`../`) target — because "you may call `lookup`" is not "you may `lookup` `../../etc/*`". A representative policy (the *pattern*, not the full lab solution):
+Two rules make this a boundary. First, **default-deny**: an identity × tool × argument combination that isn't explicitly allowed is refused — a new tool, an unknown caller, or a caller reaching outside its scope gets nothing. Second, **argument guardrails**: even a permitted tool must reject dangerous argument shapes — a wildcard (`*`) or a path-traversal (`../`) target — because "you may call `lookup`" is not "you may `lookup` `../../etc/*`". If the `deny contains msg if { … }` shape below isn't already familiar, the [D1 `governance` note's Rego primer](../1-identity-governance/governance.md#rego--the-language-every-policy-below-is-written-in) teaches it — this note reuses the language, not re-teaches it. A representative policy (the *pattern*, not the full lab solution):
 
 ```rego
 package agentic.tools

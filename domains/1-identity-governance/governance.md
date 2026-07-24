@@ -2,6 +2,63 @@
 
 Domain 1, subsection 5 (`d1-governance`). Governance is how you make security *stick*: policy that is evaluated automatically, denies non-compliant resources at the door, measures the estate against a framework, and is itself delivered as reviewable code. On Azure that stack is **Azure Policy**, **Azure Policy for AKS**, **Defender secure score / regulatory compliance**, and IaC. The open-source equivalents are **OPA Gatekeeper** and **Kyverno** (admission-time policy engines), **Kubescape** (framework compliance scoring), and **Helm/manifests** as the IaC delivery mechanism. A useful anchor: **Azure Policy for AKS is literally built on OPA Gatekeeper** — you're learning the actual engine Microsoft ships. Primary lab: [d1-governance-policy](../../labs/d1-governance-policy.md); lab-infra component: [`lab-infra/governance`](../../lab-infra/governance/) (Kyverno + Gatekeeper + Kubescape).
 
+## Rego — the language every policy below is written in
+
+> **🆕 Concept-new.** Nothing in AZ-500 prepares you for this, and Python fluency does not transfer either. Rego is a **declarative, logic-programming** language (its lineage is Datalog/Prolog, not Python) — you don't write steps for the engine to execute, you write statements that are independently true or false, and OPA finds every way to satisfy them. Read this section once, before `gov-gatekeeper` below asks you to read Rego and the lab's Part B asks you to author it; every later objective that touches Rego — `ai-governance` (Domain 3), and `tool-authz`/`action-class`/the argument-guardrail rule (Domain 6) — cross-links back here instead of re-teaching it.
+
+**Declarative, not imperative.** A Python function returns the first thing it hits; a Rego rule has no "first" — every expression in its body must **unify** (hold true together) for the rule to produce a value, and the order you write them in doesn't change the result. The consequence that trips up imperative habits hardest: **defining the same rule name more than once does not overwrite it, it OR's the definitions.** `tool-authz.rego` (Domain 6, reused below) defines `allow` twice — once for the `lookup` tool, once for `submit_change` — and either one succeeding makes `allow` true. Read multiple same-named rule blocks as `if this OR if that`, never as sequential branches.
+
+**Packages, rules, and `default`.** Every `.rego` file opens with `package <name>`, which namespaces its rules under `data.<name>...` — that's the path `opa eval` queries against. A **rule** binds a name to a value when its body (a conjunction of expressions) is satisfied:
+```rego
+package k8srequiredlabels
+
+default allow := false          # fallback when no `allow` rule body matches — the default-deny pattern
+
+allow if {                      # complete rule: true/false, or undefined if the body never matches
+    input.review.object.metadata.labels.owner
+}
+```
+`default` matters because an **undefined** rule (no matching body, no default) is not `false` — it's absent, and absent is easy to mistreat as "permitted" downstream. `default allow := false` is what makes `default-deny` actually deny instead of silently evaluating to nothing. Prefer `:=` (assignment, single-binding) and `==` (equality test) over the older `=` (unification) the OPA docs still show in places — the style guide the primary sources link below deprecates bare `=` for exactly this readability reason.
+
+**Partial-set and partial-object rules — the `deny[msg]` shape.** A rule doesn't have to be one true/false value; it can *collect* one value per satisfying set of bindings into a set (partial-set rule) or a set of key/value pairs (partial-object rule). This repo's own labs show both syntax generations for the identical concept, because the ConstraintTemplate below runs on Gatekeeper's older Rego dialect while the Domain 6 agent policies run on plain, current-generation OPA:
+```rego
+# Older bracket syntax — lab-infra/governance/gatekeeper-templates.yaml, this note's own Part B target
+violation[{"msg": msg}] {                      # partial-object rule: one {"msg": ...} entry per match
+    required := input.parameters.labels[_]     # `_` — throwaway iteration variable, "for each, don't care which"
+    provided := {label | input.review.object.metadata.labels[label]}   # set comprehension
+    missing := {required} - provided           # set difference
+    count(missing) > 0
+    msg := sprintf("missing required label(s): %v", [missing])
+}
+
+# Current Rego-v1 syntax — lab-infra/agentic/opa/tool-authz.rego, reused by `tool-authz` below
+deny contains msg if {                          # `contains` = partial-set rule; `if` replaces the bare `{`
+    some k                                      # bound iteration variable — you need `k` again in the body
+    regex.match(`(\*|\.\.\/)`, sprintf("%v", [input.args[k]]))
+    msg := sprintf("argument %q has a disallowed pattern", [k])
+}
+```
+Both spellings mean the same thing — "produce one collection entry per set of bindings that satisfies this body" — and both are what `deny[msg] { … }`-shaped rules in the spec are pointing at. Use `_` when you'll never reference the iteration variable again (as above, iterating `input.parameters.labels`); use `some k` (or `some k, v`) when the body needs that variable more than once, as the guardrail rule does with `k`. The Part B rule you're about to write is a partial-object rule in the older dialect — the `violation[{"msg": msg}] { … }` block above *is* the shape, with `required`/`provided` swapped for whatever your Constraint's parameters are.
+
+**Navigating `input`.** `input` is the document the caller hands OPA for this one evaluation — for a Gatekeeper ConstraintTemplate it's the `AdmissionReview`-shaped object (`input.review.object` is the resource being created/updated, `input.parameters` is the Constraint's own parameters); for the D6 policies reused below it's whatever shape the PEP sends (`input.tool`, `input.subject.scopes`, `input.action.effect`). Dot access (`input.review.object.metadata.labels`) works for known keys; bracket access (`input.args[k]`) works when the key is itself a variable. `input` is distinct from **`data`** — `data` is OPA's own loaded policy/rule tree (what `opa eval` queries into, e.g. `data.k8srequiredlabels.violation`), not caller-supplied context. Confusing the two is a common first mistake: `input` changes every call, `data` doesn't.
+
+**Running a policy with `opa eval`.** You do not need a live cluster to test a rule — develop and check it standalone, then paste the proven Rego into the ConstraintTemplate's `rego:` field:
+```bash
+cat > input.json <<'EOF'
+{"tool": "lookup", "subject": {"scopes": ["read"], "groups": [], "tenant": "acme", "name": "alice"}, "args": {}}
+EOF
+opa eval -f pretty -i input.json -d lab-infra/agentic/opa/tool-authz.rego "data.agentic.tools.allow"
+# true
+opa eval -f pretty -i input.json -d lab-infra/agentic/opa/tool-authz.rego "data.agentic.tools.deny"
+# []      — empty set: `allow` succeeded, so the deny-reason rule's `not allow` never matches
+```
+`-d` loads one or more `.rego` files (or a directory) as policy, `-i` supplies the `input` document, `-f pretty` prints just the resulting value instead of the full JSON result envelope, and the query string is a `data.<package>.<rule>` path. This is the whole authoring loop for Part B: write the rule, invent an `input.json` that should and shouldn't trigger it, `opa eval`, iterate — no Gatekeeper deploy required until it's right.
+
+**Resources:**
+- [OPA — Policy language (Rego reference, incl. equality/assignment style and comprehensions)](https://www.openpolicyagent.org/docs/latest/policy-language/) (~30 min)
+- [OPA — `opa eval` CLI reference](https://www.openpolicyagent.org/docs/latest/cli/#eval) (~10 min)
+- [OPA — Upgrading to v1.0 (`contains`/`if` vs bracket syntax)](https://www.openpolicyagent.org/docs/v0-upgrade) (~10 min)
+
 ## Enforce organizational policy with OPA Gatekeeper constraints
 
 *Objective: `gov-gatekeeper` · OSS: OPA Gatekeeper ≈ SC-500: Azure Policy · Lab: [d1-governance-policy](../../labs/d1-governance-policy.md)*
