@@ -20,7 +20,8 @@ This is one of the two heaviest stacks in the course (the other is [`siem/`](../
 | `otel-collector.yaml` | OpenTelemetry Collector Deployment (OTLP in → Tempo/Prometheus/Loki out) | `obs-traces` |
 | `alert-rules.yaml` | `PrometheusRule` — `AuthFailureSpike` + crash-loop | `obs-alerting` |
 | `alertmanager-config.yaml` | Alertmanager routing tree (grouping, inhibition, security receiver) | `obs-alerting` |
-| `datasources.yaml` | Grafana data sources (Prometheus/Loki/Tempo) provisioned | `obs-dashboards` |
+| `datasources.yaml` | Grafana data sources (Prometheus/Loki/Tempo, fixed uids) provisioned | `obs-dashboards` |
+| `dashboards.yaml` | The provisioned four-panel **OSS-500 Posture** dashboard ConfigMap | `obs-dashboards` |
 | `demo-authlog.yaml` | Demo app that logs SSH-style auth failures (log/alert target) | `obs-logs`, `obs-alerting` |
 | `demo-traced-app.yaml` | OTel-instrumented frontend→backend (trace target) | `obs-traces` |
 

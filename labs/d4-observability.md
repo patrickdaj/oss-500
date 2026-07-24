@@ -65,8 +65,8 @@ No PromQL, LogQL, or alert-rule YAML below — write the queries and the `Promet
 12. Inspect the pipeline in [`otel-collector.yaml`](../lab-infra/observability/otel-collector.yaml): receivers (OTLP) → processors (batch) → exporters (Tempo, plus Prometheus/Loki) — one Collector, three backends.
 
 ### Part D — Dashboards & correlation in Grafana (`obs-dashboards`)
-13. Import the provisioned **OSS-500 posture dashboard** (already loaded via the sidecar; find it under Dashboards). Panels: API-server 5xx rate, pods-running-as-root count, denied/failed-auth log rate, trace latency.
-14. Prove cross-signal drill-down: from the failed-auth panel (Loki), click through to the raw log lines; from a latency spike, jump to the Tempo trace. This metrics→logs→traces pivot is the "single pane" investigation.
+13. Open the provisioned **OSS-500 Posture** dashboard (already loaded via the sidecar — `up.sh` applies `dashboards.yaml`, a ConfigMap labelled `grafana_dashboard`; find it under Dashboards). Panels: API-server 5xx rate, pods using the default ServiceAccount (the least-privilege posture signal — kube-state-metrics has no direct "running as root" metric, so this is the real equivalent, CIS Kubernetes Benchmark 5.1.5), denied/failed-auth log rate, and trace p95 latency (a histogram the OTel Collector's `spanmetrics` connector derives from real spans — Tempo itself has no native time-series query).
+14. Prove cross-signal drill-down: from the failed-auth panel (Loki), click through to the raw log lines; from the trace-latency panel, pivot to Grafana **Explore → Tempo → Search** for a slow window's traces (the panel is a Prometheus histogram, not a live trace link, so the jump is manual — note the difference from the automatic Loki-log drill-down). This metrics→logs→traces pivot is the "single pane" investigation.
 15. Confirm Grafana stores nothing itself: `kubectl -n oss500-monitoring delete pod -l app.kubernetes.io/name=grafana`, wait for it to restart, reopen — the dashboards (provisioned JSON) and all data (in Prometheus/Loki/Tempo) survive.
 
 ### Part E — Alerting rules + routing (`obs-alerting`)
@@ -117,7 +117,7 @@ Build it yourself first; check after.
 - The pipeline in [`otel-collector.yaml`](../lab-infra/observability/otel-collector.yaml): receivers (OTLP gRPC/HTTP) → processors (`memory_limiter`, `batch`) → exporters (`otlp/tempo`, `prometheus`, `otlphttp/loki`) — one Collector, three backends.
 
 ### Part D — Dashboards & correlation in Grafana (`obs-dashboards`)
-- The provisioned **OSS-500 posture dashboard** (loaded via the sidecar labelled `grafana_dashboard` per `prometheus-values.yaml`'s `grafana.sidecar.dashboards`) has panels for API-server 5xx rate, pods-running-as-root count, denied/failed-auth log rate, and trace latency; drill down from the Loki panel to raw logs, and from a latency spike to the Tempo trace.
+- The provisioned **OSS-500 Posture** dashboard ([`dashboards.yaml`](../lab-infra/observability/dashboards.yaml), loaded via the sidecar labelled `grafana_dashboard` per `prometheus-values.yaml`'s `grafana.sidecar.dashboards`) has panels for API-server 5xx rate, pods using the default ServiceAccount, denied/failed-auth log rate, and trace p95 latency; drill down from the Loki panel to raw logs, and from the trace-latency panel pivot manually into **Explore → Tempo → Search** for that time window's traces.
 - `kubectl -n oss500-monitoring delete pod -l app.kubernetes.io/name=grafana` — dashboards (provisioned JSON) and all data (in Prometheus/Loki/Tempo) survive the pod restart, because Grafana holds no state of its own.
 
 ### Part E — Alerting rules + routing (`obs-alerting`)

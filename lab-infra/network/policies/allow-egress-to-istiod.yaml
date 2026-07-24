@@ -1,0 +1,28 @@
+# net-mesh: default-deny egress (default-deny.yaml) blocks EVERYTHING outbound,
+# including the injected Envoy sidecar's own control-plane traffic. Without this
+# exception the sidecar can never reach istiod on 15012 (xDS + certificate
+# issuance over ISTIO_MUTUAL): pods come up 2/2 but sit uninitialized, and
+# STRICT mTLS (peerauthentication.yaml) fails for every workload because no
+# sidecar ever holds a workload certificate. This is the L4 exception every
+# default-deny + mesh combination needs — the management-plane path, not a
+# data-plane hole.
+# SC-500 correspondence: NSG exception scoped to the management/control plane.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-istiod
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+spec:
+  podSelector: {}          # net-mesh: every pod in the mesh namespace needs this path
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+      ports:
+        - protocol: TCP
+          port: 15012       # net-mesh: istiod xDS + cert issuance (ISTIO_MUTUAL)

@@ -24,7 +24,7 @@ sudo sysctl -w vm.max_map_count=262144      # add to /etc/sysctl.conf to persist
 | `agent-compose.yml` | A Wazuh agent container to onboard/enroll | `siem-collect` |
 | `config/wazuh_indexer/` , `certs-compose.yml` | Bootstrap TLS certs for the indexer/manager/dashboard | `siem-deploy` |
 | `config/custom-rules.xml` | Native Wazuh detection rules (brute-force correlation) | `siem-detect` |
-| `config/ossec.conf` | Manager config incl. **active response** (`firewall-drop`) | `siem-response` |
+| `config/ossec.conf` | The manager's whole config: `<ruleset>` (decoders/rules load) + **active response** (`firewall-drop`) | `siem-detect` `siem-response` |
 | `sigma/ssh-bruteforce.yml` | Portable Sigma rule (converts to OpenSearch DSL / KQL) | `siem-detect` |
 
 ## Usage

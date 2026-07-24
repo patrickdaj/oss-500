@@ -67,10 +67,17 @@ No solution code below — write it yourself in **Build it (guided)**, then chec
 
 ### Part C — Enable MFA: TOTP + WebAuthn passwordless (`kc-mfa`)
 
+> **Secure-context requirement for steps 11–12.** `navigator.credentials.create` (WebAuthn) only runs in a browser **secure context** — HTTPS, or the literal hostname `localhost`. The ingress used elsewhere in this lab, `http://keycloak.oss500.local:8080`, is plain HTTP on a non-`localhost` name, so passkey registration silently does nothing there. For the WebAuthn steps, port-forward instead and browse to `localhost` itself:
+> ```bash
+> kubectl -n oss500-identity port-forward svc/keycloak 8080:80
+> # browse to http://localhost:8080/realms/oss500/account  (NOT keycloak.oss500.local)
+> ```
+> Set the Relying Party ID to `localhost` (step 11) to match. TOTP (steps 9–10) has no secure-context requirement and works fine over `keycloak.oss500.local`.
+
 9. **Force TOTP enrolment realm-wide** (the bootstrap-enrolment mechanism, like an Entra registration campaign). Your turn: a `$KC update realms/oss500` call setting `requiredActions` to include the `CONFIGURE_TOTP` action, `enabled=true`, `defaultAction=true`.
 10. **Confirm the browser flow carries an OTP execution set to `REQUIRED`** — this is what actually *enforces* the second factor; MFA lives in the flow, not on the user. In the admin console: **Authentication → Flows → browser → Browser - Conditional OTP**. Your turn: for an unconditional MFA baseline, what does the OTP execution's `Requirement` need to be set to?
 11. **Enable WebAuthn passwordless** (FIDO2 — the phishing-resistant path). Think through the pieces before opening the console: a policy that fixes the Relying Party identity, a flow execution that offers the passwordless authenticator as an alternative, and a required action that drives enrollment. Your turn:
-    - **Authentication → Policies → WebAuthn Passwordless Policy**: what must the Relying Party ID equal for registration to work at all (hint — it's the same value as the hostname you browse to), and what should User Verification be set to?
+    - **Authentication → Policies → WebAuthn Passwordless Policy**: what must the Relying Party ID equal for registration to work at all (hint — it's the same value as the hostname you browse to, which per the note above is `localhost` for this part, not `keycloak.oss500.local`), and what should User Verification be set to?
     - **Authentication → Flows → browser** → duplicate it, add a WebAuthn passwordless execution to the username/password subflow — as what requirement level, so it's offered as an option rather than mandatory? Then bind your duplicated flow as the realm's browser flow.
     - Which required action, once added under **Authentication → Required actions**, actually drives users to register a passkey?
 
@@ -88,7 +95,7 @@ No solution code below — write it yourself in **Build it (guided)**, then chec
   curl -s -X POST http://localhost:8080/realms/oss500/protocol/openid-connect/token \
     -d grant_type=client_credentials -d client_id=reports-spa | jq .error
   ```
-- **WebAuthn RP-ID mismatch is observable**: temporarily set the Relying Party ID to a wrong hostname and attempt passkey registration → the browser rejects it, demonstrating the hostname-binding invariant.
+- **WebAuthn RP-ID mismatch is observable**: with Keycloak port-forwarded and RP ID set to `localhost` (see the secure-context note in Part C), register a passkey at `http://localhost:8080/realms/oss500/account` — it succeeds. Then temporarily set the Relying Party ID to a wrong hostname (e.g. `keycloak.oss500.local`) and retry → the browser rejects it, demonstrating the hostname-binding invariant. (Trying passkey registration at `http://keycloak.oss500.local:8080` directly, secure RP ID or not, fails for a different reason — it isn't a secure context at all.)
 
 ## Reference solution
 Build it yourself first; check after.
@@ -151,7 +158,7 @@ $KC update realms/oss500 \
 ```
 10. In the admin console: **Authentication → Flows → browser → Browser - Conditional OTP**. For an unconditional MFA baseline, set the OTP execution `Requirement = Required`.
 11. WebAuthn passwordless (FIDO2):
-    - **Authentication → Policies → WebAuthn Passwordless Policy**: set **Relying Party ID = `keycloak.oss500.local`** (must equal the public hostname or registration silently fails), User Verification = `required`.
+    - **Authentication → Policies → WebAuthn Passwordless Policy**: set **Relying Party ID = `localhost`** (must equal the hostname you browse to — and that hostname must be a secure context, so port-forward and use literal `localhost` rather than `keycloak.oss500.local`, which is plain HTTP), User Verification = `required`.
     - **Authentication → Flows → browser** → duplicate it, add a **WebAuthn Passwordless Authenticator** execution as `ALTERNATIVE` to the username/password subflow, then **Bind flow → Browser flow**.
     - Add the `webauthn-register-passwordless` required action under **Authentication → Required actions**.
 

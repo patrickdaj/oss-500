@@ -34,8 +34,9 @@ helm upgrade --install oss500-loki grafana/loki -n "$ns" -f "$here/loki-values.y
 echo "==> Installing Tempo (monolithic, OTLP receiver)"
 helm upgrade --install oss500-tempo grafana/tempo -n "$ns" -f "$here/tempo-values.yaml" --wait --timeout 10m
 
-echo "==> Applying Grafana datasources, OTel Collector, alert rules, Alertmanager routing"
+echo "==> Applying Grafana datasources, dashboards, OTel Collector, alert rules, Alertmanager routing"
 kubectl apply -f "$here/datasources.yaml"
+kubectl apply -f "$here/dashboards.yaml"
 kubectl apply -f "$here/otel-collector.yaml"
 kubectl apply -f "$here/alert-rules.yaml"
 kubectl apply -f "$here/alertmanager-config.yaml"

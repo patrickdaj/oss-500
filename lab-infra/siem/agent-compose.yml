@@ -1,6 +1,11 @@
 # A Wazuh agent to onboard for the lab (siem-collect).
 # Enrolls with the manager, ships auth.log + FIM + SCA. Run after the main stack:
 #   docker compose -p oss500-siem -f agent-compose.yml up -d
+#
+# siem-collect: this image has no sshd and no ssh client, so brute-force
+# telemetry is generated with crafted log lines, not real ssh attempts — see
+# labs/d4-siem-wazuh.md Part B for the exact file/line format the built-in
+# sshd decoder expects.
 name: oss500
 
 services:
@@ -13,6 +18,13 @@ services:
       WAZUH_MANAGER: wazuh.manager
       WAZUH_AGENT_NAME: oss500-agent
       WAZUH_REGISTRATION_SERVER: wazuh.manager
+    # siem-response: firewall-drop shells out to iptables inside the container,
+    # which needs NET_ADMIN (rule manipulation) and NET_RAW (raw sockets) — an
+    # unprivileged container has neither by default, so the active-response
+    # command exists but silently fails without this.
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
     # Join the same compose network as the manager stack.
     networks:
       - default

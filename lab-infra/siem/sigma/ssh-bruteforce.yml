@@ -1,5 +1,5 @@
 # Portable Sigma detection (siem-detect) — write once, convert to any backend.
-#   sigma convert -t opensearch -p sysmon ssh-bruteforce.yml   # -> OpenSearch DSL/query
+#   sigma convert -t opensearch_lucene ssh-bruteforce.yml      # -> OpenSearch DSL/query (current pysigma-backend-opensearch's target id, not "opensearch")
 #   sigma convert -t kusto ssh-bruteforce.yml                  # -> Sentinel KQL analytics rule
 # Sigma is a FORMAT, not an engine: it detects nothing until converted and deployed.
 title: SSH Brute Force - Repeated Failed Logins
@@ -14,12 +14,19 @@ logsource:
   product: linux
   service: sshd
 detection:
+  # A plain keyword selection — a bare list under a detection identifier is
+  # Sigma's keyword-matching form. Kept -p-less/aggregation-free deliberately:
+  # the v1-style `condition: selection | count() by field > N` + top-level
+  # `timeframe` this used to carry is legacy aggregation syntax current pySigma
+  # backends don't convert (that logic now belongs in a separate Sigma
+  # correlation rule). The count-based threshold that turns repeated failures
+  # into a brute-force verdict is enforced natively instead, by Wazuh rule
+  # 100100 (custom-rules.xml) — Sigma expresses WHICH events matter, the
+  # backend rule expresses the frequency/timeframe threshold on top.
   selection:
-    # Normalized fields produced by the sshd decoder (siem-collect).
     - 'Failed password'
     - 'authentication failure'
-  timeframe: 2m
-  condition: selection | count() by src_ip > 5
+  condition: selection
 falsepositives:
   - Legitimate users repeatedly mistyping passwords
   - Vulnerability scanners

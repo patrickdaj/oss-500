@@ -17,6 +17,13 @@ fi
 echo "==> Installing Istio (minimal profile)  [net-mesh]"
 istioctl install --set profile=minimal -y
 
+echo "==> Allowing egress to istiod under default-deny  [net-mesh]"
+# net-mesh: oss500-apps runs namespace-wide default-deny egress (net-policy).
+# Without this exception the injected sidecar can never reach istiod on 15012
+# for xDS/cert issuance, so it never gets a workload cert and STRICT mTLS fails
+# for everything. This opens only the management-plane L4 path.
+kubectl apply -f "$here/policies/allow-egress-to-istiod.yaml"
+
 echo "==> Enabling automatic sidecar injection in $NS  [net-mesh]"
 # net-mesh: the label makes Istio inject an Envoy sidecar into every new pod so
 # it can broker mTLS and enforce AuthorizationPolicy.

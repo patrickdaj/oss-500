@@ -13,16 +13,22 @@ data:
   datasources.yaml: |
     apiVersion: 1
     datasources:
+      # obs-dashboards: fixed uids so the provisioned dashboard ConfigMap
+      # (dashboards.yaml) can reference these datasources deterministically
+      # instead of relying on Grafana's auto-generated per-name uid.
       - name: Prometheus
+        uid: prometheus
         type: prometheus
         access: proxy
         url: http://oss500-kube-prometheus-stack-prometheus.oss500-monitoring.svc:9090
         isDefault: true
       - name: Loki
+        uid: loki
         type: loki
         access: proxy
         url: http://oss500-loki.oss500-monitoring.svc:3100
       - name: Tempo
+        uid: tempo
         type: tempo
         access: proxy
         url: http://oss500-tempo.oss500-monitoring.svc:3100

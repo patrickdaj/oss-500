@@ -17,7 +17,7 @@ Terminate TLS at the ingress with a cert-manager cert, then put ModSecurity + th
 
 - The shared **Phase 0 kind cluster** is up (reused by every lab) — check with `kind get clusters` (you should see `oss500`). If it isn't, create it once: `kind create cluster --name oss500 --config lab-infra/kind/cluster.yaml` then `lab-infra/shared/up.sh`.
 - [`lab-infra/network`](../lab-infra/network/) up (`./up.sh`) — ingress-nginx built **with ModSecurity + the OWASP CRS** bundled (the controller image ships them; the component enables them via ConfigMap/annotations).
-- [`lab-infra/certs`](../lab-infra/certs/) up **and** [d2-cert-manager](d2-cert-manager.md) completed first — this lab reuses the `oss500-ca-issuer` ClusterIssuer you hand-build in that lab's Part B (it is *not* shipped by `certs/up.sh`).
+- [`lab-infra/certs`](../lab-infra/certs/) up (`./up.sh`) — [d2-cert-manager](d2-cert-manager.md) Part B has you hand-build your own `oss500-ca-issuer` chain, but that lab's teardown (`certs/down.sh`) uninstalls cert-manager with its CRDs, which deletes every ClusterIssuer/Certificate — hand-built or shipped — along with it. This lab re-brings-up `certs` fresh and targets the chain `up.sh` actually ships: the `ca-issuer` ClusterIssuer signing from the `oss500-ca` Secret (CA common name `oss500-lab-ca`).
 - Notes read: [web-application-firewall.md](../domains/2-secrets-data-networking/web-application-firewall.md) and [network-security.md](../domains/2-secrets-data-networking/network-security.md) (`net-ingress`).
 
 **Estimated time**: 2–3 h · $0 (local)
@@ -48,7 +48,7 @@ No solution below — build the Ingress, the ModSecurity annotations, and the CR
    kubectl -n oss500-apps expose deployment demo --port=80 --target-port=5678
    ```
 2. **Your turn — write the Ingress.** Create `ingress.yaml` that **terminates TLS** using a cert-manager-issued certificate. Work out the pieces yourself:
-   - Annotate it so cert-manager mints the cert automatically — which `ClusterIssuer` did [d2-cert-manager](d2-cert-manager.md) build? The annotation key is `cert-manager.io/cluster-issuer`.
+   - Annotate it so cert-manager mints the cert automatically — target the `ca-issuer` ClusterIssuer that `lab-infra/certs/up.sh` ships (not the `oss500-ca-issuer` you hand-built in [d2-cert-manager](d2-cert-manager.md) Part B — that one was torn down with cert-manager's CRDs at the end of Day 4). The annotation key is `cert-manager.io/cluster-issuer`.
    - `spec.tls` needs a `hosts` entry (`demo.localtest.me`) and a `secretName` for cert-manager to fill (e.g. `demo-tls`) — that's the Secret the ingress controller terminates TLS with.
    - `spec.rules` routes the host to the `demo` Service on port 80.
    - Apply it, then confirm the Certificate is issued:
@@ -61,7 +61,7 @@ No solution below — build the Ingress, the ModSecurity annotations, and the CR
    curl -k https://demo.localtest.me:8443/ --resolve demo.localtest.me:8443:127.0.0.1
    # hello from demo
    curl -kvI https://demo.localtest.me:8443/ --resolve demo.localtest.me:8443:127.0.0.1 2>&1 | grep -i 'subject\|issuer'
-   # subject: CN=demo.localtest.me ; issuer: CN=oss500-ca
+   # subject: CN=demo.localtest.me ; issuer: CN=oss500-lab-ca
    ```
    (For **authenticated** ingress, you'd add `nginx.ingress.kubernetes.io/auth-url` pointing at Keycloak/oauth2-proxy — noted in the network-security notes; the WAF is the layer we prove here.)
 
@@ -122,7 +122,7 @@ The CRS is the managed rule set (the Azure "WAF managed ruleset" analogue): gene
 
 ## Verification
 
-- **TLS**: `curl -kvI https://demo.localtest.me:8443/` shows the cert `subject=CN=demo.localtest.me` issued by `CN=oss500-ca` — TLS is terminated at the ingress with a cert-manager cert.
+- **TLS**: `curl -kvI https://demo.localtest.me:8443/` shows the cert `subject=CN=demo.localtest.me` issued by `CN=oss500-lab-ca` — TLS is terminated at the ingress with a cert-manager cert.
 - **WAF blocks attacks**: the SQLi and XSS `curl`s return **403**, and the controller ModSecurity audit log names the firing CRS rule id (e.g. `942100`, `941100`).
 - **No over-blocking**: a benign `?q=hello` request returns **200**; after `SecRuleRemoveById`, the specific false-positive request returns **200** while other injection payloads still return 403.
 - **Mode change is observable**: the same SQLi payload returns 200 (logged) in `DetectionOnly` and 403 in `SecRuleEngine On`.
@@ -142,7 +142,7 @@ metadata:
   namespace: oss500-apps
   labels: { app.kubernetes.io/part-of: oss500 }
   annotations:
-    cert-manager.io/cluster-issuer: "oss500-ca-issuer"     # net-ingress: cert-manager provisions the TLS secret
+    cert-manager.io/cluster-issuer: "ca-issuer"            # net-ingress: cert-manager provisions the TLS secret (the chain lab-infra/certs/up.sh ships)
 spec:
   ingressClassName: nginx
   tls:

@@ -67,19 +67,24 @@ No solutions below — design and write the policies yourself, prove each observ
 
 NetworkPolicy filters by label/IP; a **service mesh** adds cryptographic **workload identity** and **mTLS** — the zero-trust "encrypt and authenticate every hop, authorize by service identity not IP" model (the Private Link / zero-trust analogue).
 
-7. Label a namespace for Istio sidecar injection and deploy two services (or reuse `oss500-apps` with injection enabled by the component):
+7. **Open the management-plane path first — the shipped fix.** Part A left `oss500-apps` under namespace-wide default-deny *egress* too. An injected Envoy sidecar has its own control-plane traffic — xDS config and certificate issuance from **istiod on `15012`** — and default-deny blocks that just like anything else: sidecars come up `2/2` but never get a workload cert, so STRICT mTLS (next step) fails silently for everyone. `up-mesh.sh` applies `lab-infra/network/policies/allow-egress-to-istiod.yaml` before enabling injection — an egress allow scoped to `namespaceSelector: istio-system` on TCP `15012`, nothing else. This is defense-in-depth working as intended: the L4 control **and** the mesh identity control both stay in force; you just have to open the one path the mesh's own machinery needs.
+   ```bash
+   kubectl -n oss500-apps get networkpolicy allow-egress-to-istiod   # shipped by up-mesh.sh
+   ```
+8. Label a namespace for Istio sidecar injection and deploy two services (or reuse `oss500-apps` with injection enabled by the component):
    ```bash
    kubectl label namespace oss500-apps istio-injection=enabled --overwrite
    kubectl -n oss500-apps rollout restart deploy    # pods come back with an Envoy sidecar (2/2)
    ```
-8. **Enforce STRICT mTLS — your turn.** Goal: reject plaintext mesh-wide; every call must present a mesh-issued SPIFFE identity cert.
+9. **Enforce STRICT mTLS — your turn.** Goal: reject plaintext mesh-wide; every call must present a mesh-issued SPIFFE identity cert.
    - Hint: a `PeerAuthentication` named `default` in the namespace, with `spec.mtls.mode: STRICT`.
    - Your turn: write `strict-mtls.yaml` and apply it.
-9. **Add identity-based authorization — your turn.** Goal: default-deny the namespace via `AuthorizationPolicy`, then allow exactly one identity — authorization by *service account principal*, not IP.
-   - Hint: an empty-spec `AuthorizationPolicy` selecting the workload denies everything for it; the companion allow policy scopes `selector.matchLabels.app: web`, sets `action: ALLOW`, and restricts `rules[].from[].source.principals` to a single principal, `cluster.local/ns/oss500-apps/sa/frontend-sa`.
-   - Your turn: write both policies (e.g. `deny-all` + `allow-frontend`) and apply them.
-10. **Prove it**:
-    - A call from the `frontend-sa` workload → **200**.
+   - If sidecars stay uncertified and STRICT mTLS fails for every workload, re-check step 7 first — a missing istiod egress path is the classic cause, not a bad `PeerAuthentication`.
+10. **Add identity-based authorization — your turn.** Goal: default-deny the namespace via `AuthorizationPolicy`, then allow exactly one identity — authorization by *service account principal*, not IP.
+    - Hint: an empty-spec `AuthorizationPolicy` selecting the workload denies everything for it; the companion allow policy scopes `selector.matchLabels.app: web`, sets `action: ALLOW`, and restricts `rules[].from[].source.principals` to a single principal, `cluster.local/ns/oss500-apps/sa/client` — the `client` pod's own ServiceAccount (shipped in `demo-app.yaml`).
+    - Your turn: write both policies (e.g. `deny-all` + `allow-client`) and apply them.
+11. **Prove it**:
+    - A call from the `client` workload → **200**.
     - A call from any other identity → **RBAC: access denied** (Envoy 403), even from inside the namespace.
     - Confirm traffic is actually mutually authenticated/encrypted:
       ```bash
@@ -189,14 +194,14 @@ spec: {}                         # empty spec = deny-all in the namespace
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
-metadata: { name: allow-frontend, namespace: oss500-apps }
+metadata: { name: allow-client, namespace: oss500-apps }
 spec:
   selector: { matchLabels: { app: web } }
   action: ALLOW
   rules:
     - from:
         - source:
-            principals: ["cluster.local/ns/oss500-apps/sa/frontend-sa"]   # identity-aware allow
+            principals: ["cluster.local/ns/oss500-apps/sa/client"]   # identity-aware allow: the client pod's own SA
 ```
 ```bash
 kubectl apply -f authz.yaml

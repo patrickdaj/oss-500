@@ -93,6 +93,17 @@ spec:
                 port:
                   number: 8080
 ---
+# net-mesh: the client's own ServiceAccount — its SPIFFE identity is
+# cluster.local/ns/oss500-apps/sa/client, the one principal the mesh
+# AuthorizationPolicy (authorizationpolicy.yaml) and the d2 lab both allow.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: client
+  namespace: oss500-apps
+  labels:
+    app.kubernetes.io/part-of: oss500
+---
 # net-policy companion: a throwaway client pod used to demo default-deny/allow.
 apiVersion: v1
 kind: Pod
@@ -103,6 +114,7 @@ metadata:
     app: client
     app.kubernetes.io/part-of: oss500
 spec:
+  serviceAccountName: client        # net-mesh: without this the pod runs as `default` and the mesh AuthorizationPolicy denies it
   securityContext:
     runAsNonRoot: true
     runAsUser: 65532

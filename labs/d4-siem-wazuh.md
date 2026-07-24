@@ -51,28 +51,33 @@ No finished decoder mapping, Sigma→DSL conversion, hunt query, or active-respo
 
 ### Part B — Collect & normalize telemetry (`siem-collect`)
 5. Onboard an agent. Simplest path: run the Wazuh agent as a container against the manager, or install it on the host — `docker compose -p oss500-siem -f agent-compose.yml up -d` (points `MANAGER_IP` at the manager). Confirm enrollment in the dashboard **Agents** view (status *active*).
-6. Generate raw telemetry: on the agent, simulate SSH brute force —
+6. **Generate raw telemetry — crafted log lines, not a real `ssh` attempt.** The agent container has neither an `sshd` server nor an `ssh` client, so there is nothing to actually brute-force; instead you feed the built-in sshd decoder the exact syslog line shape it expects, appended to `/var/log/auth.log` (the path the agent's default Linux config already monitors):
    ```bash
-   for i in $(seq 1 8); do ssh -o BatchMode=yes baduser@localhost true 2>/dev/null; done
+   docker compose -p oss500-siem -f agent-compose.yml exec wazuh.agent sh -c '
+     touch /var/log/auth.log
+     for i in $(seq 1 8); do
+       echo "$(date "+%b %e %H:%M:%S") oss500-agent sshd[$((10000+i))]: Failed password for invalid user baduser from 203.0.113.7 port $((40000+i)) ssh2" >> /var/log/auth.log
+     done'
    ```
-   (or append crafted `Failed password` lines to a monitored log).
+   The line shape that matters: `<Mon> <D> <HH:MM:SS> <host> sshd[<pid>]: Failed password for invalid user <user> from <ip> port <port> ssh2` — this is exactly what a real sshd logs on failed auth, and what Wazuh's built-in sshd decoder pattern-matches to populate `data.srcip`/`data.srcuser`. If the agent was already running when you `touch`ed the file, give the logcollector a moment (or `docker compose -p oss500-siem -f agent-compose.yml restart wazuh.agent`) to pick up the newly-created path.
 7. **Your turn: go find the normalization, don't take it on faith.** A Wazuh **decoder** is watching the agent's shipped `auth.log` and pulling fields out of the raw text; a rule then matches on those fields. In the dashboard **Threat Hunting / Discover**, filter to your agent and open the alert document your brute force produced. Note down: which fields got parsed out of the raw line (hint: look for something namespaced like `data.srcip`/`data.srcuser`), and the `rule.id` / `rule.mitre.id` that fired. That's raw text becoming a normalized schema — you should be able to point at the exact JSON keys that prove it.
 
 ### Part C — Detection-as-code with Sigma (`siem-detect`)
-8. Read the sample Sigma rule [`sigma/ssh-bruteforce.yml`](../lab-infra/siem/sigma/ssh-bruteforce.yml) yourself and identify its load-bearing pieces before moving on: the `logsource` (what product/service does it target?), the `detection` selection (what field/value marks a failed login?), the `condition`, the `level`, and the MITRE `tags`. This is the portable, engine-agnostic format — nothing in it mentions OpenSearch.
+8. Read the sample Sigma rule [`sigma/ssh-bruteforce.yml`](../lab-infra/siem/sigma/ssh-bruteforce.yml) yourself and identify its load-bearing pieces before moving on: the `logsource` (what product/service does it target?), the `detection` selection (a bare list under `selection` — Sigma's plain-**keyword** form, not a field:value match), the `condition`, the `level`, and the MITRE `tags`. This is the portable, engine-agnostic format — nothing in it mentions OpenSearch.
 9. **Convert it to a real backend query — your turn.** Install the tooling:
    ```bash
    pip install sigma-cli pysigma-backend-opensearch
    ```
-   Don't guess a `-p` pipeline — list what's actually registered for this backend first:
+   Don't guess a `-p` pipeline — list what's actually registered for this backend's target first (the CLI's target id for this backend is `opensearch_lucene`, not `opensearch`):
    ```bash
-   sigma list pipelines opensearch
+   sigma list pipelines opensearch_lucene
    ```
-   Every row in that table is an **ECS field-mapping** pipeline for a specific *source*: Winlogbeat/Sysmon (`ecs_windows`), Zeek (`ecs_zeek_beats`/`ecs_zeek_corelight`), Kubernetes audit (`ecs_kubernetes`), macOS ESF (`ecs_macos_esf`) — none of them target Linux auth logs. That's not an oversight to work around: this rule's `logsource` (`product: linux`, `service: sshd`) already uses the same field names (`src_ip`, …) the Wazuh decoder writes into the alert document, so there's nothing to remap. Your turn: convert it **without** a pipeline —
+   The table comes back **empty** — pysigma-backend-opensearch currently registers no pipeline at all for this target (the ECS pipelines you'll see under a bare `sigma list pipelines` — `ecs_windows`, `ecs_zeek_beats`/`ecs_zeek_corelight`, `ecs_kubernetes`, `ecs_macos_esf` — are scoped to other targets, and passing one here with `-p` is rejected with "not intended to be used with the target `opensearch_lucene`"). That's not a gap to work around: this rule's `detection` is a plain keyword selection, not a field:value match, so there is no field-name remapping for a pipeline to do in the first place — a keyword search runs against the raw log text regardless of source. Your turn: convert it **without** a pipeline —
    ```bash
-   sigma convert -t opensearch --without-pipeline lab-infra/siem/sigma/ssh-bruteforce.yml
+   sigma convert -t opensearch_lucene --without-pipeline lab-infra/siem/sigma/ssh-bruteforce.yml
+   # -> *Failed\ password* OR *authentication\ failure*
    ```
-   — and confirm the emitted query references the same field names you noted on the alert document in Part B. (Conceptually, `-t kusto` would emit the equivalent Sentinel KQL analytics rule — same source, different engine. Picking `ecs_windows` here would silently rename fields to a Sysmon schema that doesn't exist in this data, and the resulting query would just never match anything.)
+   — and confirm the emitted query is the same two keyword terms your `detection.selection` listed, unmapped (`Failed password`, `authentication failure`) — proof a keyword selection needs no source-specific pipeline at all. (Conceptually, `-t kusto` would emit the equivalent Sentinel KQL analytics rule — same source, different engine. Forcing `ecs_windows` here with `--disable-pipeline-check` would be pointless: there's no field name in this rule for it to remap.)
 10. **Operationalize it.** Either save the converted query as an OpenSearch **monitor/alert**, or map it to the equivalent native Wazuh rule in [`custom-rules.xml`](../lab-infra/siem/config/custom-rules.xml) — open that file and find where a custom rule keys on the same condition your Sigma rule expresses. Confirm whichever path you choose actually flags the brute-force events from Part B. The point: one portable detection, deployed to this backend.
 
 ### Part D — Threat hunting with OpenSearch Query DSL (`siem-hunt`)
@@ -82,16 +87,16 @@ No finished decoder mapping, Sigma→DSL conversion, hunt query, or active-respo
 
 ### Part E — Automated response (`siem-response`)
 14. **Go find the active-response wiring yourself.** Open [`config/ossec.conf`](../lab-infra/siem/config/ossec.conf) and locate two things: a `<command name="firewall-drop">` definition, and the `<active-response>` block that binds it to a rule. Work out for yourself: which `rule_id` (or `level`) gates it, and what does the `<timeout>` do? (A comment in the file references `siem-response`.) Don't move on until you can state the trigger condition and the auto-revert behavior in your own words.
-15. Trigger it: repeat the brute force from Part B until the high-level correlated rule fires. On the agent, confirm the source IP is now dropped:
+15. Trigger it: repeat the crafted brute-force burst from Part B (a fresh source IP makes the drop easy to spot) until the high-level correlated rule fires. Confirm the source IP is now dropped inside the agent container:
     ```bash
-    sudo iptables -L -n | grep <srcip>
+    docker compose -p oss500-siem -f agent-compose.yml exec wazuh.agent iptables -L -n | grep <srcip>
     ```
-    (or check the agent's active-response log `/var/ossec/logs/active-responses.log`).
+    (or check the agent's active-response log: `docker compose -p oss500-siem -f agent-compose.yml exec wazuh.agent cat /var/ossec/logs/active-responses.log`).
 16. Watch it self-revert: after the timeout you found in step 14 elapses, re-run the `iptables -L -n` check — the rule should be gone, automatically. Detection → decision (level) → action (drop) → recovery (timeout): the full IR loop, and you just watched all four stages happen.
 
 ## Verification
 
-> **Validation status — host-pending.** Full **Wazuh agent enrollment** (agent shows *active* in the dashboard, alerts flow) has not yet been run end-to-end on a host by the author. The agent↔manager docker-network fix (the agent now joins `oss500-siem_default`, the network the `-p oss500-siem` project actually creates) *is* verified mechanically with a throwaway Compose stack. If enrollment misbehaves, it's a finding to report.
+> **Validation status — host-pending.** The manager config (`ossec.conf`, now shipping a `<ruleset>` block so decoders/rules actually load), the custom rules XML, and the Sigma rule are all mechanically valid, and the Sigma conversion step was run live against current `sigma-cli`/`pysigma-backend-opensearch`: `sigma list pipelines opensearch` **fails** (the CLI's target id for this backend is `opensearch_lucene`, not `opensearch`) and `sigma convert -t opensearch_lucene --without-pipeline sigma/ssh-bruteforce.yml` succeeds, emitting `*Failed\ password* OR *authentication\ failure*` — the lab text above reflects this. Full **Wazuh agent enrollment + crafted-telemetry + alert-firing** (agent shows *active*, the alert document lands with parsed fields, rule 100100/firewall-drop fires) has **not** been run end-to-end against a live manager/indexer in this pass — this host had a kind cluster already up and limited free disk, so the full ~4–6 GB stack wasn't brought up alongside it. That run is still owed before this lab is marked fully valid; if it misbehaves, it's a finding to report.
 
 - **Deploy**: all three containers `healthy`; dashboard reachable over TLS with **non-default** credentials; manager API authenticates.
 - **Collect**: the agent shows *active*, and a brute-force alert document in the indexer has **parsed fields** (`data.srcip`, `rule.mitre.id`) — normalization proven.
@@ -114,19 +119,24 @@ Build it yourself first; check after.
 ### Part B — Collect & normalize telemetry (`siem-collect`)
 5. `docker compose -p oss500-siem -f agent-compose.yml up -d` (`MANAGER_IP` pointed at the manager). Confirm enrollment in the dashboard **Agents** view (status *active*).
 6. ```bash
-   for i in $(seq 1 8); do ssh -o BatchMode=yes baduser@localhost true 2>/dev/null; done
+   docker compose -p oss500-siem -f agent-compose.yml exec wazuh.agent sh -c '
+     touch /var/log/auth.log
+     for i in $(seq 1 8); do
+       echo "$(date "+%b %e %H:%M:%S") oss500-agent sshd[$((10000+i))]: Failed password for invalid user baduser from 203.0.113.7 port $((40000+i)) ssh2" >> /var/log/auth.log
+     done'
    ```
-   (or append crafted `Failed password` lines to a monitored log).
-7. The agent ships `auth.log`; a Wazuh **decoder** extracts `srcip`/`srcuser`; rules `5710`/`5712`/`5551` fire. In the dashboard **Threat Hunting / Discover**, an alert document's *parsed* fields — `data.srcip`, `rule.id`, `rule.mitre.id` — are the proof: raw text became a normalized schema.
+   Crafted lines, not a real `ssh` attempt — the container has no sshd/ssh client.
+7. The agent's default Linux config monitors `/var/log/auth.log`; a Wazuh **decoder** extracts `srcip`/`srcuser`; rule `5710` (and the correlation rule `100100` on top of it) fire. In the dashboard **Threat Hunting / Discover**, an alert document's *parsed* fields — `data.srcip`, `rule.id`, `rule.mitre.id` — are the proof: raw text became a normalized schema.
 
 ### Part C — Detection-as-code with Sigma (`siem-detect`)
 8. [`sigma/ssh-bruteforce.yml`](../lab-infra/siem/sigma/ssh-bruteforce.yml): `logsource` (`product: linux`, `service: sshd`), a `detection` selection on failed logins, `condition`, `level: high`, and `tags: [attack.t1110]` (MITRE brute force).
 9. ```bash
    pip install sigma-cli pysigma-backend-opensearch
-   sigma list pipelines opensearch            # every result is ECS for Windows/Zeek/K8s/macOS — none for Linux
-   sigma convert -t opensearch --without-pipeline ../lab-infra/siem/sigma/ssh-bruteforce.yml
+   sigma list pipelines opensearch_lucene     # empty — this backend target registers no pipeline at all
+   sigma convert -t opensearch_lucene --without-pipeline ../lab-infra/siem/sigma/ssh-bruteforce.yml
+   # -> *Failed\ password* OR *authentication\ failure*
    ```
-   No pipeline is the *correct* choice, not a fallback: the rule's fields already match the Wazuh decoder's raw output, so remapping to an ECS schema (e.g. `ecs_windows`) would rename fields that don't exist in this data. The *same YAML* becomes a backend query. (Conceptually, `-t kusto` would emit the equivalent Sentinel KQL analytics rule.)
+   No pipeline is the *correct* choice, not a fallback: the rule's `detection` is a plain keyword selection with no field:value mapping, so there's nothing for a pipeline to remap regardless of source. The *same YAML* becomes a backend query — a Lucene keyword match on the raw log text. (Conceptually, `-t kusto` would emit the equivalent Sentinel KQL analytics rule.)
 10. Save the converted query as an OpenSearch **monitor/alert** (or map it to the equivalent native Wazuh rule in [`custom-rules.xml`](../lab-infra/siem/config/custom-rules.xml)) and confirm it flags the brute-force events. One portable detection, deployed to this backend.
 
 ### Part D — Threat hunting with OpenSearch Query DSL (`siem-hunt`)
@@ -146,14 +156,14 @@ Build it yourself first; check after.
 
 ### Part E — Automated response (`siem-response`)
 14. [`config/ossec.conf`](../lab-infra/siem/config/ossec.conf): a `<command name="firewall-drop">` and an `<active-response>` block bound to the brute-force `rule_id` at `level >= 10`, with a `<timeout>` (auto-revert). Comment references `siem-response`.
-15. Repeat the brute force from Part B until the high-level correlated rule fires. On the agent, confirm the source IP is now dropped:
+15. Repeat the crafted brute-force burst from Part B until the high-level correlated rule fires. Confirm the source IP is now dropped inside the agent container:
     ```bash
-    sudo iptables -L -n | grep <srcip>
+    docker compose -p oss500-siem -f agent-compose.yml exec wazuh.agent iptables -L -n | grep <srcip>
     ```
-    (or check the agent's active-response log `/var/ossec/logs/active-responses.log`).
+    (or check the agent's active-response log: `docker compose -p oss500-siem -f agent-compose.yml exec wazuh.agent cat /var/ossec/logs/active-responses.log`).
 16. Watch it self-revert: after the timeout, the rule is removed automatically — `iptables -L -n` no longer lists the IP. Detection → decision (level) → action (drop) → recovery (timeout), the full IR loop.
 
-If your Sigma conversion picked an ECS pipeline (e.g. `ecs_windows`) for this Linux/sshd logsource, the emitted fields won't line up with what the decoder actually parsed — run `sigma list pipelines <backend>` before guessing; when nothing in the list matches the `logsource`, convert with `--without-pipeline` rather than reaching for the nearest-sounding one.
+If your Sigma conversion picked an ECS pipeline (e.g. `ecs_windows`) for this Linux/sshd logsource, the emitted fields won't line up with what the decoder actually parsed — run `sigma list pipelines <target>` before guessing (the CLI's target id for a backend isn't always the backend's own name — `opensearch_lucene`, not `opensearch`, here); when nothing in the list matches the `logsource`, convert with `--without-pipeline` rather than reaching for the nearest-sounding one.
 
 ## Teardown
 - `docker compose -p oss500-siem -f agent-compose.yml down` (agent), then `cd lab-infra/siem && ./down.sh` (`docker compose -p oss500-siem down -v` — the `-v` removes the heavy indexer volumes).
