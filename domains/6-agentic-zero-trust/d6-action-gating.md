@@ -6,6 +6,32 @@ Domain 6, subsection `d6-action-gating` (autonomous-action gating). [`d6-tools-m
 
 Primary lab: [d6-action-gating](../../labs/d6-action-gating.md). Lab-infra component: [`lab-infra/agentic`](../../lab-infra/agentic/) — the OPA `action-class` policy (`opa/action-class.rego`) and the agent's `gate()` wrapper (`agent/agent.py`) that calls `interrupt()` before a consequential tool node runs. It **reuses** OPA (`d3-ai`/`d1-governance`) and the scoped identity from [`d6-identity`](d6-identity.md), and composes with the tool authorization in [`d6-tools-mcp`](d6-tools-mcp.md). Standards: NIST SP 800-207 (PEP/PDP, applied to *actions*), OWASP Agentic AI — Threats & Mitigations, OWASP LLM06; see [`../standards-map.md`](../standards-map.md).
 
+## LangGraph execution model — nodes, state, and the checkpointer `interrupt()` needs
+
+Read this once, before Part B of the lab asks you to wrap a tool node in `interrupt()` — the gate only makes sense once you know what it's suspending. `create_react_agent` in `agent.py` isn't a different execution model from what follows; it's a **prebuilt, already-compiled `StateGraph`** (an LLM node and a tool node wired in a loop), so every mechanic below applies to it as-is.
+
+**Nodes and graph state.** A LangGraph graph is a set of **nodes** — plain Python callables — connected by edges, compiled into a runnable. Every node receives the graph's current **state** (a single typed object, usually a `TypedDict`, threaded through the whole run) and returns a *partial update*; LangGraph merges that update into the running state before the next node executes. A node never mutates state in place and never sees another node's local variables — the state object is the only channel between them. `gate(action)`'s `action` argument is a value read out of that shared state, not a parameter the caller invented ad hoc.
+
+**The checkpointer is what makes pausing survivable.** Compiling with `.compile(checkpointer=...)` makes LangGraph write the full graph state to durable storage after every node completes, addressed by a `thread_id` supplied at invoke time. This isn't optional plumbing for `interrupt()` — it's the only reason a pause can outlive the process. Without a checkpointer, there is nowhere to persist a suspended run, and "pause for human approval" degenerates into "crash and lose the run."
+
+**`interrupt()` suspends the node, it doesn't return through it.** Calling `interrupt(payload)` inside a node does two things: it writes `payload` to the checkpoint as the pending interrupt, then unwinds execution back out of the graph entirely — the node function does **not** continue past that line on this invocation. The graph is now parked at that exact call site, keyed by `thread_id`, for as long as it takes a human to act — seconds or months, it's just a stored checkpoint either way.
+
+**Resuming re-enters the node from the top and replays up to the call.** You resume by invoking the graph again with the *same* `thread_id` and `Command(resume=decision)`. LangGraph reloads the checkpoint and re-runs the interrupted node from its start; when execution reaches the same `interrupt()` call, that call returns `decision` instead of pausing again — which is why `gate()` reads the approval straight off `interrupt()`'s return value (`decision = interrupt({...})`). Because the node re-executes from the top on resume, any code *before* the `interrupt()` call runs twice — it must be idempotent, or the second pass double-fires it.
+
+```python
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.types import Command
+
+graph = create_react_agent(llm, tools, checkpointer=InMemorySaver())
+config = {"configurable": {"thread_id": "agent-run-1"}}
+
+graph.invoke({"messages": [...]}, config)         # runs the react loop until gate()'s interrupt() pauses it
+# ... a human reviews the interrupt payload out of band ...
+graph.invoke(Command(resume="approve"), config)   # resumes the SAME thread; interrupt() returns "approve"
+```
+
+That `thread_id`-scoped invoke/pause/`Command(resume=...)` cycle *is* the pause/resume gate Part B asks you to wire — `gate()` supplies the payload and the accept/reject branch, the checkpointer and `Command(resume=...)` supply the suspend-and-continue.
+
 ## Classify the action, then pause consequence for approval
 
 *Objective: `action-gate` · OSS: OPA action-class + LangGraph `interrupt()` ≈ beyond-blueprint (NIST 800-207 PEP/PDP applied to agent actions) · Lab: [d6-action-gating](../../labs/d6-action-gating.md)*
@@ -50,7 +76,7 @@ Gotchas:
 - **Least agency still applies first.** Gating is the backstop for actions the agent legitimately needs; it is not a licence to give the agent broad tools. Scope tools tightly (`d6-tools-mcp`), *then* gate the consequential ones.
 
 **Resources:**
-- [LangGraph — Human-in-the-loop with `interrupt()` (pause a graph for approval)](https://github.com/langchain-ai/langgraph) `[depth]` (~20 min)
+- [LangGraph — Interrupts: pause using `interrupt`, resuming with `Command(resume=...)`](https://docs.langchain.com/oss/python/langgraph/interrupts#pause-using-interrupt) `[required-for-lab]` (~20 min)
 - [OWASP LLM06: Excessive Agency (autonomy / action risk)](https://genai.owasp.org/llmrisk/llm06-excessive-agency/) `[depth]` (~15 min)
 - [OWASP Agentic AI — Threats & Mitigations (excessive agency / unsafe autonomy)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) `[depth]` (~30 min)
 - [NIST SP 800-207 Zero Trust Architecture — PEP/PDP tenets](https://csrc.nist.gov/pubs/sp/800/207/final) (reference)
