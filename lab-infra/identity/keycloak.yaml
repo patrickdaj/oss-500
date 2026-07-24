@@ -1,0 +1,90 @@
+# kc-deploy: Keycloak on the OFFICIAL upstream image (quay.io/keycloak/keycloak).
+# Replaces the former Bitnami Helm chart + bundled PostgreSQL: as of the 2025
+# Bitnami catalog change, docker.io/bitnami/{keycloak,postgresql} versioned tags
+# were removed from the free namespace, so the chart's pinned images 404 on pull.
+# For a disposable kind lab we run `start-dev` (embedded H2) — no external DB — which
+# is the upstream-recommended way to run Keycloak locally. Realm/user state is
+# recreated by the labs and the cluster is disposable, so H2's non-persistence is fine.
+# Namespace oss500-identity enforces the RESTRICTED Pod Security Standard, so the pod
+# is hardened (non-root, no privesc, drop ALL caps, RuntimeDefault seccomp).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: oss500-identity
+  labels:
+    app.kubernetes.io/part-of: oss500
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: oss500
+        app: keycloak
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.3.3
+          args: ["start-dev"]
+          env:
+            # kc-deploy: Keycloak 26 bootstraps the first admin from KC_BOOTSTRAP_ADMIN_*.
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: admin
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin      # created by up.sh from admin-password.env
+                  key: admin-password
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            # kc-deploy: honour X-Forwarded-* so the ingress hostname works as the
+            # OIDC issuer; the WebAuthn part of the lab uses port-forward to localhost.
+            - name: KC_PROXY_HEADERS
+              value: xforwarded
+          ports:
+            - { name: http, containerPort: 8080 }
+            - { name: management, containerPort: 9000 }
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 1000
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: management }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: { path: /health/live, port: management }
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 6
+          resources:
+            requests: { cpu: "200m", memory: "512Mi" }
+            limits: { memory: "1Gi" }
+---
+# Service name/port kept as `keycloak` :80 so existing lab commands are unchanged
+# (`kubectl -n oss500-identity port-forward svc/keycloak 8080:80`).
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: oss500-identity
+  labels:
+    app.kubernetes.io/part-of: oss500
+    app: keycloak
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - { name: http, port: 80, targetPort: 8080 }

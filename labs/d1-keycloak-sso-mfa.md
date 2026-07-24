@@ -23,7 +23,7 @@ Throughout, open a shell in the Keycloak pod and authenticate `kcadm` once (reus
 
 ```bash
 source lab-infra/identity/admin-password.env       # exports KEYCLOAK_ADMIN_PASSWORD into this shell
-KC="kubectl -n oss500-identity exec -i deploy/keycloak -- /opt/bitnami/keycloak/bin/kcadm.sh"
+KC="kubectl -n oss500-identity exec -i deploy/keycloak -- /opt/keycloak/bin/kcadm.sh"
 $KC config credentials --server http://localhost:8080 --realm master \
   --user admin --password "$KEYCLOAK_ADMIN_PASSWORD"
 ```
