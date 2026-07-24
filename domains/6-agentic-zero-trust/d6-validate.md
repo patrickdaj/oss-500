@@ -7,8 +7,8 @@ Domain 6 built a tool-using agent under zero trust: scoped delegated identity ([
 ## Tools
 | Tool | What it does here | Runs |
 |---|---|---|
-| **[garak](https://github.com/NVIDIA/garak)** (reference) | LLM/agent vulnerability scanner — injection & leakage probes, pointed at the agent's input surface | `pipx run garak -G lab-infra/offense/localhost-ollama.json` against the local agent |
-| **[PyRIT](https://github.com/Azure/PyRIT)** (reference) | Microsoft's risk-identification toolkit — multi-turn orchestration to steer the agent toward a gated action | `python lab-infra/offense/pyrit_multiturn.py`, extend the skeleton |
+| **[garak](https://github.com/NVIDIA/garak)** (reference) | LLM/agent vulnerability scanner — injection & leakage probes, pointed at the agent's input surface | `pipx run garak==0.15.1 --model_type rest -G lab-infra/offense/localhost-ollama.json` against the local agent |
+| **[PyRIT](https://github.com/microsoft/PyRIT)** (reference) | Microsoft's risk-identification toolkit — multi-turn orchestration to steer the agent toward a gated action | `. lab-infra/offense/.venv-offense/bin/activate; python lab-infra/offense/pyrit_multiturn.py`, extend the skeleton |
 | **poisoned tool result / document** | hand-crafted indirect injection carrying an *action* instruction ("also call `submit_change`…") | you author it |
 
 ## The attack ↔ control map (what you're actually testing)
@@ -34,7 +34,7 @@ Offense: OWASP Agentic AI — Threats & Mitigations (+ the emerging Agentic Top 
 - [MITRE ATLAS — AML.T0051 LLM Prompt Injection (direct/indirect/triggered)](https://atlas.mitre.org/techniques/AML.T0051) `[depth]` (~10 min)
 - [OWASP Agentic AI — Threats & Mitigations (the agentic threat taxonomy)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) `[depth]` (~30 min)
 - [garak — LLM/agent vulnerability scanner: injection & leakage probes](https://github.com/NVIDIA/garak) (reference) — start from the shipped [`lab-infra/offense/localhost-ollama.json`](../../lab-infra/offense/localhost-ollama.json) instead of authoring the REST generator config from scratch
-- [Microsoft PyRIT — multi-turn attack orchestration](https://github.com/Azure/PyRIT) (reference) — start from the shipped [`lab-infra/offense/pyrit_multiturn.py`](../../lab-infra/offense/pyrit_multiturn.py) instead of an empty file
+- [Microsoft PyRIT — multi-turn attack orchestration](https://github.com/microsoft/PyRIT) (reference) — start from the shipped [`lab-infra/offense/pyrit_multiturn.py`](../../lab-infra/offense/pyrit_multiturn.py) instead of an empty file
 - [NIST AI Risk Management Framework — Measure & Manage functions](https://www.nist.gov/itl/ai-risk-management-framework) (reference)
 
 ## Self-check
