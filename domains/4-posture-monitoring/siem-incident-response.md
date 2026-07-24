@@ -89,11 +89,11 @@ level: high
 tags: [ attack.credential_access, attack.t1110.001 ]   # ATT&CK Brute Force: Password Guessing
 ```
 
-The `sigma` CLI (now the `sigma-cli` / **pySigma** toolchain), optionally with a backend field-mapping pipeline, emits an OpenSearch/Elasticsearch query, a Splunk SPL search, a **Sentinel KQL** analytics rule, and so on from the *same* YAML. A pipeline isn't always needed: `sigma list pipelines <backend>` shows what's registered, and for OpenSearch/Elasticsearch that list is all **ECS** mappings for specific sources (Winlogbeat/Sysmon, Zeek, Kubernetes audit, macOS ESF) — pick the one matching the rule's `logsource`, or convert with `--without-pipeline` when the rule's field names already match the backend's raw schema, as is the case for a Linux/sshd rule against Wazuh-normalized fields:
+The `sigma` CLI (now the `sigma-cli` / **pySigma** toolchain), optionally with a backend field-mapping pipeline, emits an OpenSearch/Elasticsearch query, a Splunk SPL search, a **Sentinel KQL** analytics rule, and so on from the *same* YAML. A pipeline isn't always needed. Note the CLI's target id for this backend is **`opensearch_lucene`**, not `opensearch` — and `sigma list pipelines opensearch_lucene` comes back **empty**: that target registers no pipeline at all (the **ECS** mappings you'll see under a bare `sigma list pipelines` — Winlogbeat/Sysmon, Zeek, Kubernetes audit, macOS ESF — are scoped to *other* targets). That's correct here, not a gap to work around: a Linux/sshd rule whose `detection` is a plain **keyword** selection has no field names for a pipeline to remap, so you convert `--without-pipeline` and the keyword search runs against the raw log text:
 
 ```bash
-sigma list pipelines opensearch                                        # inspect what's registered before guessing
-sigma convert -t opensearch --without-pipeline rules/ssh_bruteforce.yml   # → OpenSearch DSL (fields already match)
+sigma list pipelines opensearch_lucene                                   # empty — this target registers no pipeline
+sigma convert -t opensearch_lucene --without-pipeline rules/ssh_bruteforce.yml   # → OpenSearch DSL (keyword match, no remap)
 sigma convert -t microsoft365defender  rules/ssh_bruteforce.yml        # → Sentinel/Defender KQL
 ```
 
