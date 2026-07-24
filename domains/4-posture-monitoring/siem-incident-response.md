@@ -89,11 +89,12 @@ level: high
 tags: [ attack.credential_access, attack.t1110.001 ]   # ATT&CK Brute Force: Password Guessing
 ```
 
-The `sigma` CLI (now the `sigma-cli` / **pySigma** toolchain) with a backend pipeline emits an OpenSearch/Elasticsearch query, a Splunk SPL search, a **Sentinel KQL** analytics rule, and so on from the *same* YAML:
+The `sigma` CLI (now the `sigma-cli` / **pySigma** toolchain), optionally with a backend field-mapping pipeline, emits an OpenSearch/Elasticsearch query, a Splunk SPL search, a **Sentinel KQL** analytics rule, and so on from the *same* YAML. A pipeline isn't always needed: `sigma list pipelines <backend>` shows what's registered, and for OpenSearch/Elasticsearch that list is all **ECS** mappings for specific sources (Winlogbeat/Sysmon, Zeek, Kubernetes audit, macOS ESF) — pick the one matching the rule's `logsource`, or convert with `--without-pipeline` when the rule's field names already match the backend's raw schema, as is the case for a Linux/sshd rule against Wazuh-normalized fields:
 
 ```bash
-sigma convert -t opensearch -p ecs_windows rules/ssh_bruteforce.yml   # → OpenSearch DSL
-sigma convert -t microsoft365defender  rules/ssh_bruteforce.yml       # → Sentinel/Defender KQL
+sigma list pipelines opensearch                                        # inspect what's registered before guessing
+sigma convert -t opensearch --without-pipeline rules/ssh_bruteforce.yml   # → OpenSearch DSL (fields already match)
+sigma convert -t microsoft365defender  rules/ssh_bruteforce.yml        # → Sentinel/Defender KQL
 ```
 
 This is detection-as-code: version-controlled, peer-reviewed, portable across tools, which is why it's the exam-relevant answer to "how do we avoid re-writing every detection per vendor."
@@ -106,7 +107,7 @@ Exam gotchas:
 - Sigma is a **format/abstraction**, not a running engine — it doesn't detect anything until *converted* to a backend query (OpenSearch DSL, KQL, SPL). "Deploy Sigma to watch logs" is imprecise; you convert then deploy.
 - Map detections to **MITRE ATT&CK** (`tags: attack.t1110` = brute force). Tactic/technique tagging is expected of modern detection content, in Sigma and in Sentinel.
 - Detection-as-code = version control + review + CI. The benefit over click-built rules is portability and auditability, the same argument as `gov-iac`.
-- Conversion needs a **pipeline/backend** matched to the target's field schema (ECS, ASIM, Wazuh) — a rule written against generic field names won't convert cleanly without the mapping. "Sigma converted but matches nothing" is usually a field-mapping/pipeline gap.
+- Not every conversion needs a **pipeline** — `sigma list pipelines <backend>` shows what's registered, and it's a fixed catalog of source-specific ECS/ASIM/Wazuh mappings, not a menu where any entry works. Picking one that doesn't match the rule's `logsource` (e.g. a Windows/Sysmon pipeline for a Linux/sshd rule) silently renames fields to ones that don't exist in the data — "Sigma converted but matches nothing" is usually this gap, not a syntax error.
 - Sigma expresses **detection logic**, not response — pair it with active response (`siem-response`) for action. It's the *what to detect*, not the *what to do*.
 
 **Resources:**

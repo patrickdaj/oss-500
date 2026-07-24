@@ -63,6 +63,8 @@ vault write auth/kubernetes/role/app \
   policies=app-policy ttl=1h
 ```
 
+KV v2 has a **path duality** worth internalizing before your first `vault kv` command: the engine transparently wraps every secret under a `data/` segment at the raw API level — the actual storage path for `secret/app/api-key` is `secret/data/app/api-key` (a parallel `secret/metadata/app/api-key` holds version history/config) — which is exactly why the policy above grants `secret/data/app/*` rather than `secret/app/*`. The `vault kv` CLI subcommands (`vault kv get`, `vault kv put`, used throughout `vault-rotation` below) hide this: point them at `secret/app/api-key` and the CLI inserts the `data/` infix for you before the request ever leaves your terminal. Forget the duality and you'll write a policy for `secret/app/*` that silently denies every `vault kv` call — the request Vault actually receives is for `secret/data/app/*`, a path your policy never granted.
+
 This is Vault's answer to the **Key Vault access model (Azure RBAC)**. Vault policies ≈ role definitions; the `bound_service_account_*` binding ≈ a role assignment to a managed identity. The SC-500 lesson "an app with Key Vault *Reader* can see metadata but not values" translates directly: a Vault policy with `list` but not `read` on a path shows keys but not their contents.
 
 Exam gotchas:
@@ -171,6 +173,19 @@ metadata:
       DB_PASS={{ .Data.password }}
       {{- end -}}
 ```
+
+Two engines, two response shapes — and your Go template has to match. The injector's template context is the raw API response under `.Data`. A **dynamic** secret (the database example above) returns its fields one level deep: `.Data.username`. A **KV v2** secret double-nests: the outer `.Data` is the API envelope, and the actual key/value pairs sit one level further in, under `.Data.data` — the same `data/`-path duality from `vault-access`, now visible inside the template — so a KV v2 field reads as `.Data.data.username`, not `.Data.username`. Miss this and the injector renders an empty string with no error: the template evaluated fine, the key just wasn't at the path you asked for.
+
+```gotemplate
+{{- with secret "database/creds/app-readonly" -}}{{/* dynamic: single-nested */}}
+DB_USER={{ .Data.username }}
+{{- end -}}
+{{- with secret "secret/data/app/config" -}}{{/* KV v2: double-nested */}}
+APP_USER={{ .Data.data.username }}
+{{- end -}}
+```
+
+This is exactly the shape [`d2-vault-k8s-injection`](../../labs/d2-vault-k8s-injection.md) exercises: its secret lives in KV v2 at `secret/data/app/config`, so its injector template reads `.Data.data.username`/`.Data.data.password` — the double-nested form, not the single-nested one above.
 
 The alternative is the **Secrets Store CSI driver** with the Vault provider: secrets are mounted as a CSI volume at a filesystem path, and optionally *synced* into a native Kubernetes Secret for env-var consumption. CSI is a cross-provider standard (same driver fronts Vault, cloud secret stores, etc.); the injector is Vault-native and template-rich. Both avoid plaintext secrets in manifests.
 

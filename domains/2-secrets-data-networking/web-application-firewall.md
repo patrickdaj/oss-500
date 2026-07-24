@@ -79,6 +79,14 @@ data:
     SecAction "id:900000,phase:1,pass,nolog,setvar:tx.paranoia_level=1"
 ```
 
+CRS covers the generic OWASP Top 10, but a custom `SecRule` is how you cover something app-specific CRS doesn't know about. Its anatomy is the same shape as every ModSecurity directive: a **variable** to inspect (`ARGS`, `REQUEST_HEADERS`, `REQUEST_BODY`), an **operator** (`@rx` for regex is the common case), and a set of **actions** — an `id`, the `phase`, and a disposition like `deny`:
+
+```
+SecRule ARGS "@rx (?i:union\s+select)" "id:100001,phase:2,deny,status:403,msg:'Custom SQLi guard on ARGS'"
+```
+
+This blocks any request argument matching a case-insensitive `union select`: `phase:2` because it inspects request args/body (`phase:1` is headers-only, too early for `ARGS` to be populated), a unique `id` outside CRS's own reserved ranges (900000s tuning, 942xxx/941xxx rule families) to avoid a collision, and `deny` to actually block rather than just add to the anomaly score the way a `SecAction` does. Custom rules like this run alongside CRS in the same `modsecurity-snippet`; reach for one only when CRS genuinely has no coverage, per the gotcha below.
+
 This maps to Azure WAF **managed rule sets**: Azure's OWASP/CRS-based managed rules (the "OWASP" / Microsoft_DefaultRuleSet) and its own anomaly-scoring model are the same concept — Microsoft ships and updates the ruleset, you pick the rule-set version and tune per-rule/per-group overrides. CRS *is* the upstream OWASP project those managed rules derive from, so understanding CRS anomaly scoring is directly how you reason about the Azure exam questions.
 
 Exam gotchas:

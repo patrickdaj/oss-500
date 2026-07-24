@@ -64,7 +64,15 @@ No finished decoder mapping, Sigma→DSL conversion, hunt query, or active-respo
    ```bash
    pip install sigma-cli pysigma-backend-opensearch
    ```
-   Then run `sigma convert` against the file, targeting the `opensearch` backend (`-t opensearch`). Your turn: pick the `-p` pipeline flag that actually matches this rule's `logsource` (`product: linux`, `service: sshd`) — not a Windows pipeline just because it's the first one you find in a doc example. Run it and look at what comes out: the *same YAML* becomes a backend query object. (Conceptually, `-t kusto` would emit the equivalent Sentinel KQL analytics rule — same source, different engine.)
+   Don't guess a `-p` pipeline — list what's actually registered for this backend first:
+   ```bash
+   sigma list pipelines opensearch
+   ```
+   Every row in that table is an **ECS field-mapping** pipeline for a specific *source*: Winlogbeat/Sysmon (`ecs_windows`), Zeek (`ecs_zeek_beats`/`ecs_zeek_corelight`), Kubernetes audit (`ecs_kubernetes`), macOS ESF (`ecs_macos_esf`) — none of them target Linux auth logs. That's not an oversight to work around: this rule's `logsource` (`product: linux`, `service: sshd`) already uses the same field names (`src_ip`, …) the Wazuh decoder writes into the alert document, so there's nothing to remap. Your turn: convert it **without** a pipeline —
+   ```bash
+   sigma convert -t opensearch --without-pipeline lab-infra/siem/sigma/ssh-bruteforce.yml
+   ```
+   — and confirm the emitted query references the same field names you noted on the alert document in Part B. (Conceptually, `-t kusto` would emit the equivalent Sentinel KQL analytics rule — same source, different engine. Picking `ecs_windows` here would silently rename fields to a Sysmon schema that doesn't exist in this data, and the resulting query would just never match anything.)
 10. **Operationalize it.** Either save the converted query as an OpenSearch **monitor/alert**, or map it to the equivalent native Wazuh rule in [`custom-rules.xml`](../lab-infra/siem/config/custom-rules.xml) — open that file and find where a custom rule keys on the same condition your Sigma rule expresses. Confirm whichever path you choose actually flags the brute-force events from Part B. The point: one portable detection, deployed to this backend.
 
 ### Part D — Threat hunting with OpenSearch Query DSL (`siem-hunt`)
@@ -115,9 +123,10 @@ Build it yourself first; check after.
 8. [`sigma/ssh-bruteforce.yml`](../lab-infra/siem/sigma/ssh-bruteforce.yml): `logsource` (`product: linux`, `service: sshd`), a `detection` selection on failed logins, `condition`, `level: high`, and `tags: [attack.t1110]` (MITRE brute force).
 9. ```bash
    pip install sigma-cli pysigma-backend-opensearch
-   sigma convert -t opensearch -p ecs_windows ../lab-infra/siem/sigma/ssh-bruteforce.yml
+   sigma list pipelines opensearch            # every result is ECS for Windows/Zeek/K8s/macOS — none for Linux
+   sigma convert -t opensearch --without-pipeline ../lab-infra/siem/sigma/ssh-bruteforce.yml
    ```
-   (use the linux pipeline) — the *same YAML* becomes a backend query. (Conceptually, `-t kusto` would emit the equivalent Sentinel KQL analytics rule.)
+   No pipeline is the *correct* choice, not a fallback: the rule's fields already match the Wazuh decoder's raw output, so remapping to an ECS schema (e.g. `ecs_windows`) would rename fields that don't exist in this data. The *same YAML* becomes a backend query. (Conceptually, `-t kusto` would emit the equivalent Sentinel KQL analytics rule.)
 10. Save the converted query as an OpenSearch **monitor/alert** (or map it to the equivalent native Wazuh rule in [`custom-rules.xml`](../lab-infra/siem/config/custom-rules.xml)) and confirm it flags the brute-force events. One portable detection, deployed to this backend.
 
 ### Part D — Threat hunting with OpenSearch Query DSL (`siem-hunt`)
@@ -144,7 +153,7 @@ Build it yourself first; check after.
     (or check the agent's active-response log `/var/ossec/logs/active-responses.log`).
 16. Watch it self-revert: after the timeout, the rule is removed automatically — `iptables -L -n` no longer lists the IP. Detection → decision (level) → action (drop) → recovery (timeout), the full IR loop.
 
-If your Sigma conversion picked a Windows pipeline for a Linux/sshd logsource, the emitted fields won't line up with what the decoder actually parsed — the pipeline has to match the `logsource`, not just the target backend.
+If your Sigma conversion picked an ECS pipeline (e.g. `ecs_windows`) for this Linux/sshd logsource, the emitted fields won't line up with what the decoder actually parsed — run `sigma list pipelines <backend>` before guessing; when nothing in the list matches the `logsource`, convert with `--without-pipeline` rather than reaching for the nearest-sounding one.
 
 ## Teardown
 - `docker compose -p oss500-siem -f agent-compose.yml down` (agent), then `cd lab-infra/siem && ./down.sh` (`docker compose -p oss500-siem down -v` — the `-v` removes the heavy indexer volumes).

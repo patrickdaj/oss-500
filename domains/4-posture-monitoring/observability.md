@@ -24,7 +24,7 @@ spec:
 
 The `labels.release` must match the operator's `serviceMonitorSelector` or the CR is silently ignored — the single most common "my target never appears in Status → Targets" failure.
 
-You query with **PromQL**. Security-relevant examples: `rate(apiserver_request_total{code=~"5.."}[5m])` for API-server error spikes, `kube_pod_container_status_restarts_total` climbing on a workload (possible crash-loop from a killed exploit), or `count(kube_pod_info) by (namespace)` to spot unexpected pod sprawl. A privilege-drift alert: `count(kube_pod_container_status_running) by (namespace) unless kube_pod_container_status_running` — or more usefully `sum(kube_pod_spec_containers_security_context_privileged) > 0` to catch any privileged container. PromQL's `rate()` vs `irate()` (use `rate()` for alerting — it's smoothed over the window), `increase()`, aggregation operators (`sum by`, `count by`), and label matchers (`=`, `!=`, `=~`, `!~`) are the core you must read fluently. A classic pitfall: `rate()` on a gauge (not a counter) is meaningless — `rate()` only makes sense on monotonically-increasing counters.
+You query with **PromQL**. Security-relevant examples: `rate(apiserver_request_total{code=~"5.."}[5m])` for API-server error spikes, `kube_pod_container_status_restarts_total` climbing on a workload (possible crash-loop from a killed exploit), or `count(kube_pod_info) by (namespace)` to spot unexpected pod sprawl. A least-privilege drift signal: `sum(kube_pod_service_account{service_account="default"}) by (namespace) > 0` flags any namespace with a pod running under the **default** ServiceAccount — the CIS/kube-bench "default SA actively used" finding, live instead of a point-in-time scan. PromQL's `rate()` vs `irate()` (use `rate()` for alerting — it's smoothed over the window), `increase()`, aggregation operators (`sum by`, `count by`), and label matchers (`=`, `!=`, `=~`, `!~`) are the core you must read fluently. A classic pitfall: `rate()` on a gauge (not a counter) is meaningless — `rate()` only makes sense on monotonically-increasing counters.
 
 The SC-500 mapping: Prometheus ≈ **Azure Monitor Metrics**, `ServiceMonitor`/`PodMonitor` ≈ the Azure Monitor managed Prometheus scrape config / DCRs, and PromQL ≈ the metrics query experience. Azure Monitor managed Prometheus is literally Prometheus-compatible — Microsoft ships a managed Prometheus that ingests the same exposition format and queries with PromQL — so this is one of the tightest OSS↔Azure equivalences in the whole curriculum.
 
@@ -150,18 +150,26 @@ Exam gotchas:
 
 *Objective: `obs-alerting` · OSS: Alertmanager ≈ SC-500: Azure Monitor alerts · Lab: [d4-observability](../../labs/d4-observability.md)*
 
-An alert has two halves. **Rule evaluation** lives in Prometheus (or Grafana): a PromQL expression that, when true for a `for:` duration, produces a firing alert with labels and annotations:
+An alert has two halves. **Rule evaluation** lives in Prometheus (or Grafana): a PromQL expression that, when true for a `for:` duration, produces a firing alert with labels and annotations.
+
+Two vector concepts you need before the headline example below parses. First, every PromQL expression is either an **instant vector** — one sample per series, taken *right now* (a bare metric or `metric{labels}`, e.g. `kube_pod_container_status_running`) — or a **range vector** — a window of samples per series, produced by appending a duration like `[5m]`, and consumed almost exclusively by `rate()`/`increase()`/`irate()` before they collapse back to an instant vector for everything downstream. Rule evaluation runs on a schedule, so what Alertmanager sees is always an instant vector at that tick.
+
+Second, combining two *different* metrics needs **vector matching**. PromQL's default join is one-to-one on an identical label set, which breaks the moment one side's labels don't exactly match the other's. `on(namespace,pod)` narrows the match to just those two labels (ignoring the rest each series carries); `group_left` upgrades the join from one-to-one to many-to-one, letting the "one" side's extra labels ride along onto every match on the "many" side (`group_right` is the mirror image, for a many-to-one join going the other way). This is exactly how you join "is this container running" against "what ServiceAccount does its pod use" — two different metrics with different label sets, joined on the labels they share:
 
 ```yaml
 groups:
   - name: security.rules
     rules:
-      - alert: PrivilegedContainerRunning
-        expr: sum(kube_pod_container_status_running * on(namespace,pod) group_left kube_pod_spec_containers_security_context_privileged) > 0
+      - alert: DefaultServiceAccountInUse
+        expr: kube_pod_container_status_running * on(namespace,pod) group_left(service_account) kube_pod_service_account{service_account="default"} > 0
         for: 5m
-        labels:    { severity: critical, team: security }
-        annotations: { summary: "Privileged container in {{ $labels.namespace }}" }
+        labels:    { severity: warning, team: security }
+        annotations: { summary: "{{ $labels.namespace }}/{{ $labels.pod }} is running under the default ServiceAccount" }
 ```
+
+`kube_pod_container_status_running` and `kube_pod_service_account` are two separate kube-state-metrics series with different label sets; `* on(namespace,pod) group_left(service_account)` matches them by pod identity and carries the `service_account` label into the result, so the rule fires only for pods that are both *currently running* and *on the default SA* — the CIS/kube-bench "default ServiceAccount actively used" finding (an over-privileged, auto-mounted token nothing needs), evaluated continuously instead of by a point-in-time scan.
+
+A `PrometheusRule` can only evaluate PromQL, so a detection you built as a *LogQL* rate (`obs-logs`) has to become a metric before it can alert this way — Loki's own **ruler** component is what does that: it evaluates LogQL recording/alerting rules on a schedule, exactly like Prometheus's rule evaluator, and a Loki recording rule writes its result out as a genuine Prometheus-compatible time series (typically via `remote_write`) — this is the **log-derived metric**, the bridge from "a rate over log lines" to "a series a `PrometheusRule` can threshold." The lab's demo app takes the simpler of the two equivalent paths: rather than standing up a Loki ruler + remote-write to derive one from the `Failed password` LogQL rate you built, it exports the same count directly as a native counter, `authlog_failed_logins_total`. Same signal, two valid pipelines — the LogQL rate and the exported counter aren't in competition, and neither is more "correct"; a production system with many log-only signals would lean on the ruler instead of instrumenting every app.
 
 **Routing** lives in **Alertmanager**: it deduplicates, groups (by cluster/namespace/alertname so one incident isn't 50 pages), applies **inhibition** (suppress the warning when the critical for the same target is already firing), respects **silences** (planned maintenance), and dispatches to receivers (email, Slack, PagerDuty, generic webhook) chosen by a routing tree that matches on alert labels — e.g. `severity: critical` → PagerDuty, `team: security` → the SOC channel:
 

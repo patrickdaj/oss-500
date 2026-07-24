@@ -38,7 +38,7 @@ spec:
         - {protocol: TCP, port: 5432}
 ```
 
-Enforcement is done by the **CNI plugin**, not the API server — so the CNI *must* support NetworkPolicy. kind's default `kindnet` has only recently gained NetworkPolicy support and it's limited; for reliable, complete enforcement this course installs **Calico** in `lab-infra/network/`. A policy applied under a CNI that ignores it is the classic "policy exists but traffic still flows" trap — the CNI-as-enforcement-seam idea is introduced in the cluster-internals primer, [`0-fundamentals/02-kubernetes.md`](../0-fundamentals/02-kubernetes.md#how-the-cluster-is-wired-and-where-its-soft).
+Enforcement is done by the **CNI plugin**, not the API server — so the CNI *must* support NetworkPolicy. `lab-infra/network/` doesn't install a new CNI: kind's built-in `kindnet` already enforces the basic ingress/egress policies this lab uses, so a default-deny NetworkPolicy actually denies out of the box. Where `kindnet` stops short is advanced behavior — some `namespaceSelector`/egress edge cases — for that you can *optionally* install **Calico** by hand. A policy applied under a CNI that ignores it outright is the classic "policy exists but traffic still flows" trap — `kindnet` isn't one of those for the basics this lab exercises, but the CNI-as-enforcement-seam idea is introduced in the cluster-internals primer, [`0-fundamentals/02-kubernetes.md`](../0-fundamentals/02-kubernetes.md#how-the-cluster-is-wired-and-where-its-soft).
 
 This is the Kubernetes analog of **Network Security Groups / micro-segmentation**. An NSG is a stateful allow/deny list on a subnet/NIC by IP/port; a NetworkPolicy is the same idea keyed on **labels** instead of IPs (pods are ephemeral, labels are stable). "Default-deny then allow" is exactly the NSG hardening SC-500 wants.
 
@@ -60,7 +60,7 @@ spec:
 Exam gotchas:
 
 - NetworkPolicy is **default-allow until a policy selects the pod** — an empty `podSelector: {}` with both `policyTypes` is the canonical default-deny.
-- Enforcement is the **CNI's** job. Under a non-enforcing CNI (or default kindnet) policies may be silently ignored — install Calico to actually block.
+- Enforcement is the **CNI's** job. kind's built-in `kindnet` already enforces the basic default-deny/allow policies out of the box — Calico is *optional*, needed only for advanced `namespaceSelector`/egress behavior. A CNI that ignores policy entirely (not kindnet) is the classic "my policy did nothing" trap.
 - Selectors are **label-based**, not IP-based — the segmentation follows workloads as they reschedule, unlike an IP-keyed NSG.
 - Egress policies are separate from ingress; locking down egress (e.g., only DNS + the DB) is what contains a compromised pod's outbound C2. Forgetting the **DNS allow** is the #1 default-deny-egress footgun.
 - NetworkPolicy is **namespaced and additive** — policies are OR'd, so you can't write a "deny" rule that overrides an allow; you restrict by *not* allowing. For richer L7/cluster-wide rules you need `AdminNetworkPolicy` or Calico's `GlobalNetworkPolicy`.
@@ -211,7 +211,7 @@ Exam gotchas:
 
 | Objective | Takeaway |
 |---|---|
-| `net-policy` | NetworkPolicy is default-allow until a policy selects a pod; apply default-deny then narrow allows; CNI (Calico) must enforce it; label-keyed NSG analog |
+| `net-policy` | NetworkPolicy is default-allow until a policy selects a pod; apply default-deny then narrow allows; kindnet enforces the basics out of the box, Calico is optional for advanced selectors; label-keyed NSG analog |
 | `net-mesh` | Service mesh adds mTLS + identity-aware AuthorizationPolicy (SPIFFE SA identity); Istio `PeerAuthentication STRICT`; L7 authentication atop L3/4 segmentation |
 | `net-ingress` | ingress-nginx terminates TLS (auto-issued/renewed by cert-manager), forces HTTPS, and pre-authenticates via auth-url/oauth2-proxy; App Gateway analog |
 | `net-firewall` | Stateful perimeter firewall (OPNsense/pfSense/nftables) for north-south edge + DMZ segmentation ≈ Azure Firewall (walkthrough) |

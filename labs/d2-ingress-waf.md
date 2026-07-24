@@ -88,7 +88,7 @@ The CRS is the managed rule set (the Azure "WAF managed ruleset" analogue): gene
 
 7. **Your turn — enable CRS and set paranoia + thresholds.** Extend the annotations:
    - `nginx.ingress.kubernetes.io/enable-owasp-modsecurity-crs: "true"` loads the rule set.
-   - In the snippet, add CRS-tuning `SecAction` directives (`phase:1`, `pass`, `nolog`) that `setvar` three transaction variables: `tx.paranoia_level` (start at `1`), `tx.inbound_anomaly_score_threshold`, and `tx.outbound_anomaly_score_threshold`. Pick starting values strict enough to catch the SQLi/XSS payloads in Part D but not so strict you second-guess every field.
+   - In the snippet, add CRS-tuning `SecAction` directives (`phase:1`, `pass`, `nolog`) that `setvar` three transaction variables: `tx.paranoia_level` (start at `1`, its own `id`) and `tx.inbound_anomaly_score_threshold` + `tx.outbound_anomaly_score_threshold` (combined into one `SecAction` — each distinct `id` you invent must appear exactly once, so don't split the two thresholds across two directives sharing an id). Pick starting values strict enough to catch the SQLi/XSS payloads in Part D but not so strict you second-guess every field.
    - Re-apply.
 8. Understand the dials before you pick numbers: **paranoia level 1→4** raises sensitivity (and false positives); the **anomaly score threshold** is how many rule "points" a request may accumulate before it's blocked. Higher paranoia + lower threshold = stricter. (Cluster-wide CRS defaults can also be set in the controller ConfigMap.)
 
@@ -198,8 +198,9 @@ nginx.ingress.kubernetes.io/modsecurity-snippet: |
   SecAuditLogFormat JSON
   # CRS tuning (waf-rules):
   SecAction "id:900000,phase:1,pass,nolog,setvar:tx.paranoia_level=1"          # PL1 = fewer false positives
-  SecAction "id:900110,phase:1,pass,nolog,setvar:tx.inbound_anomaly_score_threshold=5"
-  SecAction "id:900110,phase:1,pass,nolog,setvar:tx.outbound_anomaly_score_threshold=4"
+  SecAction "id:900110,phase:1,pass,nolog,\
+    setvar:tx.inbound_anomaly_score_threshold=5,\
+    setvar:tx.outbound_anomaly_score_threshold=4"
 ```
 ```bash
 kubectl apply -f ingress.yaml
