@@ -35,11 +35,11 @@ Exam gotchas:
 - **A shorter `max_session_ttl` trades convenience for exposure** but doesn't replace MFA/least-privilege; a 12h cert with `cluster-admin`-equivalent labels is still standing-ish over-privilege. TTL bounds *duration*, roles bound *scope* — the exam tests both.
 
 **Resources:**
-- [Teleport — Access Controls and roles](https://goteleport.com/docs/admin-guides/access-controls/guides/role-templates/) (~20 min)
-- [Teleport — Architecture and certificate-based access](https://goteleport.com/docs/reference/architecture/) (~20 min)
-- [Teleport — Core concepts (auth/proxy, roles, certs)](https://goteleport.com/docs/core-concepts/) (~15 min)
-- [HashiCorp Boundary — Credential management: Credential brokering (brokered JIT sessions)](https://developer.hashicorp.com/boundary/docs/concepts/credential-management#credential-brokering) (~20 min)
-- [Microsoft Learn — Configure Privileged Identity Management (PIM)](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure) (~20 min)
+- [Teleport — Access Controls and roles](https://goteleport.com/docs/admin-guides/access-controls/guides/role-templates/) `[depth]` (~20 min)
+- [Teleport — Architecture and certificate-based access](https://goteleport.com/docs/reference/architecture/) `[depth]` (~20 min)
+- [Teleport — Core concepts (auth/proxy, roles, certs)](https://goteleport.com/docs/core-concepts/) `[depth]` (~15 min)
+- [HashiCorp Boundary — Credential management: Credential brokering (brokered JIT sessions)](https://developer.hashicorp.com/boundary/docs/concepts/credential-management#credential-brokering) `[depth]` (~20 min)
+- [Microsoft Learn — Configure Privileged Identity Management (PIM)](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure) `[depth]` (~20 min)
 
 ## Configure session recording and audit for privileged sessions
 
@@ -72,11 +72,11 @@ Exam gotchas:
 - **Retention and export are the compliance half**: recordings/events must land in durable, access-controlled storage (S3 with object-lock, or a SIEM) to survive an attacker with host access and to satisfy log-retention requirements — the reason `-sync` streaming and off-cluster storage matter.
 
 **Resources:**
-- [Teleport — Session recording architecture](https://goteleport.com/docs/reference/architecture/session-recording/) (~15 min)
-- [Teleport — Audit log and events](https://goteleport.com/docs/reference/monitoring/audit/) (~15 min)
-- [Teleport — Enhanced session recording for SSH with BPF](https://goteleport.com/docs/enroll-resources/server-access/guides/bpf-session-recording/) (~20 min)
-- [NIST SP 800-92 — Guide to Computer Security Log Management](https://csrc.nist.gov/pubs/sp/800/92/final) (~30 min)
-- [Microsoft Learn — View audit history for roles in PIM](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-use-audit-log) (~15 min)
+- [Teleport — Session recording architecture](https://goteleport.com/docs/reference/architecture/session-recording/) `[depth]` (~15 min)
+- [Teleport — Audit log and events](https://goteleport.com/docs/reference/monitoring/audit/) `[depth]` (~15 min)
+- [Teleport — Enhanced session recording for SSH with BPF](https://goteleport.com/docs/enroll-resources/server-access/guides/bpf-session-recording/) `[depth]` (~20 min)
+- [NIST SP 800-92 — Guide to Computer Security Log Management](https://csrc.nist.gov/pubs/sp/800/92/final) `[depth]` (~30 min)
+- [Microsoft Learn — View audit history for roles in PIM](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-use-audit-log) `[depth]` (~15 min)
 
 ## Require approval workflows and role escalation for privileged roles
 
@@ -105,10 +105,10 @@ Exam gotchas:
 - **Requestable ≠ granted**: `allow.request.roles` only lets a subject *ask*; a reviewer with `review_requests.roles` must approve before the elevated cert is issued. A design that skips review (auto-approve) collapses the control back to standing access.
 
 **Resources:**
-- [Teleport — Access Requests (just-in-time approvals)](https://goteleport.com/docs/admin-guides/access-controls/access-requests/) (~25 min)
-- [Teleport — Access Request plugins (Slack/PagerDuty/Jira)](https://goteleport.com/docs/admin-guides/access-controls/access-request-plugins/) (~15 min)
-- [Microsoft Learn — Approve/deny requests for roles in PIM](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-resource-roles-approval-workflow) (~15 min)
-- [NIST SP 800-207 — Zero Trust Architecture (JIT/least-privilege access)](https://csrc.nist.gov/pubs/sp/800/207/final) (~30 min)
+- [Teleport — Access Requests (just-in-time approvals)](https://goteleport.com/docs/admin-guides/access-controls/access-requests/) `[depth]` (~25 min)
+- [Teleport — Access Request plugins (Slack/PagerDuty/Jira)](https://goteleport.com/docs/admin-guides/access-controls/access-request-plugins/) `[depth]` (~15 min)
+- [Microsoft Learn — Approve/deny requests for roles in PIM](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-resource-roles-approval-workflow) `[depth]` (~15 min)
+- [NIST SP 800-207 — Zero Trust Architecture (JIT/least-privilege access)](https://csrc.nist.gov/pubs/sp/800/207/final) `[depth]` (~30 min)
 
 ## Summary
 

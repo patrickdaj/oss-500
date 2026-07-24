@@ -50,9 +50,9 @@ Gotchas:
 - **Least agency still applies first.** Gating is the backstop for actions the agent legitimately needs; it is not a licence to give the agent broad tools. Scope tools tightly (`d6-tools-mcp`), *then* gate the consequential ones.
 
 **Resources:**
-- [LangGraph — Human-in-the-loop with `interrupt()` (pause a graph for approval)](https://github.com/langchain-ai/langgraph) (~20 min)
-- [OWASP LLM06: Excessive Agency (autonomy / action risk)](https://genai.owasp.org/llmrisk/llm06-excessive-agency/) (~15 min)
-- [OWASP Agentic AI — Threats & Mitigations (excessive agency / unsafe autonomy)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) (~30 min)
+- [LangGraph — Human-in-the-loop with `interrupt()` (pause a graph for approval)](https://github.com/langchain-ai/langgraph) `[depth]` (~20 min)
+- [OWASP LLM06: Excessive Agency (autonomy / action risk)](https://genai.owasp.org/llmrisk/llm06-excessive-agency/) `[depth]` (~15 min)
+- [OWASP Agentic AI — Threats & Mitigations (excessive agency / unsafe autonomy)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) `[depth]` (~30 min)
 - [NIST SP 800-207 Zero Trust Architecture — PEP/PDP tenets](https://csrc.nist.gov/pubs/sp/800/207/final) (reference)
 
 ## Reference solution

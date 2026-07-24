@@ -5,9 +5,9 @@ Domains 3–4 built the detection stack: **Falco** + **Tetragon** (runtime), **S
 ## Tools
 | Tool | Model | Best for | Runs |
 |---|---|---|---|
-| **[Atomic Red Team](https://github.com/redcanaryco/atomic-red-team)** | atomic tests — one technique, one command | precise "did T1611 alert?" checks | `Invoke-AtomicTest` / the shell atomics, in a throwaway pod/host |
-| **[Caldera](https://github.com/mitre/caldera)** | autonomous adversary emulation (chains) | multi-step operations, ability-to-alert coverage | self-hosted server + agent, local |
-| **[Stratus Red Team](https://github.com/DataDog/stratus-red-team)** | cloud-native TTPs (as detonations) | cloud/k8s technique coverage without a cloud bill | `stratus detonate`, local targets |
+| **[Atomic Red Team](https://github.com/redcanaryco/atomic-red-team)** | atomic tests — one technique, one command | precise "did T1611 alert?" checks | `Invoke-AtomicTest` / the shell atomics, in a throwaway pod/host | `[depth]`
+| **[Caldera](https://github.com/mitre/caldera)** | autonomous adversary emulation (chains) | multi-step operations, ability-to-alert coverage | self-hosted server + agent, local | `[depth]`
+| **[Stratus Red Team](https://github.com/DataDog/stratus-red-team)** | cloud-native TTPs (as detonations) | cloud/k8s technique coverage without a cloud bill | `stratus detonate`, local targets | `[depth]`
 
 ## Technique → detector map (what should catch what)
 | ATT&CK | Attack (atomic) | D3FEND | Detector that should fire |
@@ -31,7 +31,7 @@ The four steps are defined canonically in [`purple-team.md`](purple-team.md); he
 - Everything is local; Stratus is used specifically so cloud TTPs can be exercised **without a cloud account**.
 
 ## Standards
-Offense: MITRE ATT&CK. Defense: MITRE D3FEND + the CIS-hardened baselines from D4. Governance: **[NIST CSF 2.0](https://www.nist.gov/cyberframework)** *Detect* & *Respond* — this track is literally exercising those functions.
+Offense: MITRE ATT&CK. Defense: MITRE D3FEND + the CIS-hardened baselines from D4. Governance: **[NIST CSF 2.0](https://www.nist.gov/cyberframework)** *Detect* & *Respond* — this track is literally exercising those functions. `[depth]`
 
 ## Self-check
 1. For T1611, name the atomic you'd run, the Falco rule that should fire, and the D3FEND id it implements.

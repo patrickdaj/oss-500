@@ -38,11 +38,11 @@ Exam gotchas:
 - Falco reads syscalls plus optional **plugins** (Kubernetes audit logs, cloud/AWS CloudTrail, etc.) — its scope is not limited to container syscalls; the plugin framework is how it ingests non-syscall event sources.
 
 **Resources:**
-- [Falco — Rules](https://falco.org/docs/concepts/rules/) (~25 min)
-- [Falco — Deploy on Kubernetes with Helm](https://falco.org/docs/setup/kubernetes/) (~15 min)
-- [falcosecurity/rules — the default ruleset repo](https://github.com/falcosecurity/rules) (~15 min)
-- [MITRE ATT&CK — Containers matrix](https://attack.mitre.org/matrices/enterprise/containers/) (~20 min)
-- [Microsoft Defender for Containers — overview](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction) (~20 min)
+- [Falco — Rules](https://falco.org/docs/concepts/rules/) `[depth]` (~25 min)
+- [Falco — Deploy on Kubernetes with Helm](https://falco.org/docs/setup/kubernetes/) `[depth]` (~15 min)
+- [falcosecurity/rules — the default ruleset repo](https://github.com/falcosecurity/rules) `[depth]` (~15 min)
+- [MITRE ATT&CK — Containers matrix](https://attack.mitre.org/matrices/enterprise/containers/) `[depth]` (~20 min)
+- [Microsoft Defender for Containers — overview](https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction) `[depth]` (~20 min)
 
 ## Observe and enforce process/network behavior with eBPF
 
@@ -87,9 +87,9 @@ Exam gotchas:
 - Enforcement is synchronous/in-kernel, which is exactly why it can *block*; a userspace tool reacting after the event (Falco → Talon) can only remediate *after* the action already happened.
 
 **Resources:**
-- [Tetragon — Overview (eBPF security observability & runtime enforcement)](https://tetragon.io/docs/overview/) (~25 min)
-- [Tetragon — TracingPolicy & enforcement](https://tetragon.io/docs/concepts/tracing-policy/) (~20 min)
-- [cilium/tetragon — project & examples](https://github.com/cilium/tetragon) (~15 min)
+- [Tetragon — Overview (eBPF security observability & runtime enforcement)](https://tetragon.io/docs/overview/) `[depth]` (~25 min)
+- [Tetragon — TracingPolicy & enforcement](https://tetragon.io/docs/concepts/tracing-policy/) `[depth]` (~20 min)
+- [cilium/tetragon — project & examples](https://github.com/cilium/tetragon) `[depth]` (~15 min)
 - [eBPF.io — What is eBPF? (introduction & deep dive)](https://ebpf.io/what-is-ebpf/) (reference) — broader tour beyond the [eBPF fundamentals primer](../0-fundamentals/07-ebpf-fundamentals.md)
 
 ## Route runtime alerts and trigger response actions
@@ -136,10 +136,10 @@ Exam gotchas:
 - Falcosidekick fans out to ~60 targets, but detection quality is still Falco's job — routing more places doesn't reduce false positives; rule tuning does.
 
 **Resources:**
-- [Falcosidekick — Outputs](https://github.com/falcosecurity/falcosidekick) (~15 min)
-- [Falco Talon — Overview (What is Falco Talon?)](https://falco-talon.github.io/docs/overview/) (~15 min)
-- [falcosecurity/falco-talon — rules & actionners](https://github.com/falcosecurity/falco-talon) (~15 min)
-- [Defender for Cloud — workflow automation](https://learn.microsoft.com/azure/defender-for-cloud/workflow-automation) (~15 min)
+- [Falcosidekick — Outputs](https://github.com/falcosecurity/falcosidekick) `[depth]` (~15 min)
+- [Falco Talon — Overview (What is Falco Talon?)](https://falco-talon.github.io/docs/overview/) `[depth]` (~15 min)
+- [falcosecurity/falco-talon — rules & actionners](https://github.com/falcosecurity/falco-talon) `[depth]` (~15 min)
+- [Defender for Cloud — workflow automation](https://learn.microsoft.com/azure/defender-for-cloud/workflow-automation) `[depth]` (~15 min)
 
 ## Summary
 | Objective | Takeaway |

@@ -32,10 +32,10 @@ Exam gotchas:
 - Prefer **VEX** over blanket ignores to suppress non-exploitable CVEs with an auditable justification that stays with the image.
 
 **Resources:**
-- [Trivy — Scanning a container image](https://trivy.dev/latest/docs/target/container_image/) (~20 min)
-- [Trivy — VEX & filtering false positives](https://trivy.dev/latest/docs/supply-chain/vex/) (~15 min)
-- [Grype — Anchore Grype](https://github.com/anchore/grype) (~15 min)
-- [Defender for Containers — vulnerability assessment](https://learn.microsoft.com/azure/defender-for-cloud/agentless-vulnerability-assessment-azure) (~15 min)
+- [Trivy — Scanning a container image](https://trivy.dev/latest/docs/target/container_image/) `[depth]` (~20 min)
+- [Trivy — VEX & filtering false positives](https://trivy.dev/latest/docs/supply-chain/vex/) `[depth]` (~15 min)
+- [Grype — Anchore Grype](https://github.com/anchore/grype) `[depth]` (~15 min)
+- [Defender for Containers — vulnerability assessment](https://learn.microsoft.com/azure/defender-for-cloud/agentless-vulnerability-assessment-azure) `[depth]` (~15 min)
 
 ## Secure a private registry and sign/verify images
 
@@ -63,11 +63,11 @@ Exam gotchas:
 - SLSA is a *provenance/build-integrity* framework (levels describe how tamper-resistant the build is); cosign attestations are how you carry SLSA provenance. Don't confuse SLSA (build integrity) with SBOM (inventory) or signing (authenticity) — they compose.
 
 **Resources:**
-- [Harbor — Vulnerability Scanning](https://goharbor.io/docs/2.15.0/administration/vulnerability-scanning/) (~25 min)
-- [cosign — Signing and verifying (Sigstore)](https://docs.sigstore.dev/cosign/signing/signing_with_containers/) (~20 min)
-- [Sigstore — Fulcio & Rekor / keyless overview](https://docs.sigstore.dev/about/overview/) (~20 min)
-- [SLSA — supply-chain integrity framework & levels](https://slsa.dev/spec/v1.0/levels) (~20 min)
-- [ACR — content trust / image signing](https://learn.microsoft.com/azure/container-registry/container-registry-content-trust) (~15 min)
+- [Harbor — Vulnerability Scanning](https://goharbor.io/docs/2.15.0/administration/vulnerability-scanning/) `[depth]` (~25 min)
+- [cosign — Signing and verifying (Sigstore)](https://docs.sigstore.dev/cosign/signing/signing_with_containers/) `[depth]` (~20 min)
+- [Sigstore — Fulcio & Rekor / keyless overview](https://docs.sigstore.dev/about/overview/) `[depth]` (~20 min)
+- [SLSA — supply-chain integrity framework & levels](https://slsa.dev/spec/v1.0/levels) `[depth]` (~20 min)
+- [ACR — content trust / image signing](https://learn.microsoft.com/azure/container-registry/container-registry-content-trust) `[depth]` (~15 min)
 
 ## Generate and evaluate SBOMs for deployed artifacts
 
@@ -95,11 +95,11 @@ Exam gotchas:
 - Generate the SBOM from the shipped artifact at build time — a lockfile- or context-derived SBOM can drift from what actually runs, defeating the "what's in production?" query.
 
 **Resources:**
-- [Syft — Anchore Syft](https://github.com/anchore/syft) (~15 min)
-- [Trivy — SBOM generation](https://trivy.dev/latest/docs/supply-chain/sbom/) (~15 min)
+- [Syft — Anchore Syft](https://github.com/anchore/syft) `[depth]` (~15 min)
+- [Trivy — SBOM generation](https://trivy.dev/latest/docs/supply-chain/sbom/) `[depth]` (~15 min)
 - [CycloneDX — OWASP SBOM standard](https://cyclonedx.org/) (reference)
 - [SPDX — the SBOM specification](https://spdx.dev/) (reference)
-- [CISA — Software Bill of Materials (SBOM)](https://www.cisa.gov/sbom) (~15 min)
+- [CISA — Software Bill of Materials (SBOM)](https://www.cisa.gov/sbom) `[depth]` (~15 min)
 
 ## Gate admission on scan results and signature verification
 
@@ -147,10 +147,10 @@ Exam gotchas:
 - `verifyImages` rewrites the tag to the verified digest so what runs equals what was signed — the defense against post-verification tag repushing.
 
 **Resources:**
-- [Kyverno — Verify Images (cosign & attestations)](https://kyverno.io/docs/writing-policies/verify-images/) (~25 min)
-- [Harbor — Vulnerability scanning & deployment security](https://goharbor.io/docs/latest/administration/vulnerability-scanning/) (~15 min)
-- [Sigstore Policy Controller / cosign verify reference](https://docs.sigstore.dev/policy-controller/overview/) (~15 min)
-- [Azure Policy for AKS — allowed images & signatures](https://learn.microsoft.com/azure/aks/use-azure-policy) (~15 min)
+- [Kyverno — Verify Images (cosign & attestations)](https://kyverno.io/docs/writing-policies/verify-images/) `[depth]` (~25 min)
+- [Harbor — Vulnerability scanning & deployment security](https://goharbor.io/docs/latest/administration/vulnerability-scanning/) `[depth]` (~15 min)
+- [Sigstore Policy Controller / cosign verify reference](https://docs.sigstore.dev/policy-controller/overview/) `[depth]` (~15 min)
+- [Azure Policy for AKS — allowed images & signatures](https://learn.microsoft.com/azure/aks/use-azure-policy) `[depth]` (~15 min)
 
 ## Summary
 | Objective | Takeaway |

@@ -77,10 +77,10 @@ Gotchas:
 - **Authorization ≠ consequentiality.** `mcp-authz` decides *may this call happen*; `d6-action-gating` decides *should a permitted consequential call pause for human approval*. `submit_change` is authorized here **and** gated there — two independent controls.
 
 **Resources:**
-- [Open Policy Agent — Rego "Default Keyword" (default-deny complete rules)](https://www.openpolicyagent.org/docs/latest/policy-language/#default-keyword) (~15 min)
-- [OWASP Agentic AI — Threats & Mitigations (Tool Misuse & Exploitation)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) (~30 min)
-- [OWASP LLM06: Excessive Agency (over-broad tool scopes)](https://genai.owasp.org/llmrisk/llm06-excessive-agency/) (~15 min)
-- [MCP specification — Access Token Privilege Restriction (confused deputy / token passthrough)](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#access-token-privilege-restriction) (~15 min)
+- [Open Policy Agent — Rego "Default Keyword" (default-deny complete rules)](https://www.openpolicyagent.org/docs/latest/policy-language/#default-keyword) `[depth]` (~15 min)
+- [OWASP Agentic AI — Threats & Mitigations (Tool Misuse & Exploitation)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) `[depth]` (~30 min)
+- [OWASP LLM06: Excessive Agency (over-broad tool scopes)](https://genai.owasp.org/llmrisk/llm06-excessive-agency/) `[depth]` (~15 min)
+- [MCP specification — Access Token Privilege Restriction (confused deputy / token passthrough)](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#access-token-privilege-restriction) `[depth]` (~15 min)
 
 ## Authenticate the MCP client before any tool runs
 
@@ -110,8 +110,8 @@ Gotchas:
 
 **Resources:**
 - [MCP specification — Authorization: Token Handling (OAuth 2.1 resource server, 401 on invalid)](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#token-handling) `[required-for-lab]` (~25 min)
-- [MCP specification — Authorization Flow overview (401 → discovery → bearer token)](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#authorization-flow) (~15 min)
-- [MCP specification — Confused Deputy Problem (security best practices)](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices#confused-deputy-problem) (~15 min)
+- [MCP specification — Authorization Flow overview (401 → discovery → bearer token)](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#authorization-flow) `[depth]` (~15 min)
+- [MCP specification — Confused Deputy Problem (security best practices)](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices#confused-deputy-problem) `[depth]` (~15 min)
 - [OWASP Agentic AI — Threats & Mitigations (identity & privilege abuse)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) (reference — agentic threat taxonomy)
 
 ## Reference solution

@@ -66,11 +66,11 @@ Exam gotchas:
 - NetworkPolicy is **namespaced and additive** — policies are OR'd, so you can't write a "deny" rule that overrides an allow; you restrict by *not* allowing. For richer L7/cluster-wide rules you need `AdminNetworkPolicy` or Calico's `GlobalNetworkPolicy`.
 
 **Resources:**
-- [NetworkPolicy concepts (Kubernetes)](https://kubernetes.io/docs/concepts/services-networking/network-policies/) (~20 min)
-- [Calico for kind / NetworkPolicy enforcement](https://docs.tigera.io/calico/latest/getting-started/kubernetes/kind) (~15 min)
-- [Network Policy recipes (editable examples)](https://github.com/ahmetb/kubernetes-network-policy-recipes) (~20 min)
-- [AdminNetworkPolicy — cluster-scoped policy API](https://network-policy-api.sigs.k8s.io/api-overview/) (~15 min)
-- [NSA/CISA Kubernetes Hardening Guide — network separation](https://media.defense.gov/2022/Aug/29/2003066362/-1/-1/0/CTR_KUBERNETES_HARDENING_GUIDANCE_1.2_20220829.PDF) (~30 min, reference)
+- [NetworkPolicy concepts (Kubernetes)](https://kubernetes.io/docs/concepts/services-networking/network-policies/) `[depth]` (~20 min)
+- [Calico for kind / NetworkPolicy enforcement](https://docs.tigera.io/calico/latest/getting-started/kubernetes/kind) `[depth]` (~15 min)
+- [Network Policy recipes (editable examples)](https://github.com/ahmetb/kubernetes-network-policy-recipes) `[depth]` (~20 min)
+- [AdminNetworkPolicy — cluster-scoped policy API](https://network-policy-api.sigs.k8s.io/api-overview/) `[depth]` (~15 min)
+- [NSA/CISA Kubernetes Hardening Guide — network separation](https://media.defense.gov/2022/Aug/29/2003066362/-1/-1/0/CTR_KUBERNETES_HARDENING_GUIDANCE_1.2_20220829.PDF) `[depth]` (~30 min, reference)
 
 ## Enforce mTLS and identity-aware east-west controls with a service mesh
 
@@ -118,11 +118,11 @@ Exam gotchas:
 - mTLS here is **east-west** encryption in transit; it's a different control from encryption at rest (`data-encrypt`) — the exam tests that you don't conflate them.
 
 **Resources:**
-- [Istio mutual TLS migration / PeerAuthentication](https://istio.io/latest/docs/tasks/security/authentication/mtls-migration/) (~20 min)
-- [Istio AuthorizationPolicy task](https://istio.io/latest/docs/tasks/security/authorization/authz-http/) (~20 min)
-- [Linkerd automatic mTLS](https://linkerd.io/2/features/automatic-mtls/) (~15 min)
-- [SPIFFE/SPIRE — workload identity concepts](https://spiffe.io/docs/latest/spiffe-about/overview/) (~20 min)
-- [Istio ambient mesh (sidecar-less mTLS)](https://istio.io/latest/docs/ambient/overview/) (~15 min)
+- [Istio mutual TLS migration / PeerAuthentication](https://istio.io/latest/docs/tasks/security/authentication/mtls-migration/) `[depth]` (~20 min)
+- [Istio AuthorizationPolicy task](https://istio.io/latest/docs/tasks/security/authorization/authz-http/) `[depth]` (~20 min)
+- [Linkerd automatic mTLS](https://linkerd.io/2/features/automatic-mtls/) `[depth]` (~15 min)
+- [SPIFFE/SPIRE — workload identity concepts](https://spiffe.io/docs/latest/spiffe-about/overview/) `[depth]` (~20 min)
+- [Istio ambient mesh (sidecar-less mTLS)](https://istio.io/latest/docs/ambient/overview/) `[depth]` (~15 min)
 
 ## Secure ingress with TLS termination and authenticated access
 
@@ -165,11 +165,11 @@ Exam gotchas:
 - `ssl-redirect`/`force-ssl-redirect` is what actually stops plaintext HTTP; TLS being configured doesn't disable port 80 on its own.
 
 **Resources:**
-- [ingress-nginx TLS & HTTPS](https://kubernetes.github.io/ingress-nginx/user-guide/tls/) (~15 min)
-- [ingress-nginx external OAUTH / auth-url annotations](https://kubernetes.github.io/ingress-nginx/examples/auth/oauth-external-auth/) (~15 min)
-- [cert-manager with ingress-nginx (ACME tutorial)](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/) (~20 min)
-- [oauth2-proxy — configuration overview](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview) (~15 min)
-- [Kubernetes Gateway API — API Overview (GatewayClass/Gateway/Route resource model)](https://gateway-api.sigs.k8s.io/docs/concepts/api-overview/) (~15 min)
+- [ingress-nginx TLS & HTTPS](https://kubernetes.github.io/ingress-nginx/user-guide/tls/) `[depth]` (~15 min)
+- [ingress-nginx external OAUTH / auth-url annotations](https://kubernetes.github.io/ingress-nginx/examples/auth/oauth-external-auth/) `[depth]` (~15 min)
+- [cert-manager with ingress-nginx (ACME tutorial)](https://cert-manager.io/docs/tutorials/acme/nginx-ingress/) `[depth]` (~20 min)
+- [oauth2-proxy — configuration overview](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview) `[depth]` (~15 min)
+- [Kubernetes Gateway API — API Overview (GatewayClass/Gateway/Route resource model)](https://gateway-api.sigs.k8s.io/docs/concepts/api-overview/) `[depth]` (~15 min)
 
 ## Apply perimeter firewall and segmentation concepts for the host/edge — walkthrough
 
@@ -201,11 +201,11 @@ Exam gotchas:
 - This is `walkthrough` — studied at depth, not run on the reference host; the cluster analog you *do* run is NetworkPolicy + mesh.
 
 **Resources:**
-- [OPNsense firewall documentation](https://docs.opnsense.org/manual/firewall.html) (~20 min)
-- [nftables quick reference (netfilter.org)](https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes) (~15 min)
-- [pfSense firewall fundamentals](https://docs.netgate.com/pfsense/en/latest/firewall/index.html) (~20 min)
-- [nftables stateful firewall examples](https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_home_router) (~10 min)
-- [CIS Benchmarks (host firewall hardening baselines)](https://www.cisecurity.org/cis-benchmarks) (~15 min, reference)
+- [OPNsense firewall documentation](https://docs.opnsense.org/manual/firewall.html) `[depth]` (~20 min)
+- [nftables quick reference (netfilter.org)](https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes) `[depth]` (~15 min)
+- [pfSense firewall fundamentals](https://docs.netgate.com/pfsense/en/latest/firewall/index.html) `[depth]` (~20 min)
+- [nftables stateful firewall examples](https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_home_router) `[depth]` (~10 min)
+- [CIS Benchmarks (host firewall hardening baselines)](https://www.cisecurity.org/cis-benchmarks) `[depth]` (~15 min, reference)
 
 ## Summary
 

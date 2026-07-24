@@ -2,7 +2,7 @@
 
 Zero-trust network access (ZTNA) replaces "get on the network, then be trusted" with **broker one connection to one resource, per session, by identity, with nothing exposed inbound**. This section builds that idea five ways on open source — each a different *place to put the trust boundary* — all Terraform-automated. It extends Domain 1 (access); the network-layer zero trust (default-deny NetworkPolicy, mesh mTLS) lives in Domain 2.
 
-**Standard:** [NIST SP 800-207](https://csrc.nist.gov/pubs/sp/800/207/final) defines the model — a **Policy Decision Point** (decides) and **Policy Enforcement Point** (sits in the path, brokers the session to one resource). [CISA ZTMM v2.0](https://www.cisa.gov/zero-trust-maturity-model) is the maturity frame. **SC-500 analog:** Microsoft Entra **Private Access** (Global Secure Access) + PIM.
+**Standard:** [NIST SP 800-207](https://csrc.nist.gov/pubs/sp/800/207/final) defines the model — a **Policy Decision Point** (decides) and **Policy Enforcement Point** (sits in the path, brokers the session to one resource). [CISA ZTMM v2.0](https://www.cisa.gov/zero-trust-maturity-model) is the maturity frame. **SC-500 analog:** Microsoft Entra **Private Access** (Global Secure Access) + PIM. `[depth]`
 
 ## The five models
 

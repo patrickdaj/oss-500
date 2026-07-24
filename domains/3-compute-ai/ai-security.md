@@ -37,10 +37,10 @@ Exam gotchas:
 - This is **LLM10 Unbounded Consumption** (denial-of-wallet / model extraction). Azure's answer is APIM's `llm-token-limit` + Entra ID + private networking; the OSS answer is gateway + Keycloak + token quotas.
 
 **Resources:**
-- [Ollama — API & security considerations (FAQ)](https://github.com/ollama/ollama/blob/main/docs/faq.md) (~15 min)
-- [OWASP Top 10 for LLM Applications (2025)](https://genai.owasp.org/llm-top-10/) (~30 min)
-- [OWASP LLM10: Unbounded Consumption](https://genai.owasp.org/llmrisk/llm10-unbounded-consumption/) (~15 min)
-- [Azure API Management — `llm-token-limit` policy](https://learn.microsoft.com/azure/api-management/llm-token-limit-policy) (~15 min)
+- [Ollama — API & security considerations (FAQ)](https://github.com/ollama/ollama/blob/main/docs/faq.md) `[depth]` (~15 min)
+- [OWASP Top 10 for LLM Applications (2025)](https://genai.owasp.org/llm-top-10/) `[required-for-quiz]` (~30 min)
+- [OWASP LLM10: Unbounded Consumption](https://genai.owasp.org/llmrisk/llm10-unbounded-consumption/) `[depth]` (~15 min)
+- [Azure API Management — `llm-token-limit` policy](https://learn.microsoft.com/azure/api-management/llm-token-limit-policy) `[depth]` (~15 min)
 - [MITRE ATLAS — adversarial ML threat matrix](https://atlas.mitre.org/) (reference — adversarial ML techniques)
 
 ## Mitigate prompt-injection and jailbreak attempts
@@ -88,11 +88,11 @@ Exam gotchas:
 - In MITRE ATLAS this is the *LLM Prompt Injection* technique; direct (jailbreak) and indirect variants map to distinct ATLAS techniques — useful vocabulary if a question frames the attack in ATLAS terms.
 
 **Resources:**
-- [NeMo Guardrails — Input/output rails & self-check](https://docs.nvidia.com/nemo/guardrails/latest/user-guides/guardrails-library.html) (~30 min)
-- [NeMo Guardrails — project & jailbreak-detection heuristics (GitHub)](https://github.com/NVIDIA/NeMo-Guardrails) (~20 min)
-- [OWASP LLM01: Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) (~15 min)
-- [Azure AI Content Safety — Prompt Shields (jailbreak detection)](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) (~15 min)
-- [MITRE ATLAS — LLM Prompt Injection technique](https://atlas.mitre.org/techniques/AML.T0051) (~15 min)
+- [NeMo Guardrails — Input/output rails & self-check](https://docs.nvidia.com/nemo/guardrails/latest/user-guides/guardrails-library.html) `[depth]` (~30 min)
+- [NeMo Guardrails — project & jailbreak-detection heuristics (GitHub)](https://github.com/NVIDIA/NeMo-Guardrails) `[depth]` (~20 min)
+- [OWASP LLM01: Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) `[depth]` (~15 min)
+- [Azure AI Content Safety — Prompt Shields (jailbreak detection)](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) `[depth]` (~15 min)
+- [MITRE ATLAS — LLM Prompt Injection technique](https://atlas.mitre.org/techniques/AML.T0051) `[depth]` (~15 min)
 
 ## Filter unsafe input and output with content-safety guardrails
 
@@ -124,11 +124,11 @@ Exam gotchas:
 - The deterministic PII check is typically a **Presidio**-style detector (regex + NER); the LLM-based check is a classifier prompt. Know that "guardrail" spans both mechanisms — a scenario may hinge on which one is appropriate (deterministic for known secret patterns, LLM-based for fuzzy toxicity).
 
 **Resources:**
-- [NeMo Guardrails — Guardrails library (content safety, PII)](https://docs.nvidia.com/nemo/guardrails/latest/user-guides/guardrails-library.html) (~25 min)
-- [OWASP LLM02: Sensitive Information Disclosure](https://genai.owasp.org/llmrisk/llm02-sensitive-information-disclosure/) (~15 min)
-- [Azure AI Content Safety — overview (categories, blocklists)](https://learn.microsoft.com/azure/ai-services/content-safety/overview) (~15 min)
-- [Microsoft Presidio — PII detection & anonymization](https://microsoft.github.io/presidio/) (~15 min)
-- [OWASP Machine Learning Security Top 10](https://owasp.org/www-project-machine-learning-security-top-10/) (~20 min)
+- [NeMo Guardrails — Guardrails library (content safety, PII)](https://docs.nvidia.com/nemo/guardrails/latest/user-guides/guardrails-library.html) `[depth]` (~25 min)
+- [OWASP LLM02: Sensitive Information Disclosure](https://genai.owasp.org/llmrisk/llm02-sensitive-information-disclosure/) `[depth]` (~15 min)
+- [Azure AI Content Safety — overview (categories, blocklists)](https://learn.microsoft.com/azure/ai-services/content-safety/overview) `[depth]` (~15 min)
+- [Microsoft Presidio — PII detection & anonymization](https://microsoft.github.io/presidio/) `[depth]` (~15 min)
+- [OWASP Machine Learning Security Top 10](https://owasp.org/www-project-machine-learning-security-top-10/) `[depth]` (~20 min)
 
 ## Design a secure RAG architecture with data isolation and least privilege
 
@@ -158,10 +158,10 @@ Exam gotchas:
 - Over-privileged RAG *tools* are **LLM06 Excessive Agency** — a poisoned document that can trigger an email/SQL/shell action is the compounding risk. Scope tools tightly and require human/deterministic approval for consequential actions.
 
 **Resources:**
-- [Open WebUI — RAG & document handling](https://docs.openwebui.com/features/rag) (~20 min)
-- [OWASP LLM08: Vector and Embedding Weaknesses](https://genai.owasp.org/llmrisk/llm08-vector-and-embedding-weaknesses/) (~15 min)
-- [OWASP LLM06: Excessive Agency](https://genai.owasp.org/llmrisk/llm06-excessive-agency/) (~15 min)
-- [Azure AI Search — security trimming / document-level access](https://learn.microsoft.com/azure/search/search-security-trimming-for-azure-search) (~15 min)
+- [Open WebUI — RAG & document handling](https://docs.openwebui.com/features/rag) `[depth]` (~20 min)
+- [OWASP LLM08: Vector and Embedding Weaknesses](https://genai.owasp.org/llmrisk/llm08-vector-and-embedding-weaknesses/) `[depth]` (~15 min)
+- [OWASP LLM06: Excessive Agency](https://genai.owasp.org/llmrisk/llm06-excessive-agency/) `[depth]` (~15 min)
+- [Azure AI Search — security trimming / document-level access](https://learn.microsoft.com/azure/search/search-security-trimming-for-azure-search) `[depth]` (~15 min)
 
 ## Instrument LLM calls for observability and auditing
 
@@ -194,10 +194,10 @@ Exam gotchas:
 - Logging raw prompts/responses can itself *create* an LLM02 sensitive-information-disclosure surface — the telemetry store becomes a new place secrets leak. Hash/redact at the span, and apply the same access controls to the trace backend as to the data.
 
 **Resources:**
-- [OpenTelemetry — GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) (~25 min)
-- [OpenTelemetry — Traces & metrics concepts (signals)](https://opentelemetry.io/docs/concepts/signals/) (~15 min)
-- [OpenLLMetry — OTel-based LLM instrumentation (GitHub)](https://github.com/traceloop/openllmetry) (~15 min)
-- [Azure OpenAI — monitoring & diagnostics](https://learn.microsoft.com/azure/ai-services/openai/how-to/monitor-openai) (~15 min)
+- [OpenTelemetry — GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) `[required-for-lab]` (~25 min)
+- [OpenTelemetry — Traces & metrics concepts (signals)](https://opentelemetry.io/docs/concepts/signals/) `[depth]` (~15 min)
+- [OpenLLMetry — OTel-based LLM instrumentation (GitHub)](https://github.com/traceloop/openllmetry) `[depth]` (~15 min)
+- [Azure OpenAI — monitoring & diagnostics](https://learn.microsoft.com/azure/ai-services/openai/how-to/monitor-openai) `[depth]` (~15 min)
 
 ## Govern AI usage with policy at the gateway
 
@@ -250,11 +250,11 @@ Exam gotchas:
 - The governance frameworks to name-drop: **NIST AI RMF** (Govern/Map/Measure/Manage functions), **ISO/IEC 42001** (AI management system, certifiable), and the **EU AI Act** (risk-tiered legal obligations). They set the *why*; OPA-at-the-gateway is one *how*.
 
 **Resources:**
-- [Open Policy Agent — Policy Language (Rego rules & allow/deny decisions)](https://www.openpolicyagent.org/docs/latest/policy-language/) (~25 min)
-- [NIST AI Risk Management Framework (AI RMF 1.0)](https://www.nist.gov/itl/ai-risk-management-framework) (~20 min)
+- [Open Policy Agent — Policy Language (Rego rules & allow/deny decisions)](https://www.openpolicyagent.org/docs/latest/policy-language/) `[depth]` (~25 min)
+- [NIST AI Risk Management Framework (AI RMF 1.0)](https://www.nist.gov/itl/ai-risk-management-framework) `[depth]` (~20 min)
 - [NIST Trustworthy & Responsible AI Resource Center](https://airc.nist.gov/) (reference)
-- [ISO/IEC 42001 — AI management system standard](https://www.iso.org/standard/81230.html) (~15 min)
-- [Microsoft Purview — DSPM for AI](https://learn.microsoft.com/purview/ai-microsoft-purview) (~15 min)
+- [ISO/IEC 42001 — AI management system standard](https://www.iso.org/standard/81230.html) `[depth]` (~15 min)
+- [Microsoft Purview — DSPM for AI](https://learn.microsoft.com/purview/ai-microsoft-purview) `[depth]` (~15 min)
 
 ## Summary
 | Objective | Takeaway |

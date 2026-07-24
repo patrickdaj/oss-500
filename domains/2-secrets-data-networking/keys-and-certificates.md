@@ -34,11 +34,11 @@ Exam gotchas:
 - `datakey` is envelope encryption — Vault wraps a DEK you use locally for bulk data; only the wrapped DEK is stored.
 
 **Resources:**
-- [Transit secrets engine (docs)](https://developer.hashicorp.com/vault/docs/secrets/transit) (~20 min)
-- [Encryption as a service tutorial](https://developer.hashicorp.com/vault/tutorials/encryption-as-a-service/eaas-transit) (~20 min)
-- [Transit API reference (encrypt/decrypt/rewrap/datakey)](https://developer.hashicorp.com/vault/api-docs/secret/transit) (~15 min)
-- [Transit key rotation & versioning tutorial](https://developer.hashicorp.com/vault/tutorials/encryption-as-a-service/eaas-transit#rotate-the-encryption-key) (~10 min)
-- [NIST SP 800-57 Part 1 — cryptoperiods & key rotation](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final) (~30 min, reference)
+- [Transit secrets engine (docs)](https://developer.hashicorp.com/vault/docs/secrets/transit) `[depth]` (~20 min)
+- [Encryption as a service tutorial](https://developer.hashicorp.com/vault/tutorials/encryption-as-a-service/eaas-transit) `[depth]` (~20 min)
+- [Transit API reference (encrypt/decrypt/rewrap/datakey)](https://developer.hashicorp.com/vault/api-docs/secret/transit) `[depth]` (~15 min)
+- [Transit key rotation & versioning tutorial](https://developer.hashicorp.com/vault/tutorials/encryption-as-a-service/eaas-transit#rotate-the-encryption-key) `[depth]` (~10 min)
+- [NIST SP 800-57 Part 1 — cryptoperiods & key rotation](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final) `[depth]` (~30 min, reference)
 
 ## Integrate an HSM as a root of trust for key material — walkthrough
 
@@ -69,11 +69,11 @@ Exam gotchas:
 - Using an HSM as the **seal** replaces Shamir unseal shares with hardware auto-unseal — the root key is wrapped by the HSM.
 
 **Resources:**
-- [Vault seal wrap / HSM support (Enterprise)](https://developer.hashicorp.com/vault/docs/enterprise/hsm) (~15 min)
-- [PKCS#11 seal configuration](https://developer.hashicorp.com/vault/docs/configuration/seal/pkcs11) (~10 min)
-- [SoftHSM2 (OpenDNSSEC) — software PKCS#11 token](https://github.com/opendnssec/SoftHSMv2) (~10 min)
-- [NIST FIPS 140-3 — cryptographic module validation](https://csrc.nist.gov/pubs/fips/140-3/final) (~20 min, reference)
-- [Azure Managed HSM vs Key Vault Premium (concept parallel)](https://learn.microsoft.com/azure/key-vault/managed-hsm/overview) (~10 min)
+- [Vault seal wrap / HSM support (Enterprise)](https://developer.hashicorp.com/vault/docs/enterprise/hsm) `[depth]` (~15 min)
+- [PKCS#11 seal configuration](https://developer.hashicorp.com/vault/docs/configuration/seal/pkcs11) `[depth]` (~10 min)
+- [SoftHSM2 (OpenDNSSEC) — software PKCS#11 token](https://github.com/opendnssec/SoftHSMv2) `[depth]` (~10 min)
+- [NIST FIPS 140-3 — cryptographic module validation](https://csrc.nist.gov/pubs/fips/140-3/final) `[depth]` (~20 min, reference)
+- [Azure Managed HSM vs Key Vault Premium (concept parallel)](https://learn.microsoft.com/azure/key-vault/managed-hsm/overview) `[depth]` (~10 min)
 
 > **Which CA when.** This course runs **four certificate authorities**, each minting short-lived certs for a different job — reach for the one that owns your use case, not the one you met first:
 > - **cert-manager** Issuer/ClusterIssuer → **edge/ingress and app TLS** certificate lifecycle (issue/renew/rotate into a TLS Secret) — `cert-issuer`/`cert-lifecycle`, below.
@@ -125,11 +125,11 @@ Exam gotchas:
 - **HTTP-01 can't do wildcards; DNS-01 can.** A `*.oss500.local` request forces DNS-01 (and DNS-provider creds) — a common exam/lab distinction.
 
 **Resources:**
-- [cert-manager Issuer configuration](https://cert-manager.io/docs/configuration/) (~15 min)
-- [cert-manager Certificate resource](https://cert-manager.io/docs/usage/certificate/) (~15 min)
-- [cert-manager ACME issuer & HTTP-01/DNS-01 challenges](https://cert-manager.io/docs/configuration/acme/) (~20 min)
-- [RFC 8555 — Automatic Certificate Management Environment (ACME)](https://datatracker.ietf.org/doc/html/rfc8555) (~30 min, reference)
-- [Let's Encrypt — how it works / challenge types](https://letsencrypt.org/how-it-works/) (~10 min)
+- [cert-manager Issuer configuration](https://cert-manager.io/docs/configuration/) `[depth]` (~15 min)
+- [cert-manager Certificate resource](https://cert-manager.io/docs/usage/certificate/) `[depth]` (~15 min)
+- [cert-manager ACME issuer & HTTP-01/DNS-01 challenges](https://cert-manager.io/docs/configuration/acme/) `[depth]` (~20 min)
+- [RFC 8555 — Automatic Certificate Management Environment (ACME)](https://datatracker.ietf.org/doc/html/rfc8555) `[depth]` (~30 min, reference)
+- [Let's Encrypt — how it works / challenge types](https://letsencrypt.org/how-it-works/) `[depth]` (~10 min)
 
 ## Manage certificate renewal, rotation, and revocation
 
@@ -161,11 +161,11 @@ Exam gotchas (additional):
 - **CRL vs OCSP**: CRL is a periodically published revocation *list* (bulk, cacheable, can be stale); OCSP is a *per-cert* real-time query (fresher, adds a dependency). Know both for the exam.
 
 **Resources:**
-- [cert-manager renewal & the cmctl CLI](https://cert-manager.io/docs/reference/cmctl/) (~15 min)
-- [Certificate lifecycle / renewal reference](https://cert-manager.io/docs/usage/certificate/#renewal) (~10 min)
-- [cert-manager troubleshooting issuance (Order/Challenge)](https://cert-manager.io/docs/troubleshooting/) (~15 min)
-- [RFC 5280 — X.509 certificates & CRL profile](https://datatracker.ietf.org/doc/html/rfc5280) (~30 min, reference)
-- [RFC 6960 — OCSP](https://datatracker.ietf.org/doc/html/rfc6960) (~20 min, reference)
+- [cert-manager renewal & the cmctl CLI](https://cert-manager.io/docs/reference/cmctl/) `[depth]` (~15 min)
+- [Certificate lifecycle / renewal reference](https://cert-manager.io/docs/usage/certificate/#renewal) `[depth]` (~10 min)
+- [cert-manager troubleshooting issuance (Order/Challenge)](https://cert-manager.io/docs/troubleshooting/) `[depth]` (~15 min)
+- [RFC 5280 — X.509 certificates & CRL profile](https://datatracker.ietf.org/doc/html/rfc5280) `[depth]` (~30 min, reference)
+- [RFC 6960 — OCSP](https://datatracker.ietf.org/doc/html/rfc6960) `[depth]` (~20 min, reference)
 
 ## Summary
 

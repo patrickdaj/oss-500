@@ -49,7 +49,7 @@ Provisioning security controls as code (`gov-iac`) is itself an SC-500 objective
 3. Describe the three steps of the deploy→verify→destroy loop and why "verify" is the point.
 
 ## Primary sources
-- [kind — Quick Start](https://kind.sigs.k8s.io/docs/user/quick-start/)
-- [Helm — Using Helm (install, charts, values)](https://helm.sh/docs/intro/using_helm/)
-- [Terraform — The Core Terraform Workflow (write/plan/apply)](https://developer.hashicorp.com/terraform/intro/core-workflow) · [install](https://developer.hashicorp.com/terraform/install)
-- [Kubernetes — Configuration best practices](https://kubernetes.io/docs/concepts/configuration/overview/)
+- [kind — Quick Start](https://kind.sigs.k8s.io/docs/user/quick-start/) `[depth]`
+- [Helm — Using Helm (install, charts, values)](https://helm.sh/docs/intro/using_helm/) `[depth]`
+- [Terraform — The Core Terraform Workflow (write/plan/apply)](https://developer.hashicorp.com/terraform/intro/core-workflow) · [install](https://developer.hashicorp.com/terraform/install) `[depth]`
+- [Kubernetes — Configuration best practices](https://kubernetes.io/docs/concepts/configuration/overview/) `[depth]`

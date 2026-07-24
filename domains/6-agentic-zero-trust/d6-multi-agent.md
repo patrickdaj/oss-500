@@ -28,7 +28,7 @@ Gotchas:
 - Authentication answers **who**, not **what** — a valid SVID gets A *recognized*, not *authorized*. Pair it with per-caller authz (next objective); an identity allowlist with an empty rule set denies all, no policy at all defaults to allow.
 
 **Resources:**
-- [CSA — MAESTRO: the seven-layer agentic AI threat-modeling framework](https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro) (~20 min)
+- [CSA — MAESTRO: the seven-layer agentic AI threat-modeling framework](https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro) `[depth]` (~20 min)
 
 ## Contain cascading prompt injection: a compromised peer must not launder privilege
 
@@ -61,9 +61,9 @@ Gotchas:
 - Least agency still applies to *each* agent: scope every agent's tools and delegated token tightly, so even an honest agent — let alone a poisoned one — has a small blast radius (`LLM06` Excessive Agency).
 
 **Resources:**
-- [OWASP LLM01 — Indirect Prompt Injection (the poisoned-input vector agents relay)](https://genai.owasp.org/llmrisk/llm01-prompt-injection/#indirect-prompt-injections) (~15 min)
-- [OWASP Agentic AI — Threats and Mitigations (agent compromise & multi-agent propagation)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) (~30 min)
-- [SPIFFE — Deploying a Federated SPIRE Architecture (cross-trust-domain, the federation walkthrough)](https://spiffe.io/docs/latest/architecture/federation/readme/) (~20 min)
+- [OWASP LLM01 — Indirect Prompt Injection (the poisoned-input vector agents relay)](https://genai.owasp.org/llmrisk/llm01-prompt-injection/#indirect-prompt-injections) `[depth]` (~15 min)
+- [OWASP Agentic AI — Threats and Mitigations (agent compromise & multi-agent propagation)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) `[depth]` (~30 min)
+- [SPIFFE — Deploying a Federated SPIRE Architecture (cross-trust-domain, the federation walkthrough)](https://spiffe.io/docs/latest/architecture/federation/readme/) `[depth]` (~20 min)
 
 ## Related
 - Sibling subsections: [d6-action-gating.md](d6-action-gating.md) (B's `interrupt()` approval gate for consequential actions), [d6-validate.md](d6-validate.md) (red-team the multi-agent trust — prove the cascade is blocked), and identity groundwork in [d6-identity.md](d6-identity.md) (`agent-workload` SVIDs, `agent-deleg` tokens).

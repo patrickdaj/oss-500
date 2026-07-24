@@ -40,12 +40,12 @@ Exam gotchas:
 - `$HOME_NET`/`$EXTERNAL_NET` are variables in `suricata.yaml` — a misconfigured `$HOME_NET` makes directional rules (`->`) match nothing. A frequent "my rule never fires" root cause alongside a stale ruleset.
 
 **Resources:**
-- [Suricata — what is Suricata / features](https://docs.suricata.io/en/latest/what-is-suricata.html) (~10 min)
-- [Suricata rules format & intro](https://docs.suricata.io/en/latest/rules/intro.html) (~20 min)
-- [suricata-update — rule management](https://docs.suricata.io/en/latest/rule-management/suricata-update.html) (~15 min)
-- [EVE JSON output format](https://docs.suricata.io/en/latest/output/eve/eve-json-output.html) (~15 min)
-- [Suricata IPS/inline setup (NFQUEUE/nftables)](https://docs.suricata.io/en/latest/setup-guides/nftables.html) (~15 min)
-- [Azure Firewall Premium IDPS](https://learn.microsoft.com/en-us/azure/firewall/premium-features#idps) (~10 min)
+- [Suricata — what is Suricata / features](https://docs.suricata.io/en/latest/what-is-suricata.html) `[depth]` (~10 min)
+- [Suricata rules format & intro](https://docs.suricata.io/en/latest/rules/intro.html) `[depth]` (~20 min)
+- [suricata-update — rule management](https://docs.suricata.io/en/latest/rule-management/suricata-update.html) `[depth]` (~15 min)
+- [EVE JSON output format](https://docs.suricata.io/en/latest/output/eve/eve-json-output.html) `[depth]` (~15 min)
+- [Suricata IPS/inline setup (NFQUEUE/nftables)](https://docs.suricata.io/en/latest/setup-guides/nftables.html) `[depth]` (~15 min)
+- [Azure Firewall Premium IDPS](https://learn.microsoft.com/en-us/azure/firewall/premium-features#idps) `[depth]` (~10 min)
 
 ## Analyze network behavior and produce protocol logs
 
@@ -81,12 +81,12 @@ Exam gotchas:
 - Zeek does **not capture full packets** by default — it distills packets into logs. "Retain full PCAP" is a separate capture concern (e.g. `Arkime`/`tcpdump`), not Zeek's default output.
 
 **Resources:**
-- [Zeek — about / overview](https://docs.zeek.org/en/master/about.html) (~10 min)
-- [Zeek log files reference](https://docs.zeek.org/en/master/logs/index.html) (~20 min)
-- [Zeek quickstart — monitoring HTTP/DNS](https://docs.zeek.org/en/master/quickstart.html) (~15 min)
-- [Zeek scripting basics](https://docs.zeek.org/en/master/scripting/basics.html) (~25 min)
-- [Zeek Intel Framework (IOC matching)](https://docs.zeek.org/en/master/frameworks/intel.html) (~15 min)
-- [MITRE ATT&CK — Command and Control tactic (TA0011)](https://attack.mitre.org/tactics/TA0011/) (~15 min)
+- [Zeek — about / overview](https://docs.zeek.org/en/master/about.html) `[depth]` (~10 min)
+- [Zeek log files reference](https://docs.zeek.org/en/master/logs/index.html) `[depth]` (~20 min)
+- [Zeek quickstart — monitoring HTTP/DNS](https://docs.zeek.org/en/master/quickstart.html) `[depth]` (~15 min)
+- [Zeek scripting basics](https://docs.zeek.org/en/master/scripting/basics.html) `[depth]` (~25 min)
+- [Zeek Intel Framework (IOC matching)](https://docs.zeek.org/en/master/frameworks/intel.html) `[depth]` (~15 min)
+- [MITRE ATT&CK — Command and Control tactic (TA0011)](https://attack.mitre.org/tactics/TA0011/) `[depth]` (~15 min)
 
 ## Summary
 | Objective | Takeaway |

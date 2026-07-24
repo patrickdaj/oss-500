@@ -50,12 +50,12 @@ Exam gotchas:
 - Encryption at rest is **not** encryption in transit — etcd peer/client TLS and the `net-mesh`/`net-ingress` TLS are separate controls; the exam tests that you can name which layer defends which threat.
 
 **Resources:**
-- [Encrypting confidential data at rest (Kubernetes)](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/) (~20 min)
-- [Using a KMS provider for data encryption](https://kubernetes.io/docs/tasks/administer-cluster/kms-provider/) (~15 min)
-- [KMS v2 improvements (Kubernetes blog)](https://kubernetes.io/blog/2023/05/16/kms-v2-moving-to-beta/) (~12 min)
-- [Vault transit datakey & envelope encryption](https://developer.hashicorp.com/vault/docs/secrets/transit#datakey) (~10 min)
-- [NIST SP 800-57 Part 1 — key management recommendations](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final) (~30 min, reference)
-- [LUKS / dm-crypt cryptsetup FAQ](https://gitlab.com/cryptsetup/cryptsetup/-/wikis/FrequentlyAskedQuestions) (~15 min, reference)
+- [Encrypting confidential data at rest (Kubernetes)](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/) `[required-for-lab]` (~20 min)
+- [Using a KMS provider for data encryption](https://kubernetes.io/docs/tasks/administer-cluster/kms-provider/) `[depth]` (~15 min)
+- [KMS v2 improvements (Kubernetes blog)](https://kubernetes.io/blog/2023/05/16/kms-v2-moving-to-beta/) `[depth]` (~12 min)
+- [Vault transit datakey & envelope encryption](https://developer.hashicorp.com/vault/docs/secrets/transit#datakey) `[depth]` (~10 min)
+- [NIST SP 800-57 Part 1 — key management recommendations](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final) `[depth]` (~30 min, reference)
+- [LUKS / dm-crypt cryptsetup FAQ](https://gitlab.com/cryptsetup/cryptsetup/-/wikis/FrequentlyAskedQuestions) `[depth]` (~15 min, reference)
 
 ## Scan repositories and images for plaintext secrets
 
@@ -96,12 +96,12 @@ Exam gotchas:
 - `trivy image` inspects **each layer** — a secret `COPY`'d in and later `rm`'d still lives in the earlier layer and is found; the fix is a multi-stage build or `--secret` mounts, not a later delete.
 
 **Resources:**
-- [Trivy secret scanning](https://trivy.dev/latest/docs/scanner/secret/) (~15 min)
-- [Gitleaks (GitHub, README + config)](https://github.com/gitleaks/gitleaks) (~15 min)
-- [Trivy CI/CD integration & exit codes](https://trivy.dev/latest/docs/configuration/) (~10 min)
-- [git filter-repo — removing sensitive data from history](https://github.com/newren/git-filter-repo) (~15 min)
-- [OWASP Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html) (~20 min)
-- [pre-commit framework — Quick start (install & configure hooks)](https://pre-commit.com/#quick-start) (~10 min)
+- [Trivy secret scanning](https://trivy.dev/latest/docs/scanner/secret/) `[depth]` (~15 min)
+- [Gitleaks (GitHub, README + config)](https://github.com/gitleaks/gitleaks) `[depth]` (~15 min)
+- [Trivy CI/CD integration & exit codes](https://trivy.dev/latest/docs/configuration/) `[depth]` (~10 min)
+- [git filter-repo — removing sensitive data from history](https://github.com/newren/git-filter-repo) `[depth]` (~15 min)
+- [OWASP Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html) `[depth]` (~20 min)
+- [pre-commit framework — Quick start (install & configure hooks)](https://pre-commit.com/#quick-start) `[depth]` (~10 min)
 
 ## Summary
 

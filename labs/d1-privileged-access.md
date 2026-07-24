@@ -16,7 +16,7 @@ Prove that privileged access is *just-in-time, recorded, and approval-gated* —
 - [`lab-infra/pam`](../lab-infra/pam/) up (`./up.sh`), roles applied and user `alice` created (commands printed by `up.sh`)
 - Notes read: [privileged-access.md](../domains/1-identity-governance/privileged-access.md)
 - Tools for this lab: `tsh`, `tctl` (Teleport client/admin) — install per [`../TOOLS.md`](../TOOLS.md).
-- `tsh` and `tctl` clients installed on the host ([Teleport installation](https://goteleport.com/docs/installation/))
+- `tsh` and `tctl` clients installed on the host ([Teleport installation](https://goteleport.com/docs/installation/)) `[depth]`
 
 **Estimated time**: 2–3 h · $0 (local)
 

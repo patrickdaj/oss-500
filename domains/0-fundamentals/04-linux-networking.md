@@ -72,8 +72,8 @@ Every cloud-network control in Domain 2 is one of these primitives, managed at s
 4. Which `ip` command shows the route a packet to a given destination would actually take, and why is the `0.0.0.0/0` route special?
 
 ## Primary sources
-- [ip-netns(8) — network namespaces](https://man7.org/linux/man-pages/man8/ip-netns.8.html)
-- [Linux Advanced Routing & Traffic Control (LARTC)](https://lartc.org/howto/)
-- [nftables / iptables NAT (netfilter.org)](https://wiki.nftables.org/wiki-nftables/index.php/Performing_Network_Address_Translation_(NAT))
-- [Julia Evans — "Networking! ACK!" zine](https://wizardzines.com/zines/networking/)
-- [A Container Networking Overview (from a pod's veth to the bridge)](https://labs.iximiuz.com/tutorials/container-networking-from-scratch)
+- [ip-netns(8) — network namespaces](https://man7.org/linux/man-pages/man8/ip-netns.8.html) `[depth]`
+- [Linux Advanced Routing & Traffic Control (LARTC)](https://lartc.org/howto/) `[depth]`
+- [nftables / iptables NAT (netfilter.org)](https://wiki.nftables.org/wiki-nftables/index.php/Performing_Network_Address_Translation_(NAT)) `[depth]`
+- [Julia Evans — "Networking! ACK!" zine](https://wizardzines.com/zines/networking/) `[depth]`
+- [A Container Networking Overview (from a pod's veth to the bridge)](https://labs.iximiuz.com/tutorials/container-networking-from-scratch) `[depth]`

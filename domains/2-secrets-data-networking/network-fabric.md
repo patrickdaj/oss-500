@@ -36,9 +36,9 @@ Exam gotchas:
 - Cilium enforces standard `NetworkPolicy` **and** its own richer `CiliumNetworkPolicy` (L7, FQDN, cluster-wide) — the extra L7/FQDN power is why the fabric lab uses Cilium where `net-policy` stays vanilla for portability.
 
 **Resources:**
-- [Cilium — Getting Started on kind](https://docs.cilium.io/en/stable/installation/kind/) (~20 min)
-- [Cilium concepts — Component Overview (agent, eBPF datapath)](https://docs.cilium.io/en/stable/overview/component-overview/) (~20 min)
-- [kubeProxyReplacement](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/) (~15 min)
+- [Cilium — Getting Started on kind](https://docs.cilium.io/en/stable/installation/kind/) `[depth]` (~20 min)
+- [Cilium concepts — Component Overview (agent, eBPF datapath)](https://docs.cilium.io/en/stable/overview/component-overview/) `[depth]` (~20 min)
+- [kubeProxyReplacement](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/) `[depth]` (~15 min)
 
 ## Pin a fixed egress IP with the Egress Gateway (NAT gateway)
 
@@ -73,9 +73,9 @@ Exam gotchas:
 - The gateway node is a single point — in the cloud a NAT gateway is zone-redundant; on kind it's one worker (fine for the lesson).
 
 **Resources:**
-- [Cilium Egress Gateway](https://docs.cilium.io/en/stable/network/egress-gateway/egress-gateway/) (~20 min)
-- [Azure NAT Gateway — what controlled egress buys you](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview) (~15 min)
-- [ATT&CK T1048 — Exfiltration Over Alternative Protocol](https://attack.mitre.org/techniques/T1048/) (~10 min, reference)
+- [Cilium Egress Gateway](https://docs.cilium.io/en/stable/network/egress-gateway/egress-gateway/) `[depth]` (~20 min)
+- [Azure NAT Gateway — what controlled egress buys you](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview) `[depth]` (~15 min)
+- [ATT&CK T1048 — Exfiltration Over Alternative Protocol](https://attack.mitre.org/techniques/T1048/) `[depth]` (~10 min, reference)
 
 ## Enforce DNS/FQDN egress rules + host firewall (Azure Firewall application rules)
 
@@ -111,9 +111,9 @@ Exam gotchas:
 - FQDN allow ≠ content inspection — it's L7 *names/ports*, not payloads. Deep inspection of the request body is the WAF's job (`waf-*`).
 
 **Resources:**
-- [Cilium DNS-based (FQDN) policies](https://docs.cilium.io/en/stable/security/policy/language/#dns-based) (~20 min)
-- [Cilium Host Firewall](https://docs.cilium.io/en/stable/security/host-firewall/) (~15 min)
-- [Azure Firewall application rules (FQDN filtering)](https://learn.microsoft.com/en-us/azure/firewall/features#application-fqdn-filtering-rules) (~15 min)
+- [Cilium DNS-based (FQDN) policies](https://docs.cilium.io/en/stable/security/policy/language/#dns-based) `[depth]` (~20 min)
+- [Cilium Host Firewall](https://docs.cilium.io/en/stable/security/host-firewall/) `[depth]` (~15 min)
+- [Azure Firewall application rules (FQDN filtering)](https://learn.microsoft.com/en-us/azure/firewall/features#application-fqdn-filtering-rules) `[depth]` (~15 min)
 
 ## See every flow with Hubble (NSG / VNet flow logs)
 
@@ -140,8 +140,8 @@ Exam gotchas:
 - Relay (`hubble-relay`) aggregates across nodes; without it `hubble observe` only sees the local node.
 
 **Resources:**
-- [Hubble — setup & observability](https://docs.cilium.io/en/stable/observability/hubble/) (~20 min)
-- [Azure NSG flow logs / VNet flow logs](https://learn.microsoft.com/en-us/azure/network-watcher/vnet-flow-logs-overview) (~15 min)
+- [Hubble — setup & observability](https://docs.cilium.io/en/stable/observability/hubble/) `[depth]` (~20 min)
+- [Azure NSG flow logs / VNet flow logs](https://learn.microsoft.com/en-us/azure/network-watcher/vnet-flow-logs-overview) `[depth]` (~15 min)
 
 ## Peer two clusters with Cluster Mesh (VNet peering / hub-spoke) — walkthrough
 
@@ -181,9 +181,9 @@ Exam gotchas:
 - It's `walkthrough` here purely for host headroom — the steps and the model are examined at full depth.
 
 **Resources:**
-- [Cilium Cluster Mesh — setup](https://docs.cilium.io/en/stable/network/clustermesh/clustermesh/) (~25 min)
-- [Cluster Mesh — global services & policy](https://docs.cilium.io/en/stable/network/clustermesh/services/) (~15 min)
-- [Azure VNet peering (hub-spoke reference)](https://learn.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke) (~20 min)
+- [Cilium Cluster Mesh — setup](https://docs.cilium.io/en/stable/network/clustermesh/clustermesh/) `[depth]` (~25 min)
+- [Cluster Mesh — global services & policy](https://docs.cilium.io/en/stable/network/clustermesh/services/) `[depth]` (~15 min)
+- [Azure VNet peering (hub-spoke reference)](https://learn.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke) `[depth]` (~20 min)
 
 ## Summary
 

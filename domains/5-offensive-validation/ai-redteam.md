@@ -30,7 +30,7 @@ The four steps are defined canonically in [`purple-team.md`](purple-team.md); he
 The migrated `modern-security-lab` work already ran **garak against Ollama** and captured real pass/fail output; that evidence is reused here as the baseline "undefended model" so the delta the guardrail adds is measurable (undefended vs. NeMo-fronted). Honesty rule: that run is *executed* evidence; anything you haven't run yourself is labeled *directions*.
 
 ## Standards
-Offense: OWASP LLM Top 10, MITRE ATLAS. Governance: **[NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)** *Measure* (you are measuring risk) and *Manage* (you remediate the gaps). Defensive counterpart: the D3 guardrail rails themselves.
+Offense: OWASP LLM Top 10, MITRE ATLAS. Governance: **[NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)** *Measure* (you are measuring risk) and *Manage* (you remediate the gaps). Defensive counterpart: the D3 guardrail rails themselves. `[depth]`
 
 ## Self-check
 1. Map a garak jailbreak pass to its OWASP-LLM id and ATLAS technique, and name the NeMo rail that should have caught it.

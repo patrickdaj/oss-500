@@ -107,9 +107,9 @@ Read the `plan` output before you type `yes` — that's the habit that matters w
 5. Write and apply the `first-apply` namespace exercise: what does `terraform plan` show for the `sensitive` variable, and what does `kubernetes_namespace.this.metadata[0].uid` in the `output` block let you read that the `resource` block alone doesn't?
 
 ## Primary sources
-- [Pro Git — Recording changes to the repository](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository) · [Branches in a nutshell](https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell) · [Working with remotes](https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes)
+- [Pro Git — Recording changes to the repository](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository) · [Branches in a nutshell](https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell) · [Working with remotes](https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes) `[depth]`
 - [git](https://git-scm.com/) (reference)
 - [OpenGitOps — Principles](https://opengitops.dev/) (reference)
-- [Terraform — The core workflow (write/plan/apply)](https://developer.hashicorp.com/terraform/intro/core-workflow) · [State](https://developer.hashicorp.com/terraform/language/state) · [State locking](https://developer.hashicorp.com/terraform/language/state/locking) · [Modules](https://developer.hashicorp.com/terraform/language/modules) · [Backends & remote state](https://developer.hashicorp.com/terraform/language/backend)
+- [Terraform — The core workflow (write/plan/apply)](https://developer.hashicorp.com/terraform/intro/core-workflow) · [State](https://developer.hashicorp.com/terraform/language/state) · [State locking](https://developer.hashicorp.com/terraform/language/state/locking) · [Modules](https://developer.hashicorp.com/terraform/language/modules) · [Backends & remote state](https://developer.hashicorp.com/terraform/language/backend) `[depth]`
 - [Terraform](https://developer.hashicorp.com/terraform) (reference)
 - [Terraform registry — `kubernetes_namespace` resource](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) (reference)

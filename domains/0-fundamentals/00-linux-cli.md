@@ -50,7 +50,7 @@ Everything downstream is a Linux abstraction: `securityContext` is UID/GID/capab
 4. What does it mean, in Linux terms, to say "a container is just a process"?
 
 ## Primary sources
-- [The Linux Command Line (Shotts) — free book](https://linuxcommand.org/tlcl.php)
-- [Linux Journey — "The Shell" lesson](https://linuxjourney.com/lesson/the-shell) — interactive fundamentals
-- [Bash Reference Manual (GNU)](https://www.gnu.org/software/bash/manual/bash.html)
-- [man7.org — Linux man pages](https://man7.org/linux/man-pages/)
+- [The Linux Command Line (Shotts) — free book](https://linuxcommand.org/tlcl.php) `[depth]`
+- [Linux Journey — "The Shell" lesson](https://linuxjourney.com/lesson/the-shell) — interactive fundamentals `[depth]`
+- [Bash Reference Manual (GNU)](https://www.gnu.org/software/bash/manual/bash.html) `[depth]`
+- [man7.org — Linux man pages](https://man7.org/linux/man-pages/) `[depth]`

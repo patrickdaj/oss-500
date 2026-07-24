@@ -78,9 +78,9 @@ Every mechanism above is a load-bearing wall under a specific `ai-security.md` o
 
 ## Primary sources
 
-- [Hugging Face — Byte-Pair Encoding tokenization](https://huggingface.co/learn/nlp-course/en/chapter6/5) (~15 min)
-- [OpenAI — Tokenizer (interactive)](https://platform.openai.com/tokenizer) (~10 min, hands-on)
-- [OWASP Top 10 for LLM Applications (2025)](https://genai.owasp.org/llm-top-10/) (~30 min — intro section defines context window/prompt roles before the risks)
-- [OpenAI — Embeddings guide](https://platform.openai.com/docs/guides/embeddings) (~15 min)
-- [Pinecone — What is a vector database?](https://www.pinecone.io/learn/vector-database/) (~15 min)
-- [NVIDIA — What is retrieval-augmented generation?](https://blogs.nvidia.com/blog/what-is-retrieval-augmented-generation/) (~10 min)
+- [Hugging Face — Byte-Pair Encoding tokenization](https://huggingface.co/learn/nlp-course/en/chapter6/5) `[depth]` (~15 min)
+- [OpenAI — Tokenizer (interactive)](https://platform.openai.com/tokenizer) `[depth]` (~10 min, hands-on)
+- [OWASP Top 10 for LLM Applications (2025)](https://genai.owasp.org/llm-top-10/) `[depth]` (~30 min — intro section defines context window/prompt roles before the risks)
+- [OpenAI — Embeddings guide](https://platform.openai.com/docs/guides/embeddings) `[depth]` (~15 min)
+- [Pinecone — What is a vector database?](https://www.pinecone.io/learn/vector-database/) `[depth]` (~15 min)
+- [NVIDIA — What is retrieval-augmented generation?](https://blogs.nvidia.com/blog/what-is-retrieval-augmented-generation/) `[depth]` (~10 min)

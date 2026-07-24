@@ -1,9 +1,13 @@
-// Link-specificity lint for OSS-500 content (the `resource-citation` standard).
+// Link-specificity and necessity-tag lint for OSS-500 content (the
+// `resource-citation` standard).
 //
 // Fails when a Markdown link in `domains/**` or `labs/**` points at a generic
 // target — a host-only URL or a known documentation-root / landing-page pattern —
-// UNLESS the link's line is marked `(reference)`. See the "How resources are cited"
-// section of domains/standards-map.md for the standard this enforces.
+// UNLESS the link's line is marked `(reference)`. Separately fails when a
+// learning link carries no necessity tag (`[required-for-lab]` /
+// `[required-for-quiz]` / `[depth]`) and no `(reference)` marker. See the
+// "How resources are cited" section of domains/standards-map.md for the
+// standard this enforces.
 //
 // Standalone: from the repo root run `node scripts/lint-links.mjs`.
 // Mirrored in study-hub's scripts/lint-content.mjs so `npm run lint:content` catches
@@ -18,6 +22,11 @@ const ROOTS = ['domains', 'labs']
 // A link line carrying this marker is an intentional canonical/navigational
 // reference (a tool home, framework site, spec URL) and is exempt.
 const REFERENCE = /\(reference(\s*[—-][^)]*)?\)/
+
+// A necessity tag ranks *whether* a learning link must be read, not what it
+// says — one of required-for-lab / required-for-quiz / depth. See "How
+// resources are cited" in domains/standards-map.md.
+const NECESSITY = /`\[(required-for-lab|required-for-quiz|depth)\]`/
 
 // Markdown inline links: [text](url). Capture text + url.
 const LINK = /\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g
@@ -72,10 +81,12 @@ for (const r of ROOTS) {
     const lines = readFileSync(file, 'utf8').split('\n')
     lines.forEach((line, i) => {
       if (REFERENCE.test(line)) return // whole line is an exempt reference
+      const hasNecessityTag = NECESSITY.test(line)
       for (const m of line.matchAll(LINK)) {
         const [, text, url] = m
         const reason = isGeneric(url)
         if (reason) errors.push(`${rel}:${i + 1}: ${reason} — [${text}](${url}) — deep-link + name the section, or mark (reference)`)
+        if (!hasNecessityTag) errors.push(`${rel}:${i + 1}: missing necessity tag — [${text}](${url}) — tag \`[required-for-lab]\`, \`[required-for-quiz]\`, or \`[depth]\`, or mark (reference)`)
       }
     })
   }

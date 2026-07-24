@@ -30,9 +30,9 @@ The four steps are defined canonically in [`purple-team.md`](../5-offensive-vali
 Offense: OWASP Agentic AI — Threats & Mitigations (+ the emerging Agentic Top 10), MITRE ATLAS (`AML.T0051`/`AML.T0053`/`AML.T0057`). Governance: **NIST AI RMF** *Measure* (you are measuring agentic risk) and *Manage* (you remediate the gaps). Defensive counterpart: the D6 controls themselves.
 
 **Resources:**
-- [MITRE ATLAS — AML.T0053 AI Agent Tool Invocation (the agentic tool-abuse technique)](https://atlas.mitre.org/techniques/AML.T0053) (~10 min)
-- [MITRE ATLAS — AML.T0051 LLM Prompt Injection (direct/indirect/triggered)](https://atlas.mitre.org/techniques/AML.T0051) (~10 min)
-- [OWASP Agentic AI — Threats & Mitigations (the agentic threat taxonomy)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) (~30 min)
+- [MITRE ATLAS — AML.T0053 AI Agent Tool Invocation (the agentic tool-abuse technique)](https://atlas.mitre.org/techniques/AML.T0053) `[depth]` (~10 min)
+- [MITRE ATLAS — AML.T0051 LLM Prompt Injection (direct/indirect/triggered)](https://atlas.mitre.org/techniques/AML.T0051) `[depth]` (~10 min)
+- [OWASP Agentic AI — Threats & Mitigations (the agentic threat taxonomy)](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/) `[depth]` (~30 min)
 - [garak — LLM/agent vulnerability scanner: injection & leakage probes](https://github.com/NVIDIA/garak) (reference) — start from the shipped [`lab-infra/offense/localhost-ollama.json`](../../lab-infra/offense/localhost-ollama.json) instead of authoring the REST generator config from scratch
 - [Microsoft PyRIT — multi-turn attack orchestration](https://github.com/Azure/PyRIT) (reference) — start from the shipped [`lab-infra/offense/pyrit_multiturn.py`](../../lab-infra/offense/pyrit_multiturn.py) instead of an empty file
 - [NIST AI Risk Management Framework — Measure & Manage functions](https://www.nist.gov/itl/ai-risk-management-framework) (reference)

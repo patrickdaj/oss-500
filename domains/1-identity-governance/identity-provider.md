@@ -30,11 +30,11 @@ Exam gotchas:
 - The **bootstrap admin** (env `KEYCLOAK_ADMIN`/`KC_BOOTSTRAP_ADMIN_USERNAME`) lives in the **master** realm and is a temporary break-glass account; leaving the default `admin`/`admin` credentials or the bootstrap admin enabled in a running system is the Keycloak echo of an un-rotated Global Admin. Create a per-admin account and disable the bootstrap one.
 
 **Resources:**
-- [Keycloak Server Administration Guide — realms, users, groups](https://www.keycloak.org/docs/latest/server_admin/index.html) (~30 min)
-- [Configuring Keycloak for production](https://www.keycloak.org/server/configuration-production) (~15 min)
-- [Keycloak — Configuring the hostname (issuer URL / trust)](https://www.keycloak.org/server/hostname) (~15 min)
-- [Keycloak — Configuring the database (Postgres for prod)](https://www.keycloak.org/server/db) (~10 min)
-- [Keycloak — Getting started on Kubernetes](https://www.keycloak.org/getting-started/getting-started-kube) (~20 min)
+- [Keycloak Server Administration Guide — realms, users, groups](https://www.keycloak.org/docs/latest/server_admin/index.html) `[depth]` (~30 min)
+- [Configuring Keycloak for production](https://www.keycloak.org/server/configuration-production) `[depth]` (~15 min)
+- [Keycloak — Configuring the hostname (issuer URL / trust)](https://www.keycloak.org/server/hostname) `[depth]` (~15 min)
+- [Keycloak — Configuring the database (Postgres for prod)](https://www.keycloak.org/server/db) `[depth]` (~10 min)
+- [Keycloak — Getting started on Kubernetes](https://www.keycloak.org/getting-started/getting-started-kube) `[depth]` (~20 min)
 
 ## Configure authentication methods, including MFA, OTP, and WebAuthn passwordless
 
@@ -64,11 +64,11 @@ Exam gotchas:
 - **`ALTERNATIVE` vs `REQUIRED` in a flow**: passwordless is added as an `ALTERNATIVE` to username/password (either one logs you in), whereas a second factor is `REQUIRED` (both password *and* OTP). Confusing the two either weakens login (OTP becomes optional) or breaks passwordless (it demands a password too).
 
 **Resources:**
-- [Keycloak — Configuring authentication (flows, executions, requirements)](https://www.keycloak.org/docs/latest/server_admin/index.html#configuring-authentication) (~25 min)
-- [Keycloak — WebAuthn and passwordless](https://www.keycloak.org/docs/latest/server_admin/index.html#_webauthn) (~15 min)
-- [NIST SP 800-63B — Authentication & authenticator assurance levels (AAL)](https://pages.nist.gov/800-63-3/sp800-63b.html) (~30 min)
-- [OWASP — Multifactor Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html) (~15 min)
-- [WebAuthn Guide — The WebAuthn API (how FIDO2/WebAuthn works)](https://webauthn.guide/#webauthn-api) (~15 min)
+- [Keycloak — Configuring authentication (flows, executions, requirements)](https://www.keycloak.org/docs/latest/server_admin/index.html#configuring-authentication) `[depth]` (~25 min)
+- [Keycloak — WebAuthn and passwordless](https://www.keycloak.org/docs/latest/server_admin/index.html#_webauthn) `[depth]` (~15 min)
+- [NIST SP 800-63B — Authentication & authenticator assurance levels (AAL)](https://pages.nist.gov/800-63-3/sp800-63b.html) `[depth]` (~30 min)
+- [OWASP — Multifactor Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html) `[depth]` (~15 min)
+- [WebAuthn Guide — The WebAuthn API (how FIDO2/WebAuthn works)](https://webauthn.guide/#webauthn-api) `[depth]` (~15 min)
 
 ## Implement conditional access via authentication flows and authorization policies
 
@@ -95,11 +95,11 @@ Exam gotchas:
 - **`acr`/step-up is claim-driven**: after a step-up subflow forces MFA, the token carries a higher `acr` (authentication context class reference) value; a resource server that doesn't *check* `acr` gains nothing from the step-up. Entra expresses the same idea with authentication-context CA policies.
 
 **Resources:**
-- [Keycloak Authorization Services Guide](https://www.keycloak.org/docs/latest/authorization_services/index.html) (~30 min)
-- [Keycloak — Conditions in authentication flows](https://www.keycloak.org/docs/latest/server_admin/index.html#_conditional-flows) (~10 min)
-- [Keycloak — Policy overview (RBAC/ABAC/time/JS policies)](https://www.keycloak.org/docs/latest/authorization_services/index.html#_policy_overview) (~15 min)
-- [Microsoft Learn — Conditional Access overview (the SC-500 control)](https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview) (~15 min)
-- [OWASP — Authorization Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html) (~15 min)
+- [Keycloak Authorization Services Guide](https://www.keycloak.org/docs/latest/authorization_services/index.html) `[depth]` (~30 min)
+- [Keycloak — Conditions in authentication flows](https://www.keycloak.org/docs/latest/server_admin/index.html#_conditional-flows) `[depth]` (~10 min)
+- [Keycloak — Policy overview (RBAC/ABAC/time/JS policies)](https://www.keycloak.org/docs/latest/authorization_services/index.html#_policy_overview) `[depth]` (~15 min)
+- [Microsoft Learn — Conditional Access overview (the SC-500 control)](https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview) `[depth]` (~15 min)
+- [OWASP — Authorization Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html) `[depth]` (~15 min)
 
 ## Configure identity for applications: OIDC clients, service accounts, and scopes
 
@@ -132,11 +132,11 @@ Exam gotchas:
 - **Confidential clients should prefer keypair (JWT/private-key-jwt) over a shared secret** where possible — the same "certificate over client secret" hardening as an Entra app credential; a long-lived, never-rotated client secret is the classic finding.
 
 **Resources:**
-- [Keycloak — Managing OIDC clients](https://www.keycloak.org/docs/latest/server_admin/index.html#_oidc_clients) (~20 min)
-- [Keycloak — Service accounts](https://www.keycloak.org/docs/latest/server_admin/index.html#_service_accounts) (~10 min)
-- [RFC 9700 — Best Current Practice for OAuth 2.0 Security](https://datatracker.ietf.org/doc/html/rfc9700) (~30 min)
-- [RFC 7636 — PKCE for OAuth public clients](https://datatracker.ietf.org/doc/html/rfc7636) (~15 min)
-- [Microsoft Learn — App registrations vs service principals](https://learn.microsoft.com/en-us/entra/identity-platform/app-objects-and-service-principals) (~15 min)
+- [Keycloak — Managing OIDC clients](https://www.keycloak.org/docs/latest/server_admin/index.html#_oidc_clients) `[depth]` (~20 min)
+- [Keycloak — Service accounts](https://www.keycloak.org/docs/latest/server_admin/index.html#_service_accounts) `[depth]` (~10 min)
+- [RFC 9700 — Best Current Practice for OAuth 2.0 Security](https://datatracker.ietf.org/doc/html/rfc9700) `[depth]` (~30 min)
+- [RFC 7636 — PKCE for OAuth public clients](https://datatracker.ietf.org/doc/html/rfc7636) `[depth]` (~15 min)
+- [Microsoft Learn — App registrations vs service principals](https://learn.microsoft.com/en-us/entra/identity-platform/app-objects-and-service-principals) `[depth]` (~15 min)
 
 ## Configure identity federation and brokering across SAML/OIDC providers
 
@@ -166,11 +166,11 @@ Exam gotchas:
 - **Account-linking hijack**: if the First Login Flow auto-links a brokered identity to a local account by an *unverified* email, an attacker who controls that email at the upstream IdP can take over the local account — require verified email or explicit linking, the federation twin of Entra's email-verified-domain requirement.
 
 **Resources:**
-- [Keycloak — Identity brokering](https://www.keycloak.org/docs/latest/server_admin/index.html#_identity_broker) (~25 min)
-- [Keycloak — Integrating identity providers (OIDC/SAML)](https://www.keycloak.org/docs/latest/server_admin/index.html#_general-idp-config) (~15 min)
-- [Keycloak — User federation (LDAP/Kerberos) — the *other* kind of federation](https://www.keycloak.org/docs/latest/server_admin/index.html#_user-storage-federation) (~15 min)
-- [Microsoft Learn — What is B2B collaboration in Entra External ID](https://learn.microsoft.com/en-us/entra/external-id/what-is-b2b) (~15 min)
-- [OWASP — SAML Security Cheat Sheet (signed assertions, XSW)](https://cheatsheetseries.owasp.org/cheatsheets/SAML_Security_Cheat_Sheet.html) (~15 min)
+- [Keycloak — Identity brokering](https://www.keycloak.org/docs/latest/server_admin/index.html#_identity_broker) `[depth]` (~25 min)
+- [Keycloak — Integrating identity providers (OIDC/SAML)](https://www.keycloak.org/docs/latest/server_admin/index.html#_general-idp-config) `[depth]` (~15 min)
+- [Keycloak — User federation (LDAP/Kerberos) — the *other* kind of federation](https://www.keycloak.org/docs/latest/server_admin/index.html#_user-storage-federation) `[depth]` (~15 min)
+- [Microsoft Learn — What is B2B collaboration in Entra External ID](https://learn.microsoft.com/en-us/entra/external-id/what-is-b2b) `[depth]` (~15 min)
+- [OWASP — SAML Security Cheat Sheet (signed assertions, XSW)](https://cheatsheetseries.owasp.org/cheatsheets/SAML_Security_Cheat_Sheet.html) `[depth]` (~15 min)
 
 ## Manage OAuth scopes, client scopes, and consent
 
@@ -199,11 +199,11 @@ Exam gotchas:
 - **Admin-consent equivalent**: some scopes shouldn't be user-consentable at all. In Entra that's "admin consent required"; in Keycloak you keep such scopes out of clients users can freely authorize and gate them behind admin-managed client configuration — the guardrail against consent-phishing to high-privilege scopes.
 
 **Resources:**
-- [Keycloak — Client scopes and protocol mappers](https://www.keycloak.org/docs/latest/server_admin/index.html#_client_scopes) (~20 min)
-- [Keycloak — Managing consent for clients](https://www.keycloak.org/docs/latest/server_admin/index.html#_consent) (~10 min)
-- [RFC 6749 §3.3 — Access token scope](https://datatracker.ietf.org/doc/html/rfc6749#section-3.3) (~10 min)
-- [Microsoft Learn — Consent and permissions overview](https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview) (~15 min)
-- [Microsoft — Incident response playbook: app consent grant (illicit consent)](https://learn.microsoft.com/en-us/security/operations/incident-response-playbook-app-consent) (~20 min)
+- [Keycloak — Client scopes and protocol mappers](https://www.keycloak.org/docs/latest/server_admin/index.html#_client_scopes) `[depth]` (~20 min)
+- [Keycloak — Managing consent for clients](https://www.keycloak.org/docs/latest/server_admin/index.html#_consent) `[depth]` (~10 min)
+- [RFC 6749 §3.3 — Access token scope](https://datatracker.ietf.org/doc/html/rfc6749#section-3.3) `[depth]` (~10 min)
+- [Microsoft Learn — Consent and permissions overview](https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview) `[depth]` (~15 min)
+- [Microsoft — Incident response playbook: app consent grant (illicit consent)](https://learn.microsoft.com/en-us/security/operations/incident-response-playbook-app-consent) `[depth]` (~20 min)
 
 ## Summary
 

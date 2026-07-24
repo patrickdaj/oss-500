@@ -36,11 +36,11 @@ Exam gotchas:
 - The operator only picks up a `ServiceMonitor` whose labels match its `serviceMonitorSelector` — a target "not scraping" is usually a label-selector mismatch, not a network problem.
 
 **Resources:**
-- [Prometheus overview](https://prometheus.io/docs/introduction/overview/) (~15 min)
-- [Querying basics (PromQL)](https://prometheus.io/docs/prometheus/latest/querying/basics/) (~20 min)
-- [PromQL operators & aggregation](https://prometheus.io/docs/prometheus/latest/querying/operators/) (~15 min)
-- [Prometheus Operator ServiceMonitor design](https://prometheus-operator.dev/docs/getting-started/design/#servicemonitor) (~15 min)
-- [Azure Monitor managed Prometheus overview](https://learn.microsoft.com/en-us/azure/azure-monitor/metrics/prometheus-metrics-overview) (~15 min)
+- [Prometheus overview](https://prometheus.io/docs/introduction/overview/) `[depth]` (~15 min)
+- [Querying basics (PromQL)](https://prometheus.io/docs/prometheus/latest/querying/basics/) `[required-for-lab]` (~20 min)
+- [PromQL operators & aggregation](https://prometheus.io/docs/prometheus/latest/querying/operators/) `[depth]` (~15 min)
+- [Prometheus Operator ServiceMonitor design](https://prometheus-operator.dev/docs/getting-started/design/#servicemonitor) `[depth]` (~15 min)
+- [Azure Monitor managed Prometheus overview](https://learn.microsoft.com/en-us/azure/azure-monitor/metrics/prometheus-metrics-overview) `[depth]` (~15 min)
 
 ## Aggregate and query logs
 
@@ -71,11 +71,11 @@ Exam gotchas:
 - Promtail is being superseded by **Grafana Alloy** (the OTel-collector-based agent); recognize both as the shipper, distinct from Loki the store.
 
 **Resources:**
-- [Loki fundamentals & architecture](https://grafana.com/docs/loki/latest/get-started/architecture/) (~15 min)
-- [LogQL log query language](https://grafana.com/docs/loki/latest/query/) (~20 min)
-- [LogQL metric queries (rate/count_over_time)](https://grafana.com/docs/loki/latest/query/metric_queries/) (~15 min)
-- [Loki labels — best practices & cardinality](https://grafana.com/docs/loki/latest/get-started/labels/) (~15 min)
-- [Grafana Alloy (collector) overview](https://grafana.com/docs/alloy/latest/introduction/) (~10 min)
+- [Loki fundamentals & architecture](https://grafana.com/docs/loki/latest/get-started/architecture/) `[depth]` (~15 min)
+- [LogQL log query language](https://grafana.com/docs/loki/latest/query/) `[depth]` (~20 min)
+- [LogQL metric queries (rate/count_over_time)](https://grafana.com/docs/loki/latest/query/metric_queries/) `[depth]` (~15 min)
+- [Loki labels — best practices & cardinality](https://grafana.com/docs/loki/latest/get-started/labels/) `[depth]` (~15 min)
+- [Grafana Alloy (collector) overview](https://grafana.com/docs/alloy/latest/introduction/) `[depth]` (~10 min)
 
 ## Capture distributed traces
 
@@ -106,11 +106,11 @@ Exam gotchas:
 - OTel is **vendor-neutral** — the same instrumentation exports to Tempo, Jaeger, or Application Insights by swapping an exporter, which is the whole point of "instrument once."
 
 **Resources:**
-- [OpenTelemetry — what is OpenTelemetry](https://opentelemetry.io/docs/what-is-opentelemetry/) (~15 min)
-- [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) (~15 min)
-- [OpenTelemetry sampling (head vs tail)](https://opentelemetry.io/docs/concepts/sampling/) (~15 min)
-- [Grafana Tempo introduction](https://grafana.com/docs/tempo/latest/introduction/) (~15 min)
-- [Enable Azure Monitor OpenTelemetry (App Insights)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable) (~15 min)
+- [OpenTelemetry — what is OpenTelemetry](https://opentelemetry.io/docs/what-is-opentelemetry/) `[depth]` (~15 min)
+- [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) `[depth]` (~15 min)
+- [OpenTelemetry sampling (head vs tail)](https://opentelemetry.io/docs/concepts/sampling/) `[depth]` (~15 min)
+- [Grafana Tempo introduction](https://grafana.com/docs/tempo/latest/introduction/) `[depth]` (~15 min)
+- [Enable Azure Monitor OpenTelemetry (App Insights)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable) `[depth]` (~15 min)
 
 ## Build monitoring dashboards
 
@@ -141,10 +141,10 @@ Exam gotchas:
 - **Template/dashboard variables** scope a shared dashboard to a namespace/pod/env; recognize them as the reuse mechanism, distinct from data sources (the backend connections).
 
 **Resources:**
-- [Grafana — introduction / what it is](https://grafana.com/docs/grafana/latest/introduction/) (~10 min)
-- [Grafana dashboards — build your first](https://grafana.com/docs/grafana/latest/getting-started/build-first-dashboard/) (~20 min)
-- [Grafana provisioning (dashboards/datasources as code)](https://grafana.com/docs/grafana/latest/administration/provisioning/) (~15 min)
-- [Grafana data source management](https://grafana.com/docs/grafana/latest/administration/data-source-management/) (~10 min)
+- [Grafana — introduction / what it is](https://grafana.com/docs/grafana/latest/introduction/) `[depth]` (~10 min)
+- [Grafana dashboards — build your first](https://grafana.com/docs/grafana/latest/getting-started/build-first-dashboard/) `[depth]` (~20 min)
+- [Grafana provisioning (dashboards/datasources as code)](https://grafana.com/docs/grafana/latest/administration/provisioning/) `[depth]` (~15 min)
+- [Grafana data source management](https://grafana.com/docs/grafana/latest/administration/data-source-management/) `[depth]` (~10 min)
 
 ## Define alerting rules and routing
 
@@ -188,11 +188,11 @@ Exam gotchas:
 - Prefer **symptom-based, SLO-driven** alerts (user-visible impact) over cause-based noise — alert on the error-rate the user feels, not every underlying blip. This is the Google SRE alerting philosophy the exam echoes.
 
 **Resources:**
-- [Alertmanager overview](https://prometheus.io/docs/alerting/latest/alertmanager/) (~15 min)
-- [Alerting/recording rules](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/) (~15 min)
-- [Alertmanager configuration (routing/inhibition)](https://prometheus.io/docs/alerting/latest/configuration/) (~20 min)
-- [Prometheus alerting best practices](https://prometheus.io/docs/practices/alerting/) (~10 min)
-- [Google SRE Workbook — alerting on SLOs](https://sre.google/workbook/alerting-on-slos/) (~25 min)
+- [Alertmanager overview](https://prometheus.io/docs/alerting/latest/alertmanager/) `[depth]` (~15 min)
+- [Alerting/recording rules](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/) `[depth]` (~15 min)
+- [Alertmanager configuration (routing/inhibition)](https://prometheus.io/docs/alerting/latest/configuration/) `[depth]` (~20 min)
+- [Prometheus alerting best practices](https://prometheus.io/docs/practices/alerting/) `[depth]` (~10 min)
+- [Google SRE Workbook — alerting on SLOs](https://sre.google/workbook/alerting-on-slos/) `[depth]` (~25 min)
 
 ## Summary
 | Objective | Takeaway |

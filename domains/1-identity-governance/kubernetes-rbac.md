@@ -52,11 +52,11 @@ Exam gotchas:
 - **RBAC authorizes API verbs, not arbitrary actions**: some powers (e.g. `exec`/`attach`/`port-forward`) map to subresources (`pods/exec`) you must name explicitly; granting `pods` alone does *not* grant `pods/exec`.
 
 **Resources:**
-- [Kubernetes — Using RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) (~30 min)
-- [Kubernetes — Default roles and role bindings](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#default-roles-and-role-bindings) (~15 min)
-- [Kubernetes — Authorization overview (the authorizer chain, `can-i`)](https://kubernetes.io/docs/reference/access-authn-authz/authorization/) (~15 min)
-- [CIS Kubernetes Benchmark (RBAC & access-control controls)](https://www.cisecurity.org/benchmark/kubernetes) (~20 min)
-- [Microsoft Learn — Azure RBAC overview (the SC-500 mapping)](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview) (~15 min)
+- [Kubernetes — Using RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) `[depth]` (~30 min)
+- [Kubernetes — Default roles and role bindings](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#default-roles-and-role-bindings) `[depth]` (~15 min)
+- [Kubernetes — Authorization overview (the authorizer chain, `can-i`)](https://kubernetes.io/docs/reference/access-authn-authz/authorization/) `[depth]` (~15 min)
+- [CIS Kubernetes Benchmark (RBAC & access-control controls)](https://www.cisecurity.org/benchmark/kubernetes) `[depth]` (~20 min)
+- [Microsoft Learn — Azure RBAC overview (the SC-500 mapping)](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview) `[depth]` (~15 min)
 
 ## Apply least-privilege and separate duties across subjects
 
@@ -89,11 +89,11 @@ Exam gotchas:
 - **Least privilege is layered, not just RBAC**: the `create pods`→SA-takeover path is only closed when **Pod Security admission** (or a policy engine) also restricts what those pods can do; RBAC alone can't stop a permitted pod from running privileged. Pair `d1-k8s-rbac` with `d1-governance`.
 
 **Resources:**
-- [Kubernetes — RBAC good practices](https://kubernetes.io/docs/concepts/security/rbac-good-practices/) (~20 min)
-- [Kubernetes — Privilege escalation prevention (escalate/bind)](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping) (~10 min)
-- [Kubernetes — Security checklist](https://kubernetes.io/docs/concepts/security/security-checklist/) (~15 min)
-- [Kubernetes — Pod Security Standards (restricting what a pod can do)](https://kubernetes.io/docs/concepts/security/pod-security-standards/) (~15 min)
-- [OWASP — Kubernetes Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Kubernetes_Security_Cheat_Sheet.html) (~20 min)
+- [Kubernetes — RBAC good practices](https://kubernetes.io/docs/concepts/security/rbac-good-practices/) `[depth]` (~20 min)
+- [Kubernetes — Privilege escalation prevention (escalate/bind)](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping) `[depth]` (~10 min)
+- [Kubernetes — Security checklist](https://kubernetes.io/docs/concepts/security/security-checklist/) `[depth]` (~15 min)
+- [Kubernetes — Pod Security Standards (restricting what a pod can do)](https://kubernetes.io/docs/concepts/security/pod-security-standards/) `[depth]` (~15 min)
+- [OWASP — Kubernetes Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Kubernetes_Security_Cheat_Sheet.html) `[depth]` (~20 min)
 
 ## Audit RBAC to find over-permissioned subjects and risky bindings
 
@@ -125,11 +125,11 @@ Exam gotchas:
 - **Audit must include ServiceAccounts, not just humans**: most over-privilege in a cluster is a workload SA with a stale ClusterRoleBinding, the direct analogue of an orphaned service-principal role assignment an access review should catch.
 
 **Resources:**
-- [rbac-tool (alcideio) — analysis, who-can, viz](https://github.com/alcideio/rbac-tool) (~15 min)
-- [kubectl-who-can (Aqua Security)](https://github.com/aquasecurity/kubectl-who-can) (~10 min)
-- [KubiScan (CyberArk) — find risky roles/bindings & escalation paths](https://github.com/cyberark/KubiScan) (~15 min)
-- [Kubernetes — Checking API access (`kubectl auth can-i`)](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access) (~10 min)
-- [Microsoft Learn — Access reviews (the SC-500 recertification control)](https://learn.microsoft.com/en-us/entra/id-governance/access-reviews-overview) (~15 min)
+- [rbac-tool (alcideio) — analysis, who-can, viz](https://github.com/alcideio/rbac-tool) `[depth]` (~15 min)
+- [kubectl-who-can (Aqua Security)](https://github.com/aquasecurity/kubectl-who-can) `[depth]` (~10 min)
+- [KubiScan (CyberArk) — find risky roles/bindings & escalation paths](https://github.com/cyberark/KubiScan) `[depth]` (~15 min)
+- [Kubernetes — Checking API access (`kubectl auth can-i`)](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access) `[depth]` (~10 min)
+- [Microsoft Learn — Access reviews (the SC-500 recertification control)](https://learn.microsoft.com/en-us/entra/id-governance/access-reviews-overview) `[depth]` (~15 min)
 
 ## Summary
 

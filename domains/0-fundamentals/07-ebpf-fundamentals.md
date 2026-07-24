@@ -47,8 +47,8 @@ Historically, an eBPF program had to be compiled against the exact target kernel
 4. What does BTF give a CO-RE-compiled eBPF program that a program compiled against one kernel's headers doesn't have?
 
 ## Primary sources
-- [Linux kernel docs — BPF Verifier](https://docs.kernel.org/bpf/verifier.html) (~15 min)
-- [Linux kernel docs — Kprobe-based Event Tracing](https://docs.kernel.org/trace/kprobes.html) (~10 min)
-- [Linux kernel docs — BPF LSM](https://docs.kernel.org/bpf/prog_lsm.html) (~15 min)
-- [Andrii Nakryiko — BPF CO-RE Reference Guide](https://nakryiko.com/posts/bpf-core-reference-guide/) (~20 min)
+- [Linux kernel docs — BPF Verifier](https://docs.kernel.org/bpf/verifier.html) `[depth]` (~15 min)
+- [Linux kernel docs — Kprobe-based Event Tracing](https://docs.kernel.org/trace/kprobes.html) `[depth]` (~10 min)
+- [Linux kernel docs — BPF LSM](https://docs.kernel.org/bpf/prog_lsm.html) `[depth]` (~15 min)
+- [Andrii Nakryiko — BPF CO-RE Reference Guide](https://nakryiko.com/posts/bpf-core-reference-guide/) `[depth]` (~20 min)
 - [eBPF.io — What is eBPF?](https://ebpf.io/what-is-ebpf/) (reference) — broader introduction and ecosystem tour beyond what this primer covers

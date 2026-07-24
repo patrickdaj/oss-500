@@ -53,11 +53,11 @@ Exam gotchas:
 - A WAF is compensating, not curative — it reduces exposure to the **OWASP Top 10** but doesn't fix the vulnerable code; the exam frames it as defense-in-depth alongside secure SDLC, not a replacement.
 
 **Resources:**
-- [ingress-nginx ModSecurity guide](https://kubernetes.github.io/ingress-nginx/user-guide/third-party-addons/modsecurity/) (~15 min)
-- [OWASP ModSecurity v3 engine (GitHub)](https://github.com/owasp-modsecurity/ModSecurity) (~15 min)
-- [ModSecurity Reference Manual (v3.x) — processing phases & SecRuleEngine](https://github.com/owasp-modsecurity/ModSecurity/wiki/Reference-Manual-(v3.x)) (~25 min)
-- [OWASP Top 10 (2021)](https://owasp.org/www-project-top-ten/) (~20 min)
-- [Azure WAF Detection vs Prevention mode (concept parallel)](https://learn.microsoft.com/azure/web-application-firewall/ag/ag-overview) (~10 min)
+- [ingress-nginx ModSecurity guide](https://kubernetes.github.io/ingress-nginx/user-guide/third-party-addons/modsecurity/) `[depth]` (~15 min)
+- [OWASP ModSecurity v3 engine (GitHub)](https://github.com/owasp-modsecurity/ModSecurity) `[depth]` (~15 min)
+- [ModSecurity Reference Manual (v3.x) — processing phases & SecRuleEngine](https://github.com/owasp-modsecurity/ModSecurity/wiki/Reference-Manual-(v3.x)) `[required-for-lab]` (~25 min)
+- [OWASP Top 10 (2021)](https://owasp.org/www-project-top-ten/) `[depth]` (~20 min)
+- [Azure WAF Detection vs Prevention mode (concept parallel)](https://learn.microsoft.com/azure/web-application-firewall/ag/ag-overview) `[depth]` (~10 min)
 
 ## Configure and tune OWASP Core Rule Set rules and paranoia levels
 
@@ -90,11 +90,11 @@ Exam gotchas:
 - **Custom rules** (an app-specific `SecRule` you author) evaluate *before/alongside* managed CRS rules — the exam contrasts writing your own rule with tuning the managed set; you reach for a custom rule only when CRS has no coverage.
 
 **Resources:**
-- [OWASP CRS docs — Getting Started (install & integrate CRS)](https://coreruleset.org/docs/1-getting-started/) (~20 min)
-- [CRS paranoia levels](https://coreruleset.org/docs/concepts/paranoia_levels/) (~15 min)
-- [CRS anomaly scoring explained](https://coreruleset.org/docs/concepts/anomaly_scoring/) (~15 min)
-- [CRS rules & rule categories overview](https://coreruleset.org/docs/rules/) (~15 min)
-- [OWASP Top 10 mapped to CRS coverage](https://owasp.org/www-project-top-ten/) (~15 min)
+- [OWASP CRS docs — Getting Started (install & integrate CRS)](https://coreruleset.org/docs/1-getting-started/) `[depth]` (~20 min)
+- [CRS paranoia levels](https://coreruleset.org/docs/concepts/paranoia_levels/) `[depth]` (~15 min)
+- [CRS anomaly scoring explained](https://coreruleset.org/docs/concepts/anomaly_scoring/) `[depth]` (~15 min)
+- [CRS rules & rule categories overview](https://coreruleset.org/docs/rules/) `[depth]` (~15 min)
+- [OWASP Top 10 mapped to CRS coverage](https://owasp.org/www-project-top-ten/) `[depth]` (~15 min)
 
 ## Verify the WAF blocks injection and XSS attempts and tune false positives
 
@@ -136,11 +136,11 @@ Exam gotchas:
 - A WAF blocking a payload does **not** mean the app is patched — the exam distinguishes "blocked at the edge" (compensating control) from "vulnerability remediated in code."
 
 **Resources:**
-- [CRS false-positive & tuning guide](https://coreruleset.org/docs/concepts/false_positives_tuning/) (~20 min)
-- [ModSecurity SecAuditLog reference](https://github.com/owasp-modsecurity/ModSecurity/wiki/Reference-Manual-(v3.x)#SecAuditLog) (~15 min)
-- [OWASP WSTG — testing for SQLi & XSS (payloads to verify with)](https://owasp.org/www-project-web-security-testing-guide/) (~20 min)
-- [OWASP ASVS — verification requirements a WAF complements](https://owasp.org/www-project-application-security-verification-standard/) (~20 min)
-- [OWASP CRS Sandbox / test payloads](https://coreruleset.org/docs/development/sandbox/) (~10 min)
+- [CRS false-positive & tuning guide](https://coreruleset.org/docs/concepts/false_positives_tuning/) `[depth]` (~20 min)
+- [ModSecurity SecAuditLog reference](https://github.com/owasp-modsecurity/ModSecurity/wiki/Reference-Manual-(v3.x)#SecAuditLog) `[depth]` (~15 min)
+- [OWASP WSTG — testing for SQLi & XSS (payloads to verify with)](https://owasp.org/www-project-web-security-testing-guide/) `[depth]` (~20 min)
+- [OWASP ASVS — verification requirements a WAF complements](https://owasp.org/www-project-application-security-verification-standard/) `[depth]` (~20 min)
+- [OWASP CRS Sandbox / test payloads](https://coreruleset.org/docs/development/sandbox/) `[depth]` (~10 min)
 
 ## Summary
 

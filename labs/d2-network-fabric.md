@@ -15,7 +15,7 @@ Build the **classic L3 cloud-network fabric** — VPC dataplane, **NAT-gateway e
 **SC-500 correspondence**: VNet/VPC dataplane · NAT gateway (controlled egress) · Azure Firewall application rules · NSG/VNet flow logs · VNet peering (hub-spoke). **Standards**: NIST SP 800-207 (controlled egress + micro-segmentation); ATT&CK **T1048** (exfiltration) / **T1071** (C2 over web) ↔ D3FEND outbound-traffic filtering & network traffic analysis; the egress gateway + FQDN allowlist are what deny an attacker's outbound callout.
 
 **Prerequisites**
-- `docker`, `kind`, `kubectl`, `helm`; optionally the [`cilium`](https://github.com/cilium/cilium-cli) CLI. ~16 GB host.
+- `docker`, `kind`, `kubectl`, `helm`; optionally the [`cilium`](https://github.com/cilium/cilium-cli) CLI. ~16 GB host. `[depth]`
 - Notes read: [`../domains/0-fundamentals/04-linux-networking.md`](../domains/0-fundamentals/04-linux-networking.md) (the substrate) and [`../domains/2-secrets-data-networking/network-fabric.md`](../domains/2-secrets-data-networking/network-fabric.md) (the cloud mapping).
 - Tools for this lab: `cilium`, `hubble` — install per [`../TOOLS.md`](../TOOLS.md).
 

@@ -37,4 +37,4 @@ Every Kubernetes workload is a container. The controls you'll implement — imag
 ## Primary sources
 - [Docker documentation](https://docs.docker.com/) (reference) · [Get started — Introduction](https://docs.docker.com/get-started/introduction/)
 - [Open Container Initiative (OCI) — image & runtime specs](https://opencontainers.org/) (reference)
-- [Kubernetes — Container images](https://kubernetes.io/docs/concepts/containers/images/)
+- [Kubernetes — Container images](https://kubernetes.io/docs/concepts/containers/images/) `[depth]`

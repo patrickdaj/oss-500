@@ -77,7 +77,7 @@ kubectl -n oss500-apps exec kubelet-probe -- sh -c \
    https://'"${NODE_IP}"':10250/pods'
 ```
 
-Expect **`401`** for the first call (no identity presented — rejected at authentication) and **`403`** for the second (a real, authenticated identity — but the `oss500-apps` default ServiceAccount holds no RBAC grant on the `nodes/proxy`-style permission the kubelet's Webhook authorizer checks, so it's authenticated and still refused). The exact subresource/verb the kubelet API maps each endpoint to is documented in [Kubelet authorization](https://kubernetes.io/docs/reference/access-authn-authz/kubelet-authn-authz/#kubelet-authorization) — worth reading once so the 403 isn't a mystery.
+Expect **`401`** for the first call (no identity presented — rejected at authentication) and **`403`** for the second (a real, authenticated identity — but the `oss500-apps` default ServiceAccount holds no RBAC grant on the `nodes/proxy`-style permission the kubelet's Webhook authorizer checks, so it's authenticated and still refused). The exact subresource/verb the kubelet API maps each endpoint to is documented in [Kubelet authorization](https://kubernetes.io/docs/reference/access-authn-authz/kubelet-authn-authz/#kubelet-authorization) — worth reading once so the 403 isn't a mystery. `[depth]`
 
 ### 3. Read the live kubelet config that produces that result
 
@@ -118,7 +118,7 @@ $ curl -sk -X POST 'https://<node-ip>:10250/exec/<ns>/<pod>/<container>?command=
 # an open kubelet lets you skip that gate entirely by going straight to the node.
 ```
 
-`/pods` and `/runningpods` are an unauthenticated enumeration and secrets-in-env leak; `/exec` is unauthenticated remote code execution on every pod the node is running. That's the full blast radius one flag (`--anonymous-auth`) controls — see the [NSA/CISA Kubernetes Hardening Guide](https://media.defense.gov/2022/Aug/29/2003066362/-1/-1/0/CTR_KUBERNETES_HARDENING_GUIDANCE_1.2_20220829.PDF) for the same finding as an official hardening control.
+`/pods` and `/runningpods` are an unauthenticated enumeration and secrets-in-env leak; `/exec` is unauthenticated remote code execution on every pod the node is running. That's the full blast radius one flag (`--anonymous-auth`) controls — see the [NSA/CISA Kubernetes Hardening Guide](https://media.defense.gov/2022/Aug/29/2003066362/-1/-1/0/CTR_KUBERNETES_HARDENING_GUIDANCE_1.2_20220829.PDF) for the same finding as an official hardening control. `[depth]`
 
 ### 5. From the kubelet to the CRI boundary
 

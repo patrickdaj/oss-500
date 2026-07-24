@@ -81,11 +81,11 @@ echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq .   # payload/claims
 4. In `{"sub": "alice", "act": {"sub": "agent-a"}}`, who is the token authorizing, and what would be lost if the token instead just carried `sub: "alice"` with no `act` claim?
 
 ## Primary sources
-- [RFC 6749 — The OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749) (~30 min)
-- [RFC 7636 — PKCE for OAuth public clients](https://datatracker.ietf.org/doc/html/rfc7636) (~15 min)
-- [RFC 9700 — Best Current Practice for OAuth 2.0 Security](https://datatracker.ietf.org/doc/html/rfc9700) (~30 min)
-- [OpenID Connect Core 1.0 — ID Token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken) (~15 min)
-- [RFC 7519 — JSON Web Token (JWT)](https://datatracker.ietf.org/doc/html/rfc7519) (~20 min)
-- [RFC 7517 — JSON Web Key (JWK) / JWKS](https://datatracker.ietf.org/doc/html/rfc7517) (~15 min)
-- [RFC 8693 §4.1 — the `act` (actor) claim](https://datatracker.ietf.org/doc/html/rfc8693#section-4.1) (~10 min)
+- [RFC 6749 — The OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749) `[depth]` (~30 min)
+- [RFC 7636 — PKCE for OAuth public clients](https://datatracker.ietf.org/doc/html/rfc7636) `[depth]` (~15 min)
+- [RFC 9700 — Best Current Practice for OAuth 2.0 Security](https://datatracker.ietf.org/doc/html/rfc9700) `[depth]` (~30 min)
+- [OpenID Connect Core 1.0 — ID Token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken) `[depth]` (~15 min)
+- [RFC 7519 — JSON Web Token (JWT)](https://datatracker.ietf.org/doc/html/rfc7519) `[depth]` (~20 min)
+- [RFC 7517 — JSON Web Key (JWK) / JWKS](https://datatracker.ietf.org/doc/html/rfc7517) `[depth]` (~15 min)
+- [RFC 8693 §4.1 — the `act` (actor) claim](https://datatracker.ietf.org/doc/html/rfc8693#section-4.1) `[depth]` (~10 min)
 - [jwt.io](https://jwt.io) (reference) — decode a token by hand, no library or network call needed

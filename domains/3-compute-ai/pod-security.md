@@ -33,11 +33,11 @@ Exam gotchas:
 - **PodSecurityPolicy (PSP) is gone** — removed in Kubernetes 1.25 and replaced by PSA. If a question offers PSP as an answer for a current cluster, it's the distractor; the migration path is PSP → PSA (+ Kyverno/Gatekeeper for what PSA can't express).
 
 **Resources:**
-- [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/) (~20 min)
-- [Pod Security Admission — concepts](https://kubernetes.io/docs/concepts/security/pod-security-admission/) (~15 min)
-- [Enforce Pod Security Standards with namespace labels](https://kubernetes.io/docs/tasks/configure-pod-security-admission/enforce-standards-namespace-labels/) (~15 min)
-- [Migrate from PodSecurityPolicy to PSA](https://kubernetes.io/docs/tasks/configure-pod-security-admission/migrate-from-psp/) (~20 min)
-- [Azure Policy for AKS — built-in initiatives & Gatekeeper](https://learn.microsoft.com/azure/aks/use-azure-policy) (~20 min)
+- [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/) `[depth]` (~20 min)
+- [Pod Security Admission — concepts](https://kubernetes.io/docs/concepts/security/pod-security-admission/) `[depth]` (~15 min)
+- [Enforce Pod Security Standards with namespace labels](https://kubernetes.io/docs/tasks/configure-pod-security-admission/enforce-standards-namespace-labels/) `[depth]` (~15 min)
+- [Migrate from PodSecurityPolicy to PSA](https://kubernetes.io/docs/tasks/configure-pod-security-admission/migrate-from-psp/) `[depth]` (~20 min)
+- [Azure Policy for AKS — built-in initiatives & Gatekeeper](https://learn.microsoft.com/azure/aks/use-azure-policy) `[depth]` (~20 min)
 
 ## Harden securityContext: non-root, read-only root FS, dropped capabilities, seccomp
 
@@ -74,11 +74,11 @@ Exam gotchas:
 - Dropping `ALL` capabilities and adding back only `NET_BIND_SERVICE` is least privilege; a web server on a high port (`:8080`) needs *zero* added caps — prefer that over adding any.
 
 **Resources:**
-- [Configure a Security Context for a Pod or Container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) (~20 min)
-- [Restrict a Container's Syscalls with seccomp](https://kubernetes.io/docs/tutorials/security/seccomp/) (~20 min)
-- [Linux capabilities — `man 7 capabilities`](https://man7.org/linux/man-pages/man7/capabilities.7.html) (~15 min)
-- [CIS Kubernetes Benchmark (section 5, Pod Security)](https://www.cisecurity.org/benchmark/kubernetes) (~20 min)
-- [NSA/CISA Kubernetes Hardening Guidance](https://media.defense.gov/2022/Aug/29/2003066362/-1/-1/0/CTR_KUBERNETES_HARDENING_GUIDANCE_1.2_20220829.PDF) (~30 min)
+- [Configure a Security Context for a Pod or Container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) `[depth]` (~20 min)
+- [Restrict a Container's Syscalls with seccomp](https://kubernetes.io/docs/tutorials/security/seccomp/) `[depth]` (~20 min)
+- [Linux capabilities — `man 7 capabilities`](https://man7.org/linux/man-pages/man7/capabilities.7.html) `[depth]` (~15 min)
+- [CIS Kubernetes Benchmark (section 5, Pod Security)](https://www.cisecurity.org/benchmark/kubernetes) `[depth]` (~20 min)
+- [NSA/CISA Kubernetes Hardening Guidance](https://media.defense.gov/2022/Aug/29/2003066362/-1/-1/0/CTR_KUBERNETES_HARDENING_GUIDANCE_1.2_20220829.PDF) `[depth]` (~30 min)
 
 ## Enforce workload security at admission time
 
@@ -96,8 +96,8 @@ Exam gotchas:
 - For engine internals (authoring models, `Enforce`/`Audit`, `failurePolicy`, system-namespace exemptions, Azure Policy for AKS), see `gov-gatekeeper`/`gov-kyverno` in [governance.md](../1-identity-governance/governance.md) — they're single-sourced there, not re-derived here.
 
 **Resources:**
-- [Kyverno — Pod Security policy set](https://kyverno.io/policies/pod-security/) (~15 min)
-- [AKS deployment safeguards](https://learn.microsoft.com/azure/aks/deployment-safeguards) (~15 min)
+- [Kyverno — Pod Security policy set](https://kyverno.io/policies/pod-security/) `[depth]` (~15 min)
+- [AKS deployment safeguards](https://learn.microsoft.com/azure/aks/deployment-safeguards) `[depth]` (~15 min)
 
 ## Summary
 | Objective | Takeaway |

@@ -22,7 +22,7 @@ Every component above doesn't just coexist in the same cluster — each one **au
 
 **The CNI is where NetworkPolicy is — or isn't — enforced.** The Container Network Interface plugin wires up every pod's network namespace, and nothing in the Kubernetes API forces a CNI to honor NetworkPolicy — the API server just stores the object; enforcement is opt-in plugin behavior. That's why [`network-security.md`](../2-secrets-data-networking/network-security.md) (`net-policy`) has this course install Calico rather than relying on kind's default `kindnet`: a NetworkPolicy applied under a non-enforcing CNI exists and does nothing, silently.
 
-**This is a security lens on `kind`, not a rebuild.** Every component above is already running on the `oss500` kind cluster from Phase 0 — nothing here asks you to build anything, only to look at what's already there as a set of trust boundaries and reachable APIs instead of a list of names. The course stays on `kind` for every lab. If you want to *build* this trust model yourself — mint the CA, bootstrap the API server, join a kubelet, wire a CNI by hand with kubeadm — [**Kubernetes The Hard Way**](https://github.com/kelseyhightower/kubernetes-the-hard-way) is the canonical way to do it: entirely optional, off the critical path here, and a cluster-admin/CKA skill rather than an SC-500 one.
+**This is a security lens on `kind`, not a rebuild.** Every component above is already running on the `oss500` kind cluster from Phase 0 — nothing here asks you to build anything, only to look at what's already there as a set of trust boundaries and reachable APIs instead of a list of names. The course stays on `kind` for every lab. If you want to *build* this trust model yourself — mint the CA, bootstrap the API server, join a kubelet, wire a CNI by hand with kubeadm — [**Kubernetes The Hard Way**](https://github.com/kelseyhightower/kubernetes-the-hard-way) is the canonical way to do it: entirely optional, off the critical path here, and a cluster-admin/CKA skill rather than an SC-500 one. `[depth]`
 
 ## Objects you'll use constantly
 
@@ -181,13 +181,13 @@ That's the whole preview: rules declare *what*, a binding decides *who* and *at 
 5. A kubelet is running with `anonymous-auth: true`. What can an unauthenticated caller on the node's network do without ever presenting a credential?
 
 ## Primary sources
-- [Kubernetes — Concepts: Overview](https://kubernetes.io/docs/concepts/overview/)
-- [Kubernetes Basics — interactive tutorial](https://kubernetes.io/docs/tutorials/kubernetes-basics/) — concepts / interactive only. It provisions its cluster with **minikube**, which this course never uses; do ALL hands-on on your `kind` cluster (see [Phase 0](../../plan/phase0-fundamentals.md)) using the commands below, not minikube.
-- [kubectl reference](https://kubernetes.io/docs/reference/kubectl/)
-- [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/)
-- [Configure a Security Context for a Pod or Container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) — the `runAsNonRoot`/`readOnlyRootFilesystem`/`capabilities` fields used in the hardened-pod manifest above
-- [Kubernetes — Using RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) — Role/ClusterRole/RoleBinding/ClusterRoleBinding definitions behind the "RBAC in 10 minutes" section
-- [Kubernetes — PKI certificates and requirements](https://kubernetes.io/docs/setup/best-practices/certificates/) — the cluster CA and the certs it issues to every component, behind "How the cluster is wired"
-- [Kubelet authentication/authorization](https://kubernetes.io/docs/reference/access-authn-authz/kubelet-authn-authz/) — `--anonymous-auth` and `--authorization-mode=Webhook`
-- [Network plugins (CNI)](https://kubernetes.io/docs/concepts/extension-mechanisms/#network-plugins) — why NetworkPolicy enforcement is a CNI responsibility, not an API-server one
-- [Kubernetes The Hard Way (kelseyhightower)](https://github.com/kelseyhightower/kubernetes-the-hard-way) — optional depth: bootstrap the CA/PKI mesh, API server, kubelet, and CNI by hand with kubeadm; this course stays on `kind`
+- [Kubernetes — Concepts: Overview](https://kubernetes.io/docs/concepts/overview/) `[depth]`
+- [Kubernetes Basics — interactive tutorial](https://kubernetes.io/docs/tutorials/kubernetes-basics/) — concepts / interactive only. It provisions its cluster with **minikube**, which this course never uses; do ALL hands-on on your `kind` cluster (see [Phase 0](../../plan/phase0-fundamentals.md)) using the commands below, not minikube. `[depth]`
+- [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) `[depth]`
+- [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/) `[depth]`
+- [Configure a Security Context for a Pod or Container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) — the `runAsNonRoot`/`readOnlyRootFilesystem`/`capabilities` fields used in the hardened-pod manifest above `[depth]`
+- [Kubernetes — Using RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) — Role/ClusterRole/RoleBinding/ClusterRoleBinding definitions behind the "RBAC in 10 minutes" section `[depth]`
+- [Kubernetes — PKI certificates and requirements](https://kubernetes.io/docs/setup/best-practices/certificates/) — the cluster CA and the certs it issues to every component, behind "How the cluster is wired" `[depth]`
+- [Kubelet authentication/authorization](https://kubernetes.io/docs/reference/access-authn-authz/kubelet-authn-authz/) — `--anonymous-auth` and `--authorization-mode=Webhook` `[depth]`
+- [Network plugins (CNI)](https://kubernetes.io/docs/concepts/extension-mechanisms/#network-plugins) — why NetworkPolicy enforcement is a CNI responsibility, not an API-server one `[depth]`
+- [Kubernetes The Hard Way (kelseyhightower)](https://github.com/kelseyhightower/kubernetes-the-hard-way) — optional depth: bootstrap the CA/PKI mesh, API server, kubelet, and CNI by hand with kubeadm; this course stays on `kind` `[depth]`

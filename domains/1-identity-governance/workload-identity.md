@@ -46,11 +46,11 @@ Exam gotchas:
 - **A projected token is not a bearer secret to hoard**: it's short-lived and pod-bound, so exfiltrating it buys an attacker only minutes and only for the token's `audience`. Contrast with the legacy Secret token, which is a durable credential — the reason "migrate off Secret-based SA tokens" is a hardening recommendation.
 
 **Resources:**
-- [Kubernetes — Configure ServiceAccounts for Pods](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) (~20 min)
-- [Kubernetes — Bound service account token volume projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#serviceaccount-token-volume-projection) (~15 min)
-- [Kubernetes — ServiceAccounts (concept)](https://kubernetes.io/docs/concepts/security/service-accounts/) (~15 min)
-- [Kubernetes — Managing ServiceAccounts (admin, token lifecycle)](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/) (~15 min)
-- [Microsoft Learn — Managed identities for Azure resources (overview)](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview) (~15 min)
+- [Kubernetes — Configure ServiceAccounts for Pods](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) `[depth]` (~20 min)
+- [Kubernetes — Bound service account token volume projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#serviceaccount-token-volume-projection) `[depth]` (~15 min)
+- [Kubernetes — ServiceAccounts (concept)](https://kubernetes.io/docs/concepts/security/service-accounts/) `[depth]` (~15 min)
+- [Kubernetes — Managing ServiceAccounts (admin, token lifecycle)](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/) `[depth]` (~15 min)
+- [Microsoft Learn — Managed identities for Azure resources (overview)](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview) `[depth]` (~15 min)
 
 ## Federate workload identity to secret/cloud systems via the cluster OIDC issuer
 
@@ -80,11 +80,11 @@ Exam gotchas:
 - For cloud federation the relying party needs the JWKS **reachable at token-exchange time** (or the keys cached) and the SA token minted with the cloud's expected **audience** (e.g. `api://AzureADTokenExchange` for Azure). A default-audience k8s token won't be accepted — a common "federation configured but exchange fails" bug.
 
 **Resources:**
-- [Kubernetes — ServiceAccount issuer discovery (OIDC)](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-issuer-discovery) (~15 min)
-- [HashiCorp Vault — Kubernetes and JWT/OIDC auth methods](https://developer.hashicorp.com/vault/docs/auth/kubernetes) (~20 min)
-- [Microsoft Learn — Workload identity federation (the SC-500 control)](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation) (~20 min)
-- [Azure AD Workload Identity — Concepts (federating k8s ServiceAccounts to Entra)](https://azure.github.io/azure-workload-identity/docs/concepts.html) (~20 min)
-- [AWS — IAM roles for service accounts (IRSA), the same OIDC pattern](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) (~20 min)
+- [Kubernetes — ServiceAccount issuer discovery (OIDC)](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-issuer-discovery) `[depth]` (~15 min)
+- [HashiCorp Vault — Kubernetes and JWT/OIDC auth methods](https://developer.hashicorp.com/vault/docs/auth/kubernetes) `[depth]` (~20 min)
+- [Microsoft Learn — Workload identity federation (the SC-500 control)](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation) `[depth]` (~20 min)
+- [Azure AD Workload Identity — Concepts (federating k8s ServiceAccounts to Entra)](https://azure.github.io/azure-workload-identity/docs/concepts.html) `[depth]` (~20 min)
+- [AWS — IAM roles for service accounts (IRSA), the same OIDC pattern](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) `[depth]` (~20 min)
 
 ## Explain SPIFFE/SPIRE workload identity and mTLS-based service identity
 
@@ -109,11 +109,11 @@ Exam gotchas:
 - The **trust bundle** (the trust-domain CA's public keys) is what each side validates the peer's SVID against; cross-trust-domain communication needs **federation** of bundles, the mesh analogue of exchanging federation metadata between tenants.
 
 **Resources:**
-- [SPIFFE overview](https://spiffe.io/docs/latest/spiffe-about/overview/) (~15 min)
-- [SPIRE concepts — server, agent, attestation](https://spiffe.io/docs/latest/spire-about/spire-concepts/) (~20 min)
-- [SPIFFE-ID specification (URI format, trust domain)](https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE-ID.md) (~15 min)
-- [SPIRE — Quickstart for Kubernetes (hands-on)](https://spiffe.io/docs/latest/try/getting-started-k8s/) (~30 min)
-- [Istio — Security concepts (SPIFFE identities, mTLS)](https://istio.io/latest/docs/concepts/security/) (~20 min)
+- [SPIFFE overview](https://spiffe.io/docs/latest/spiffe-about/overview/) `[depth]` (~15 min)
+- [SPIRE concepts — server, agent, attestation](https://spiffe.io/docs/latest/spire-about/spire-concepts/) `[depth]` (~20 min)
+- [SPIFFE-ID specification (URI format, trust domain)](https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE-ID.md) `[depth]` (~15 min)
+- [SPIRE — Quickstart for Kubernetes (hands-on)](https://spiffe.io/docs/latest/try/getting-started-k8s/) `[depth]` (~30 min)
+- [Istio — Security concepts (SPIFFE identities, mTLS)](https://istio.io/latest/docs/concepts/security/) `[depth]` (~20 min)
 
 ## Summary
 

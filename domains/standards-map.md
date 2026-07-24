@@ -28,7 +28,7 @@ This curriculum's job is to say **exactly** what to read or watch — and no mor
 **Format** — a learning resource is cited as:
 
 ```
-- [Resource — the specific thing](deep-url#anchor) (~NN min[, §range])
+- [Resource — the specific thing](deep-url#anchor) `[necessity-tag]` (~NN min[, §range])
 ```
 
 - **Deep-link + name the target.** The URL points at the exact page/section/anchor (`#anchor` when the page supports it), and the link text names the heading, chapter, or section to read — so you know what to open *without* clicking. A bare homepage or a `…/docs/` root is not a learning resource; it's a wild-goose chase.
@@ -36,6 +36,16 @@ This curriculum's job is to say **exactly** what to read or watch — and no mor
 - **Scope the time estimate.** `(~NN min)` covers *only* the cited slice, not the whole resource. When you narrow a citation to a range, narrow the estimate to match.
 - **Inline/prose links** follow the same rule: the sentence names what to read at the other end.
 
-**`(reference)` — the escape hatch.** A link cited for *lookup or provenance* rather than required reading — a tool's home page, a framework's site, an API index, a spec's canonical URL — is marked `(reference)` (optionally `(reference — <scope>)`). This keeps homepage links honest: they're allowed *because* they're flagged as non-required. Use it only for genuine navigational/canonical references, never to dodge deep-linking a resource a learner must actually read.
+**`(reference)` — the escape hatch.** A link cited for *lookup or provenance* rather than required reading — a tool's home page, a framework's site, an API index, a spec's canonical URL — is marked `(reference)` (optionally `(reference — <scope>)`). This keeps homepage links honest: they're allowed *because* they're flagged as non-required. Use it only for genuine navigational/canonical references, never to dodge deep-linking a resource a learner must actually read. A `(reference)`-marked link is a navigational lookup, not a learning resource, so it carries no necessity tag.
 
-**Enforcement.** `npm run lint:content` (study-hub) and the repo-side `scripts/lint-links.mjs` (oss-500 CI) fail on a host-only or documentation-root link in `domains/**` or `labs/**` that isn't marked `(reference)`. The standard is checked, not just intended.
+**Necessity tag — which one you must actually open.** Specificity (above) says *what* to read; it says nothing about *whether you have to*. A learner facing four or five citations under one objective cannot tell the load-bearing one from the enrichment ones without opening every link, so every learning resource also carries a necessity tag, one of three values:
+
+- `` `[required-for-lab]` `` — the note under-teaches something the primary lab needs; skip this link and the lab is not doable.
+- `` `[required-for-quiz]` `` — the note under-teaches something in exam scope; skip this link and a quiz question has no answer in your notes.
+- `` `[depth]` `` — enrichment. Skippable without being blocked on the lab or the exam.
+
+**Placement.** The tag sits in backticks immediately after the link (and before the time estimate, when one is cited): `[Resource](url) `[required-for-lab]` (~NN min)`. On a citation with no time estimate — a "Primary sources" list, an inline prose link — the tag goes at the end of the line it belongs to instead. One tag per line covers every link on that line, the same way one `(reference)` marker exempts the whole line.
+
+**Defaults.** Most links resolve to `[depth]` — that's confirmation the notes are self-contained, not an oversight. Reach for `required-for-lab`/`required-for-quiz` only when the note genuinely offloads teaching to that specific link; when in doubt, it's depth.
+
+**Enforcement.** `npm run lint:content` (study-hub) and the repo-side `scripts/lint-links.mjs` (oss-500 CI) fail on a host-only or documentation-root link in `domains/**` or `labs/**` that isn't marked `(reference)`, and separately fail on a learning link that carries no necessity tag and no `(reference)` marker. Both standards are checked, not just intended.

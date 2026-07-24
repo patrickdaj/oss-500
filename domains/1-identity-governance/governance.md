@@ -55,9 +55,9 @@ opa eval -f pretty -i input.json -d lab-infra/agentic/opa/tool-authz.rego "data.
 `-d` loads one or more `.rego` files (or a directory) as policy, `-i` supplies the `input` document, `-f pretty` prints just the resulting value instead of the full JSON result envelope, and the query string is a `data.<package>.<rule>` path. This is the whole authoring loop for Part B: write the rule, invent an `input.json` that should and shouldn't trigger it, `opa eval`, iterate — no Gatekeeper deploy required until it's right.
 
 **Resources:**
-- [OPA — Policy language (Rego reference, incl. equality/assignment style and comprehensions)](https://www.openpolicyagent.org/docs/latest/policy-language/) (~30 min)
-- [OPA — `opa eval` CLI reference](https://www.openpolicyagent.org/docs/latest/cli/#eval) (~10 min)
-- [OPA — Upgrading to v1.0 (`contains`/`if` vs bracket syntax)](https://www.openpolicyagent.org/docs/v0-upgrade) (~10 min)
+- [OPA — Policy language (Rego reference, incl. equality/assignment style and comprehensions)](https://www.openpolicyagent.org/docs/latest/policy-language/) `[required-for-lab]` (~30 min)
+- [OPA — `opa eval` CLI reference](https://www.openpolicyagent.org/docs/latest/cli/#eval) `[depth]` (~10 min)
+- [OPA — Upgrading to v1.0 (`contains`/`if` vs bracket syntax)](https://www.openpolicyagent.org/docs/v0-upgrade) `[depth]` (~10 min)
 
 ## Enforce organizational policy with OPA Gatekeeper constraints
 
@@ -102,11 +102,11 @@ Exam gotchas:
 - **Namespace/label `match` scoping and exemptions**: Gatekeeper exempts `kube-system` and control-plane namespaces by default; a constraint that forgets to scope its `match` either misses workloads or breaks system pods.
 
 **Resources:**
-- [OPA Gatekeeper — How to use (ConstraintTemplates, Constraints)](https://open-policy-agent.github.io/gatekeeper/website/docs/howto/) (~25 min)
-- [OPA Gatekeeper — Audit and enforcement actions](https://open-policy-agent.github.io/gatekeeper/website/docs/audit/) (~15 min)
-- [OPA — Rego policy language](https://www.openpolicyagent.org/docs/latest/policy-language/) (~30 min)
-- [Gatekeeper policy library (ready-made ConstraintTemplates)](https://open-policy-agent.github.io/gatekeeper-library/website/) (~15 min)
-- [Microsoft Learn — Use Azure Policy to secure AKS (built on Gatekeeper)](https://learn.microsoft.com/en-us/azure/aks/use-azure-policy) (~20 min)
+- [OPA Gatekeeper — How to use (ConstraintTemplates, Constraints)](https://open-policy-agent.github.io/gatekeeper/website/docs/howto/) `[depth]` (~25 min)
+- [OPA Gatekeeper — Audit and enforcement actions](https://open-policy-agent.github.io/gatekeeper/website/docs/audit/) `[depth]` (~15 min)
+- [OPA — Rego policy language](https://www.openpolicyagent.org/docs/latest/policy-language/) `[required-for-lab]` (~30 min)
+- [Gatekeeper policy library (ready-made ConstraintTemplates)](https://open-policy-agent.github.io/gatekeeper-library/website/) `[depth]` (~15 min)
+- [Microsoft Learn — Use Azure Policy to secure AKS (built on Gatekeeper)](https://learn.microsoft.com/en-us/azure/aks/use-azure-policy) `[depth]` (~20 min)
 
 ## Enforce and mutate resources with Kyverno policies
 
@@ -145,11 +145,11 @@ Exam gotchas:
 - **PolicyExceptions are the escape hatch**: legitimate exemptions are modeled as `PolicyException` objects (auditable, in git), not by loosening the policy — the governance-friendly way to grant an exception, analogous to an Azure Policy exemption.
 
 **Resources:**
-- [Kyverno — Writing policies (validate/mutate/generate)](https://kyverno.io/docs/writing-policies/) (~25 min)
-- [Kyverno — Policy reports and background scanning](https://kyverno.io/docs/policy-reports/) (~15 min)
-- [Kyverno — Introduction & how it compares to Gatekeeper](https://kyverno.io/docs/introduction/) (~15 min)
-- [Kyverno — Mutate rules (Modify/DINE analogue)](https://kyverno.io/docs/writing-policies/mutate/) (~15 min)
-- [Kyverno — Sample policy library](https://kyverno.io/policies/) (~15 min)
+- [Kyverno — Writing policies (validate/mutate/generate)](https://kyverno.io/docs/writing-policies/) `[depth]` (~25 min)
+- [Kyverno — Policy reports and background scanning](https://kyverno.io/docs/policy-reports/) `[depth]` (~15 min)
+- [Kyverno — Introduction & how it compares to Gatekeeper](https://kyverno.io/docs/introduction/) `[depth]` (~15 min)
+- [Kyverno — Mutate rules (Modify/DINE analogue)](https://kyverno.io/docs/writing-policies/mutate/) `[depth]` (~15 min)
+- [Kyverno — Sample policy library](https://kyverno.io/policies/) `[depth]` (~15 min)
 
 ## Evaluate compliance against frameworks and baselines
 
@@ -166,11 +166,11 @@ Exam gotchas:
 - **Same tool, different lens.** Kubescape reappears in Domain 4 (`vuln-*`) for posture management and reporting; in governance the interest is *policy* — you scan to decide *what to enforce*, not to produce the audit artifact (that scoring/reporting mechanic is `vuln-compliance`).
 
 **Resources:**
-- [Kubescape — Frameworks and controls](https://kubescape.io/docs/frameworks-and-controls/) (~20 min)
-- [Kubescape — Scanning and compliance score](https://kubescape.io/docs/scanning/) (~15 min)
-- [CIS Kubernetes Benchmark (the headline hardening baseline)](https://www.cisecurity.org/benchmark/kubernetes) (~20 min)
-- [MITRE ATT&CK — Containers matrix](https://attack.mitre.org/matrices/enterprise/containers/) (~15 min)
-- [Microsoft Learn — Defender for Cloud secure score (the SC-500 mapping)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/secure-score-security-controls) (~20 min)
+- [Kubescape — Frameworks and controls](https://kubescape.io/docs/frameworks-and-controls/) `[depth]` (~20 min)
+- [Kubescape — Scanning and compliance score](https://kubescape.io/docs/scanning/) `[depth]` (~15 min)
+- [CIS Kubernetes Benchmark (the headline hardening baseline)](https://www.cisecurity.org/benchmark/kubernetes) `[depth]` (~20 min)
+- [MITRE ATT&CK — Containers matrix](https://attack.mitre.org/matrices/enterprise/containers/) `[depth]` (~15 min)
+- [Microsoft Learn — Defender for Cloud secure score (the SC-500 mapping)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/secure-score-security-controls) `[depth]` (~20 min)
 
 ## Implement and configure security controls by using infrastructure as code
 
@@ -196,11 +196,11 @@ Exam gotchas:
 - **A gate is only as good as its enforcement**: a `--compliance-threshold` or Trivy exit code must actually *fail the pipeline* (block merge) to matter — a scan whose findings are ignored is theatre, the same "policy in Audit forever" trap as governance.
 
 **Resources:**
-- [Helm — Chart templates and `helm template`](https://helm.sh/docs/chart_template_guide/) (~20 min)
-- [Kubescape — Scanning your environment (CLI/CI/operator)](https://kubescape.io/docs/scanning/) (~15 min)
-- [Trivy — Misconfiguration scanning (IaC/Helm/K8s manifests)](https://trivy.dev/latest/docs/scanner/misconfiguration/) (~15 min)
-- [OWASP — Infrastructure as Code Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.html) (~15 min)
-- [Microsoft Learn — Azure Policy overview (controls-as-code / IaC governance)](https://learn.microsoft.com/en-us/azure/governance/policy/overview) (~15 min)
+- [Helm — Chart templates and `helm template`](https://helm.sh/docs/chart_template_guide/) `[depth]` (~20 min)
+- [Kubescape — Scanning your environment (CLI/CI/operator)](https://kubescape.io/docs/scanning/) `[depth]` (~15 min)
+- [Trivy — Misconfiguration scanning (IaC/Helm/K8s manifests)](https://trivy.dev/latest/docs/scanner/misconfiguration/) `[depth]` (~15 min)
+- [OWASP — Infrastructure as Code Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.html) `[depth]` (~15 min)
+- [Microsoft Learn — Azure Policy overview (controls-as-code / IaC governance)](https://learn.microsoft.com/en-us/azure/governance/policy/overview) `[depth]` (~15 min)
 
 ## Summary
 

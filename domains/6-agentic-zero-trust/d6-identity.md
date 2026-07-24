@@ -33,8 +33,8 @@ Gotchas:
 - Every agent instance is its **own principal** — `agent-a` and `agent-b` get distinct SVIDs so authorization and audit can tell them apart, and one poisoned agent can't impersonate another (the setup for `d6-multi-agent`'s `agent-mtls`).
 
 **Resources:**
-- [SPIFFE — the SVID concept (X.509 vs JWT identity documents)](https://spiffe.io/docs/latest/spiffe-about/spiffe-concepts/) (~15 min)
-- [RFC 8693 §4.1 — the `act` (actor) claim: how a token names the acting party](https://datatracker.ietf.org/doc/html/rfc8693#section-4.1) (~10 min)
+- [SPIFFE — the SVID concept (X.509 vs JWT identity documents)](https://spiffe.io/docs/latest/spiffe-about/spiffe-concepts/) `[depth]` (~15 min)
+- [RFC 8693 §4.1 — the `act` (actor) claim: how a token names the acting party](https://datatracker.ietf.org/doc/html/rfc8693#section-4.1) `[depth]` (~10 min)
 
 ## Delegate scoped, short-lived authority to the agent with OAuth 2.0 Token Exchange
 
@@ -81,9 +81,9 @@ Gotchas:
 - **Never log the exchanged token or the user's subject token** — both are bearer credentials carrying user context. Redact at the boundary, the same hygiene as `ai-observability`.
 
 **Resources:**
-- [RFC 8693 §1.1 — Delegation vs. Impersonation Semantics](https://datatracker.ietf.org/doc/html/rfc8693#section-1.1) (~10 min)
-- [RFC 8693 §2.1 — the token-exchange request (resource, audience, scope)](https://datatracker.ietf.org/doc/html/rfc8693#section-2.1) (~15 min)
-- [Keycloak — Standard token exchange (configuring & using it)](https://www.keycloak.org/securing-apps/token-exchange) (~20 min)
+- [RFC 8693 §1.1 — Delegation vs. Impersonation Semantics](https://datatracker.ietf.org/doc/html/rfc8693#section-1.1) `[required-for-quiz]` (~10 min)
+- [RFC 8693 §2.1 — the token-exchange request (resource, audience, scope)](https://datatracker.ietf.org/doc/html/rfc8693#section-2.1) `[depth]` (~15 min)
+- [Keycloak — Standard token exchange (configuring & using it)](https://www.keycloak.org/securing-apps/token-exchange) `[required-for-lab]` (~20 min)
 - [NIST SP 800-207 — Zero Trust Architecture](https://csrc.nist.gov/pubs/sp/800/207/final) (reference — the per-request, least-privilege basis)
 
 ## Summary

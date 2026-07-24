@@ -30,11 +30,11 @@ Exam gotchas:
 - SIEM value follows the **collect→normalize→detect→hunt→respond** loop; a deployment that only stores logs (no rules, no response) is a log lake, not a SIEM. The exam expects the full loop.
 
 **Resources:**
-- [Wazuh — getting started / components](https://documentation.wazuh.com/current/getting-started/components/index.html) (~20 min)
-- [Wazuh on Docker](https://documentation.wazuh.com/current/deployment-options/docker/index.html) (~15 min)
-- [Wazuh architecture](https://documentation.wazuh.com/current/getting-started/architecture.html) (~15 min)
-- [OpenSearch — introduction](https://opensearch.org/docs/latest/about/) (~10 min)
-- [NIST SP 800-92 — Guide to Computer Security Log Management](https://csrc.nist.gov/pubs/sp/800/92/final) (~30 min)
+- [Wazuh — getting started / components](https://documentation.wazuh.com/current/getting-started/components/index.html) `[depth]` (~20 min)
+- [Wazuh on Docker](https://documentation.wazuh.com/current/deployment-options/docker/index.html) `[depth]` (~15 min)
+- [Wazuh architecture](https://documentation.wazuh.com/current/getting-started/architecture.html) `[depth]` (~15 min)
+- [OpenSearch — introduction](https://opensearch.org/docs/latest/about/) `[depth]` (~10 min)
+- [NIST SP 800-92 — Guide to Computer Security Log Management](https://csrc.nist.gov/pubs/sp/800/92/final) `[depth]` (~30 min)
 
 ## Collect and normalize security telemetry from agents and sources
 
@@ -65,10 +65,10 @@ Exam gotchas:
 - Time sync (NTP) across sources is a prerequisite for correlation — skewed clocks scatter related events across the timeline and break `timeframe` rules. A collection-hygiene item the exam favors.
 
 **Resources:**
-- [Wazuh agent — how it works](https://documentation.wazuh.com/current/user-manual/agent/agent-management/index.html) (~15 min)
-- [Wazuh decoders (ruleset)](https://documentation.wazuh.com/current/user-manual/ruleset/decoders/index.html) (~15 min)
-- [Wazuh log data collection](https://documentation.wazuh.com/current/user-manual/capabilities/log-data-collection/index.html) (~15 min)
-- [Microsoft Sentinel ASIM (normalization) overview](https://learn.microsoft.com/en-us/azure/sentinel/normalization) (~15 min)
+- [Wazuh agent — how it works](https://documentation.wazuh.com/current/user-manual/agent/agent-management/index.html) `[depth]` (~15 min)
+- [Wazuh decoders (ruleset)](https://documentation.wazuh.com/current/user-manual/ruleset/decoders/index.html) `[depth]` (~15 min)
+- [Wazuh log data collection](https://documentation.wazuh.com/current/user-manual/capabilities/log-data-collection/index.html) `[depth]` (~15 min)
+- [Microsoft Sentinel ASIM (normalization) overview](https://learn.microsoft.com/en-us/azure/sentinel/normalization) `[depth]` (~15 min)
 
 ## Engineer detections with portable detection-as-code rules
 
@@ -111,10 +111,10 @@ Exam gotchas:
 
 **Resources:**
 - [Sigma — main site / about](https://sigmahq.io/) (reference) (~10 min)
-- [SigmaHQ rules repository](https://github.com/SigmaHQ/sigma) (~15 min)
-- [Sigma rule format specification](https://github.com/SigmaHQ/sigma-specification) (~15 min)
+- [SigmaHQ rules repository](https://github.com/SigmaHQ/sigma) `[depth]` (~15 min)
+- [Sigma rule format specification](https://github.com/SigmaHQ/sigma-specification) `[depth]` (~15 min)
 - [MITRE ATT&CK — matrix & techniques](https://attack.mitre.org/) (reference) (~25 min)
-- [pySigma / sigma-cli backends](https://github.com/SigmaHQ/pySigma) (~10 min)
+- [pySigma / sigma-cli backends](https://github.com/SigmaHQ/pySigma) `[required-for-lab]` (~10 min)
 
 ## Hunt threats and correlate events with a query language
 
@@ -134,11 +134,11 @@ Exam gotchas:
 - Aggregations run over the **matched** set — filter tight first (time range + index) or a `terms`/`cardinality` agg over billions of docs is slow or OOMs the indexer. Same discipline as narrowing a LogQL/KQL query before summarizing.
 
 **Resources:**
-- [OpenSearch Query DSL](https://opensearch.org/docs/latest/query-dsl/) (~20 min)
-- [OpenSearch aggregations](https://opensearch.org/docs/latest/aggregations/) (~15 min)
-- [Wazuh — threat hunting with the dashboard](https://documentation.wazuh.com/current/user-manual/wazuh-dashboard/threat-hunting.html) (~15 min)
-- [MITRE ATT&CK — Get Started: Detections & Analytics](https://attack.mitre.org/resources/get-started/detections-and-analytics/) (~20 min)
-- [Microsoft Sentinel — threat hunting (KQL) docs](https://learn.microsoft.com/en-us/azure/sentinel/hunting) (~15 min)
+- [OpenSearch Query DSL](https://opensearch.org/docs/latest/query-dsl/) `[depth]` (~20 min)
+- [OpenSearch aggregations](https://opensearch.org/docs/latest/aggregations/) `[depth]` (~15 min)
+- [Wazuh — threat hunting with the dashboard](https://documentation.wazuh.com/current/user-manual/wazuh-dashboard/threat-hunting.html) `[depth]` (~15 min)
+- [MITRE ATT&CK — Get Started: Detections & Analytics](https://attack.mitre.org/resources/get-started/detections-and-analytics/) `[depth]` (~20 min)
+- [Microsoft Sentinel — threat hunting (KQL) docs](https://learn.microsoft.com/en-us/azure/sentinel/hunting) `[depth]` (~15 min)
 
 ## Automate incident response with active-response actions
 
@@ -174,10 +174,10 @@ Exam gotchas:
 - Response fits the **NIST 800-61 lifecycle** (prepare → detect/analyze → contain/eradicate/recover → post-incident). `firewall-drop` is *containment*; it isn't eradication or recovery. Don't overclaim what an automated block accomplishes.
 
 **Resources:**
-- [Wazuh active response](https://documentation.wazuh.com/current/user-manual/capabilities/active-response/index.html) (~20 min)
-- [Wazuh — configuring active response](https://documentation.wazuh.com/current/user-manual/capabilities/active-response/how-to-configure.html) (~15 min)
-- [NIST SP 800-61r2 — Computer Security Incident Handling Guide](https://csrc.nist.gov/pubs/sp/800/61/r2/final) (~30 min)
-- [Microsoft Sentinel — automation rules & playbooks (SOAR)](https://learn.microsoft.com/en-us/azure/sentinel/automation/automation) (~15 min)
+- [Wazuh active response](https://documentation.wazuh.com/current/user-manual/capabilities/active-response/index.html) `[depth]` (~20 min)
+- [Wazuh — configuring active response](https://documentation.wazuh.com/current/user-manual/capabilities/active-response/how-to-configure.html) `[depth]` (~15 min)
+- [NIST SP 800-61r2 — Computer Security Incident Handling Guide](https://csrc.nist.gov/pubs/sp/800/61/r2/final) `[depth]` (~30 min)
+- [Microsoft Sentinel — automation rules & playbooks (SOAR)](https://learn.microsoft.com/en-us/azure/sentinel/automation/automation) `[depth]` (~15 min)
 
 ## Summary
 | Objective | Takeaway |
