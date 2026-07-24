@@ -51,3 +51,51 @@ A lab's step-by-step commands SHALL match the mode and configuration the backing
 - **WHEN** the lab covers Shamir seal/unseal and integrated Raft storage
 - **THEN** these are presented as the commented production path (study material read alongside the dev deployment), not as commands the dev server is expected to execute
 
+### Requirement: Optional enrichment labs are supported and marked as non-tracked
+The lab catalog SHALL support an **optional enrichment lab** category: a lab that follows the standard lab format (objectives, prerequisites, estimated time, steps, a concrete verification, teardown) and exercises the existing `lab-infra/` stack, but is **explicitly not mapped to a `tracker.yaml` objective** and is marked as optional/enrichment in `labs/README.md`. Enrichment labs SHALL be exempt from the objective-coverage requirement (they add depth beyond the skills outline, not coverage of it), and the catalog index SHALL distinguish them from tracked hands-on and walkthrough labs so a learner can tell required coverage from optional depth. The first enrichment lab SHALL be a **kubelet attack-surface** lab that probes the kubelet API on the existing `kind` cluster, observes that authentication/authorization is enforced, ties the observed behavior to the `--anonymous-auth` / `--authorization-mode` settings, and connects the CRI/containerd boundary to what Falco/Tetragon observe in Domain 3.
+
+#### Scenario: Enrichment lab is labeled distinctly in the catalog
+- **WHEN** a reader opens `labs/README.md`
+- **THEN** the kubelet attack-surface lab appears marked as an optional enrichment lab, visually distinct from tracked hands-on and walkthrough labs
+
+#### Scenario: Enrichment labs do not distort objective coverage
+- **WHEN** the catalog is compared against `assessment/data/tracker.yaml`
+- **THEN** the enrichment lab is not required to map to any objective subsection, and its presence neither adds nor is counted toward objective coverage
+
+#### Scenario: The kubelet enrichment lab has a concrete observable
+- **WHEN** a learner runs the kubelet attack-surface lab against the `kind` cluster
+- **THEN** the verification step gives an observable check — e.g. an unauthenticated request to the kubelet API returning 401/403, contrasted with the kubelet flags that enforce it — proving the kubelet's authn/authz posture rather than merely describing it
+
+#### Scenario: Enrichment lab follows the standard format and tears down cleanly
+- **WHEN** a reader opens the kubelet attack-surface lab
+- **THEN** it contains objectives, prerequisites, estimated time, steps, verification, and teardown, and its teardown leaves no residual resources on the shared `kind` cluster
+
+### Requirement: The Sigma conversion step is completable from course materials
+A lab that requires converting a Sigma rule SHALL teach how to discover the right pipeline (`sigma list pipelines`) and name the correct pipeline for the rule's `product`/`service`, and every reference solution SHALL show a pipeline that matches the rule (not a mismatched one).
+
+#### Scenario: Linux/sshd rule uses a matching pipeline
+- **WHEN** a learner completes `labs/d4-siem-wazuh.md` Part C converting a `product: linux, service: sshd` rule
+- **THEN** the lab teaches `sigma list pipelines`, names the correct opensearch/linux pipeline, and both the lab reference solution and the `siem-incident-response.md` `siem-detect` note example use that pipeline rather than `-p ecs_windows`
+
+### Requirement: The WAF reference configuration loads without error
+A lab's WAF reference configuration SHALL load cleanly — no duplicate rule IDs — and where custom `SecRule` authoring is in exam scope the materials SHALL show a minimal `SecRule` example (or explicitly mark it beyond-lab).
+
+#### Scenario: WAF reference loads and SecRule anatomy is shown
+- **WHEN** a learner applies the `labs/d2-ingress-waf.md` Part C reference configuration
+- **THEN** it uses a single combined `SecAction` (no duplicate `id:900110`) so ModSecurity loads it without a config-load error, and a minimal `SecRule ARGS "@rx …" "id:…,phase:2,deny"` example is provided or the gotcha is marked beyond-lab
+
+### Requirement: Admission/runtime labs surface the observable from the control under test
+A lab demonstrating an admission-webhook or runtime-detection control SHALL produce its positive/observable result from *that* control, not from built-in PodSecurity admission. The lab SHALL run its demo pods in a non-`restricted` demo namespace and SHALL include one sentence on admission-controller ordering (built-in PSA evaluates before validating/mutating webhooks) explaining why the demo namespace is unrestricted.
+
+#### Scenario: Kyverno is the enforcement point the learner observes
+- **WHEN** the D1 governance Part A privileged demo pod or the D3 pod-security Part C `evil` pod is applied
+- **THEN** admission or rejection is decided by Kyverno (including the "flip to `Audit` → pod admitted → PolicyReport violation" and "rejected by Kyverno with your custom message" observables), rather than the pod being pre-empted by built-in PSS
+
+#### Scenario: Supply-chain "signed image admitted" case is reachable
+- **WHEN** the D3 supply-chain Part D signed image is applied to the demo namespace
+- **THEN** it is admitted (Kyverno verification passes and no `restricted` PSS check rejects it afterward), so the positive test is observable
+
+#### Scenario: Admission-ordering reason is taught
+- **WHEN** a learner reads any of the four affected labs
+- **THEN** it states that built-in PSA runs before webhooks and is why the demo namespace is not `restricted`
+

@@ -135,3 +135,35 @@ Every command-line tool a lab invokes beyond the day-one baseline (Docker, kind,
 - **WHEN** a bring-up script hard-fails without a tool (e.g. `ztna-common/tf.sh` needs `terraform`; `lab-infra/secrets/up.sh` needs `jq`)
 - **THEN** that tool is listed in the top-level `README.md` / `lab-infra/README.md` prerequisites with an install link, not only inside a later note
 
+### Requirement: The AI red-team labs ship runnable offense scaffolding
+
+`lab-infra/offense/` SHALL ship runnable scaffolding for the AI red-team tracks: a PyRIT multi-turn orchestrator skeleton wired to the local Ollama/gateway target, and a garak generator-config example (`localhost-ollama.json` for the REST generator) that points garak at the local stack. Both SHALL run against the local lab stack out of the box — `garak -G lab-infra/offense/localhost-ollama.json …` targets the local gateway without edits, and the PyRIT skeleton executes a minimal multi-turn run — and both SHALL be shaped as scaffolds the learner extends, not finished exploits.
+
+#### Scenario: garak targets the local stack from the shipped config
+
+- **WHEN** a learner runs garak with the shipped `-G localhost-ollama.json` generator config against the running AI gateway/Ollama
+- **THEN** garak connects to the local target and runs, with no undocumented JSON the learner had to reverse-engineer from the garak docs
+
+#### Scenario: The PyRIT skeleton runs a multi-turn orchestration
+
+- **WHEN** a learner runs the shipped PyRIT orchestrator skeleton against the local target
+- **THEN** it executes a minimal multi-turn orchestration the learner can extend, rather than starting from an empty file and a bare GitHub link
+
+### Requirement: Admission/runtime demos run in a non-restricted demo namespace
+Namespaces used to demonstrate an admission-webhook or runtime-detection control SHALL NOT be labeled `pod-security.kubernetes.io/enforce: restricted`, because built-in PodSecurity admission runs before validating/mutating webhooks and would reject a non-compliant demo pod itself — pre-empting the control the lab exists to prove. `lab-infra/` SHALL provide a dedicated demo namespace (e.g. `gov-demo` / `runtime-demo`) carrying the standard `owner`/`oss500` labels for cleanup, and the four affected demos SHALL target it rather than `oss500-apps`.
+
+#### Scenario: Demo namespace does not enforce restricted PSS
+- **WHEN** a reader inspects the namespace used by the D1 governance, D3 pod-security, D3 runtime-detection, and D3 supply-chain demos in `lab-infra/shared/namespaces.yaml`
+- **THEN** that namespace has no `pod-security.kubernetes.io/enforce: restricted` label, so a bare `kubectl run`/`kubectl create` demo pod reaches the webhook/runtime control instead of being rejected by built-in PSA
+
+#### Scenario: Demo namespace is still labeled for cleanup
+- **WHEN** the demo namespace is created
+- **THEN** it carries the standard `owner`/`oss500` labels so a learner can identify and tear down all lab resources
+
+### Requirement: Restricted-compliant victim manifests where a successful root read is the observable
+Where a lab's observable depends on a *successful* privileged file read (e.g. Falco's `Read sensitive file untrusted` rule, which needs a completed `open`), `lab-infra/` SHALL ship a victim/target manifest that can actually perform that read, rather than one forced non-root by `restricted` PSS (which fails with EACCES before a descriptor exists).
+
+#### Scenario: Runtime-detection victim can perform the sensitive read
+- **WHEN** the D3 runtime-detection victim pod runs `cat /etc/shadow`
+- **THEN** the read succeeds and Falco fires its sensitive-file rule after the fact, rather than the read failing at EACCES so no event is generated
+

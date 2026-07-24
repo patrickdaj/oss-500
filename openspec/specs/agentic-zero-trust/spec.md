@@ -100,3 +100,31 @@ The Domain 6 agent workload-identity (SPIRE) steps SHALL be either backed by a S
 - **WHEN** SPIRE stand-up is left as directions (`lab-infra/agentic/spire/registration.md`)
 - **THEN** those directions are either a complete, followable install path, or an honest statement that standing up SPIRE is out of scope for the run-it path — not a single `entry create` command that presupposes an unbuilt server and agent
 
+### Requirement: The MCP protocol is taught before its authorization is reasoned about
+
+The `d6-tools-mcp` note SHALL teach the Model Context Protocol before the learner is asked to reason about `mcp-authn`. The primer SHALL cover: the client/server roles, the tool-call request/response shape, and — decisively — the two transports, **stdio** (local, process-bound, no network authentication surface) versus **streamable HTTP** (networked, where bearer-token / OAuth resource-server semantics apply). The note SHALL make explicit that the authentication and authorization design for an MCP call depends on the transport, and SHALL mark the MCP authorization spec as a load-bearing reference (per the necessity-tag standard).
+
+#### Scenario: The transport distinction is defined before it is used
+
+- **WHEN** a learner reaches the `mcp-authn` objective in `d6-tools-mcp`
+- **THEN** the note has already defined MCP client/server and the stdio-vs-streamable-HTTP transports, so the learner can reason about where a token lives and whether OAuth applies from course material rather than from the external spec
+
+#### Scenario: The load-bearing MCP reference is signalled
+
+- **WHEN** a learner reads the `d6-tools-mcp` resource list
+- **THEN** the MCP authorization spec is tagged as required reading (not one anonymous link among several), so the learner knows it is the load-bearing source for the objective
+
+### Requirement: The action-gating objective teaches the LangGraph execution model it asks the learner to implement
+
+The `d6-action-gating` note SHALL teach the LangGraph execution model that implementing human-in-the-loop pause/resume requires — nodes, graph state, the checkpointer that persists state between steps, and `interrupt()` (how it suspends a run so an approver can act before the graph resumes) — so a learner can author the gate, not merely read the shipped `agent.py`. The note's LangGraph reference SHALL deep-link to the human-in-the-loop / `interrupt()` documentation (not the repository root) and SHALL be marked load-bearing per the necessity-tag standard.
+
+#### Scenario: The learner can implement pause/resume from the note
+
+- **WHEN** a learner reaches the `d6-action-gating` implementation step
+- **THEN** the note has defined node/state/checkpointer and `interrupt()` semantics, so the learner can author the pause/resume gate from course material rather than reverse-engineering it from `agent.py`
+
+#### Scenario: The LangGraph reference points at the interrupt() doc
+
+- **WHEN** a learner opens the note's LangGraph reference
+- **THEN** it lands on the human-in-the-loop / `interrupt()` documentation (not the repo root) and is tagged as required reading for the objective
+
