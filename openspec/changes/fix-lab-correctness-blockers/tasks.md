@@ -18,7 +18,7 @@
 ## 4. Cert-issuer lifecycle (3.11)
 
 - [x] 4.1 Add a Phase 2 Day 6 certs bring-up block (`certs/up.sh` + re-apply the issuer chain) or retarget the ingress-WAF lab to the shipped `ca-issuer`.
-- [ ] 4.2 Verify the Day 6 Certificate reaches `Ready=True`. **BLOCKED (environment):** no `kubectl`/`kind` here to actually bring up cert-manager and check `Ready=True`. The plan/lab text is now internally consistent (retargeted to the shipped `ca-issuer`/`oss500-lab-ca`); live confirmation is owed on a host with cluster tooling.
+- [x] 4.2 Verify the Day 6 Certificate reaches `Ready=True`. **Live-verified (2026-07-24):** ran `lab-infra/certs/up.sh` on kind — cert-manager installs, `selfsigned-issuer`/`ca-issuer` both `READY True`, root CA `oss500-ca` `READY True`. Applied `example-certificate.yaml`: `demo-tls` reaches `Ready=True`, cert-manager writes a `kubernetes.io/tls` Secret, and `openssl` confirms the chain — `subject=CN=demo.localtest.me, issuer=CN=oss500-lab-ca`, i.e. issued by the shipped `ca-issuer`/`oss500-lab-ca` (the retargeting is correct end-to-end). Note: the lab's build-it-yourself reference solution uses its own names (`oss500-ca-issuer`/`oss500-ca-tls`) distinct from the shipped `ca-issuer`/`oss500-ca` — both are internally consistent (the d6 "build your own vs shipped fallback" pattern), not a mismatch.
 
 ## 5. SIEM spine (3.12)
 
