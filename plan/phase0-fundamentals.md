@@ -35,7 +35,7 @@ Set up the reference host and the cluster once here; every later phase reuses it
 
 ## Day 4 — RBAC preview and flex
 
-- [ ] **[1.5h] Kubernetes RBAC preview** — Roles, ClusterRoles, bindings, `kubectl auth can-i`. Just enough to be comfortable; Phase 1's [kubernetes-rbac.md](../domains/1-identity-governance/kubernetes-rbac.md) goes deep.
+- [ ] **[1.5h] Kubernetes RBAC preview** — Roles, ClusterRoles, bindings, `kubectl auth can-i`. Read the ["RBAC in 10 minutes"](../domains/0-fundamentals/02-kubernetes.md#rbac-in-10-minutes) section of today's note; just enough to be comfortable. Phase 1's [kubernetes-rbac.md](../domains/1-identity-governance/kubernetes-rbac.md) goes deep.
 - [ ] **[1.5h] YAML/manifest fluency** — reading `securityContext`, resource limits, and probes in a manifest without flinching.
 - [ ] **[1h] Catch-up / rest** — finish any self-checks; make sure `kind`, `kubectl`, and `helm` all work end to end before Phase 1.
 
