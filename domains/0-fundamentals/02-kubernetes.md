@@ -20,7 +20,7 @@ Every component above doesn't just coexist in the same cluster — each one **au
 
 **CRI/containerd is the boundary the kubelet hands off to.** The kubelet doesn't run containers itself; it speaks the **Container Runtime Interface (CRI)** to a runtime — containerd on this course's `kind` nodes — which does the actual namespace/cgroup/syscall work of starting a container. That boundary is exactly where **Falco and Tetragon hook** in Domain 3: they instrument the kernel underneath containerd (syscalls, kprobes, the LSM hook — see [`07-ebpf-fundamentals.md`](07-ebpf-fundamentals.md)) to see what a running container actually does, independent of what the CRI or kubelet report. [`runtime-security.md`](../3-compute-ai/runtime-security.md) builds directly on this boundary.
 
-**The CNI is where NetworkPolicy is — or isn't — enforced.** The Container Network Interface plugin wires up every pod's network namespace, and nothing in the Kubernetes API forces a CNI to honor NetworkPolicy — the API server just stores the object; enforcement is opt-in plugin behavior. That's why [`network-security.md`](../2-secrets-data-networking/network-security.md) (`net-policy`) has this course install Calico rather than relying on kind's default `kindnet`: a NetworkPolicy applied under a non-enforcing CNI exists and does nothing, silently.
+**The CNI is where NetworkPolicy is — or isn't — enforced.** The Container Network Interface plugin wires up every pod's network namespace, and nothing in the Kubernetes API forces a CNI to honor NetworkPolicy — the API server just stores the object; enforcement is opt-in plugin behavior. That's why a NetworkPolicy is only as real as the CNI beneath it: applied under a CNI that ignores policy (plain flannel with no policy add-on), the object exists and silently does nothing. kind's default `kindnet` *does* enforce the basic default-deny/allow policies this course relies on — so a default-deny actually denies out of the box — and [`network-security.md`](../2-secrets-data-networking/network-security.md) (`net-policy`) reaches for Calico only as *optional* depth, for the advanced `namespaceSelector`/egress cases kindnet doesn't cover.
 
 **This is a security lens on `kind`, not a rebuild.** Every component above is already running on the `oss500` kind cluster from Phase 0 — nothing here asks you to build anything, only to look at what's already there as a set of trust boundaries and reachable APIs instead of a list of names. The course stays on `kind` for every lab. If you want to *build* this trust model yourself — mint the CA, bootstrap the API server, join a kubelet, wire a CNI by hand with kubeadm — [**Kubernetes The Hard Way**](https://github.com/kelseyhightower/kubernetes-the-hard-way) is the canonical way to do it: entirely optional, off the critical path here, and a cluster-admin/CKA skill rather than an SC-500 one. `[depth]`
 
@@ -81,6 +81,8 @@ spec:
   securityContext:
     runAsNonRoot: true       # kubelet refuses to start the container as UID 0
     runAsUser: 10001
+    seccompProfile:
+      type: RuntimeDefault   # required by the `restricted` PSA — omit it and admission rejects the pod
   containers:
     - name: nginx
       image: nginxinc/nginx-unprivileged:stable   # non-root nginx build, listens on :8080
@@ -114,7 +116,7 @@ kubectl apply -f hardened-nginx.yaml
 kubectl get pod hardened-nginx -n oss500-apps                       # Running, not CrashLoopBackOff
 kubectl exec -n oss500-apps hardened-nginx -- id -u                 # 10001 — not root
 kubectl exec -n oss500-apps hardened-nginx -- sh -c 'echo x > /root-test'
-# sh: can't create /root-test: Read-only file system
+# sh: 1: cannot create /root-test: Read-only file system
 ```
 
 That last command is the point: `readOnlyRootFilesystem: true` isn't a note in a YAML file the cluster ignores — the write is actually denied. Clean up when done: `kubectl delete pod hardened-nginx -n oss500-apps`.
